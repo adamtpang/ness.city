@@ -1,15 +1,19 @@
 import Link from "next/link";
-import { getCitizen, getProblem, bountyTotal } from "@/lib/data";
+import {
+  getSampleCitizen,
+  getSampleProblem,
+  sampleBountyTotal,
+} from "@/lib/sample";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 import { Avatar } from "@/components/Avatar";
 import { NessieLogo } from "@/components/NessieLogo";
 
 export default function AboutPage() {
-  const wifi = getProblem("wifi-drops-coworking-3pm")!;
-  const reporter = getCitizen(wifi.reporterId)!;
-  const proposalAuthor = getCitizen(wifi.proposals[0].authorId)!;
-  const solver = getCitizen(wifi.bounty!.claimedBy!)!;
-  const total = bountyTotal(wifi);
+  const wifi = getSampleProblem("wifi-drops-coworking-3pm")!;
+  const reporter = getSampleCitizen(wifi.reporterId)!;
+  const proposalAuthor = getSampleCitizen(wifi.proposals[0].authorId)!;
+  const solver = getSampleCitizen(wifi.bounty!.claimedBy!)!;
+  const total = sampleBountyTotal(wifi);
 
   return (
     <main className="mx-auto max-w-2xl px-5 pb-24 pt-14">
@@ -49,16 +53,17 @@ export default function AboutPage() {
 
       <FadeInOnView>
         <p className="mt-6 text-[18px] leading-[1.7] text-ink-800">
-          A real city &mdash; one with a thousand small frictions every day
-          &mdash; doesn&apos;t survive top-down. It survives because citizens
-          notice things, name them, fund them, and quietly fix them.
+          A real city, one with a thousand small frictions every day,
+          doesn&apos;t survive top-down. It survives because citizens notice
+          things, name them, fund them, and quietly fix them.
         </p>
       </FadeInOnView>
 
       <FadeInOnView>
         <p className="mt-6 text-[18px] leading-[1.7] text-ink-800">
-          Ness is the engine that turns notice into shipped fixes &mdash; in
-          five steps.
+          Ness is the engine that turns notice into shipped fixes, in five
+          steps. Think of it as ns.com with issues and pull requests. The
+          first open-source attempt at a Network School.
         </p>
       </FadeInOnView>
 
@@ -66,15 +71,24 @@ export default function AboutPage() {
       <FadeInOnView>
         <div className="mt-16 rounded-2xl border border-ink-200 bg-paper-tint p-6">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-            Worked example · real bounty, real fix
+            Worked example · sample data
           </p>
           <h2 className="serif mt-2 text-[26px] leading-tight text-ink-950">
             {wifi.title}
           </h2>
           <p className="mt-2 text-[14px] leading-[1.6] text-ink-600">
-            We&apos;ll walk through how this single problem moved through Ness
-            &mdash; from one citizen noticing, to a paid-out, documented fix.
+            We&apos;ll walk through how this single problem moved through Ness,
+            from one citizen noticing, to a paid-out, documented fix. The
+            actual platform starts empty. This is how it&apos;s designed to
+            work once people use it.
           </p>
+          <Link
+            href={`/problems/${wifi.slug}`}
+            className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-ink-950 hover:opacity-70"
+          >
+            Open the example problem page
+            <span aria-hidden>→</span>
+          </Link>
         </div>
       </FadeInOnView>
 
@@ -92,7 +106,7 @@ export default function AboutPage() {
       >
         <p>
           Priya files the problem in 90 seconds. The form requires a real
-          diagnosis &mdash; not a complaint. She writes:
+          diagnosis, not a complaint. She writes:
         </p>
         <Quote>{wifi.summary}</Quote>
         <p className="mt-4">
@@ -141,7 +155,7 @@ export default function AboutPage() {
       {/* Step 4 */}
       <Step n="04" title="Bounty" actor="The community pledges money">
         <p>
-          Patrons crowdfund the proposal. Each pledge is public; each
+          Patrons crowdfund the proposal. Each pledge is public. Each
           patron earns attribution forever. For this fix:
         </p>
         <div className="mt-5 rounded-xl border border-ink-200 bg-paper p-5">
@@ -155,7 +169,7 @@ export default function AboutPage() {
           </div>
           <ul className="mt-3 space-y-1.5">
             {wifi.bounty!.pledges.slice(0, 3).map((pl) => {
-              const p = getCitizen(pl.patronId);
+              const p = getSampleCitizen(pl.patronId);
               if (!p) return null;
               return (
                 <li
@@ -178,7 +192,7 @@ export default function AboutPage() {
           </ul>
         </div>
         <p className="mt-4">
-          Patrons earn no karma &mdash; they earn{" "}
+          Patrons earn no karma. They earn{" "}
           <span className="text-ink-950">attribution</span>. Their name lives
           on the fix forever, even when they leave NS.
         </p>
@@ -198,16 +212,15 @@ export default function AboutPage() {
       >
         <p>
           Once funded, any citizen can claim the bounty. They have to ship
-          AND write up what they did &mdash; the documentation is the
-          deliverable.
+          AND write up what they did. The documentation is the deliverable.
         </p>
         <Quote>{wifi.documentation!.body}</Quote>
         <p className="mt-4">
           Marcus earns <KarmaPill>+25</KarmaPill> for documentation,{" "}
           <KarmaPill>+{wifi.documentation!.upvotes * 8}</KarmaPill> for
           community upvotes, and the cash bounty. The fix becomes part of the
-          city&apos;s permanent memory &mdash; the next person doesn&apos;t
-          start from zero.
+          city&apos;s permanent memory. The next person doesn&apos;t start
+          from zero.
         </p>
       </Step>
 
@@ -217,12 +230,12 @@ export default function AboutPage() {
             The engine
           </p>
           <h2 className="serif mt-2 text-[26px] leading-tight">
-            Surface → Explain → Propose → Bounty → Ship.
+            Surface. Explain. Propose. Bounty. Ship.
           </h2>
           <p className="mt-3 text-[15px] leading-[1.65] text-ink-200">
             Two leaderboards keep score. <strong>Solvers</strong> earn karma.{" "}
             <strong>Patrons</strong> earn attribution. Neither one runs the
-            city alone &mdash; together they do.
+            city alone. Together they do.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
@@ -237,6 +250,33 @@ export default function AboutPage() {
             >
               Open bounties →
             </Link>
+          </div>
+        </div>
+      </FadeInOnView>
+
+      {/* Bigger picture */}
+      <FadeInOnView>
+        <div className="mt-20">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            The bigger picture
+          </p>
+          <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+            Ness is one node in <span className="italic">interneta</span>.
+          </h2>
+          <p className="mt-4 text-[16px] leading-[1.7] text-ink-700">
+            ness.city is the bottom-up civic infra for Network School. NS
+            itself is one node in a larger vision Adam calls{" "}
+            <span className="text-ink-950">interneta</span>: the next evolution
+            of the West, built on the thesis Balaji laid out in The Network
+            State. Ness is a working prototype of how a single network-state
+            community can open-source itself the way GitHub repos do. Issues
+            become problems. Pull requests become solutions. Every fix is
+            attributed forever.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Pill href="https://thenetworkstate.com">thenetworkstate.com</Pill>
+            <Pill href="https://nsnodes.com">nsnodes.com</Pill>
+            <Pill>interneta.world (soon)</Pill>
           </div>
         </div>
       </FadeInOnView>
@@ -257,8 +297,8 @@ export default function AboutPage() {
         <FadeInOnView>
           <RoadmapRow
             phase="Now"
-            title="Problems → Bounties → Documentation"
-            body="The five-step engine, live with the inner circle."
+            title="Problems. Bounties. Documentation."
+            body="The five-step engine, live with the inner circle. Real data starts empty."
             status="shipped"
           />
         </FadeInOnView>
@@ -267,6 +307,14 @@ export default function AboutPage() {
             phase="Next"
             title="Auth via NS Directory"
             body="Sign in with your ns.com identity once Ness is approved on ns.com/platform."
+            status="next"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Next"
+            title="Discord listener bot"
+            body="Scrape NS Discord, surface candidate problems from live conversations, route them to the core team or the lore team (longtermer council) for triage."
             status="next"
           />
         </FadeInOnView>
@@ -290,7 +338,7 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Later"
             title="The social graph"
-            body="Citizens list their closest relationships. We crawl, render, and rank — the way Zuck did at Harvard, but for a school of network founders."
+            body="Citizens list their closest relationships. We crawl, render, and rank, the way Zuck did at Harvard, but for a school of network founders."
             status="later"
           />
         </FadeInOnView>
@@ -366,6 +414,31 @@ function KarmaPill({ children }: { children: React.ReactNode }) {
     <span className="inline-flex items-center rounded-full border border-ink-300 bg-paper-tint px-2 py-0.5 font-mono text-[11px] tabular-nums text-ink-950">
       {children}
     </span>
+  );
+}
+
+function Pill({
+  href,
+  children,
+}: {
+  href?: string;
+  children: React.ReactNode;
+}) {
+  const cls =
+    "inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-paper px-3 py-1.5 font-mono text-[12px] text-ink-700";
+  if (!href) {
+    return <span className={`${cls} opacity-60`}>{children}</span>;
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${cls} transition-colors hover:border-ink-950 hover:text-ink-950`}
+    >
+      {children}
+      <span aria-hidden className="text-ink-400">↗</span>
+    </a>
   );
 }
 

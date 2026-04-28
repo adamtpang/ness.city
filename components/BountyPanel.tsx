@@ -3,16 +3,26 @@
 import { motion } from "framer-motion";
 import type { Problem } from "@/lib/types";
 import { getCitizen, bountyTotal } from "@/lib/data";
+import { getSampleCitizen, sampleBountyTotal } from "@/lib/sample";
 import { Avatar } from "./Avatar";
 
 const stateLabel: Record<NonNullable<Problem["bounty"]>["state"], string> = {
   collecting: "Collecting pledges",
-  funded: "Fully funded — needs a solver",
-  claimed: "Claimed — being shipped",
+  funded: "Fully funded. Needs a solver.",
+  claimed: "Claimed. Being shipped.",
   paid: "Paid out",
 };
 
-export function BountyPanel({ problem }: { problem: Problem }) {
+export function BountyPanel({
+  problem,
+  sampleMode = false,
+}: {
+  problem: Problem;
+  sampleMode?: boolean;
+}) {
+  const lookupCitizen = sampleMode ? getSampleCitizen : getCitizen;
+  const totalFn = sampleMode ? sampleBountyTotal : bountyTotal;
+
   if (!problem.bounty) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-7">
@@ -21,7 +31,7 @@ export function BountyPanel({ problem }: { problem: Problem }) {
         </h3>
         <p className="mt-2 text-[14px] leading-[1.6] text-ink-600">
           Once a solution is proposed, anyone can pledge to fund it. Patrons
-          earn attribution; solvers earn Ness karma.
+          earn attribution. Solvers earn Ness karma.
         </p>
         <button className="mt-5 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-colors hover:border-ink-950">
           Pledge a starter
@@ -31,10 +41,10 @@ export function BountyPanel({ problem }: { problem: Problem }) {
     );
   }
 
-  const total = bountyTotal(problem);
+  const total = totalFn(problem);
   const pct = Math.min(100, (total / problem.bounty.goal) * 100);
   const sortedPledges = [...problem.bounty.pledges].sort((a, b) => b.amount - a.amount);
-  const solver = problem.bounty.claimedBy ? getCitizen(problem.bounty.claimedBy) : null;
+  const solver = problem.bounty.claimedBy ? lookupCitizen(problem.bounty.claimedBy) : null;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-200 bg-paper">
@@ -133,7 +143,7 @@ export function BountyPanel({ problem }: { problem: Problem }) {
           </p>
           <ul className="mt-3 space-y-2">
             {sortedPledges.map((pledge) => {
-              const patron = getCitizen(pledge.patronId);
+              const patron = lookupCitizen(pledge.patronId);
               if (!patron) return null;
               return (
                 <li

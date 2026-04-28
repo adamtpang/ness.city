@@ -22,7 +22,7 @@ export default function SubmitPage() {
             Surface something broken.
           </h1>
           <p className="mt-3 text-[15px] leading-[1.6] text-ink-600">
-            The best problems on Ness aren&apos;t complaints — they&apos;re
+            The best problems on Ness aren&apos;t complaints. They&apos;re
             diagnoses. Tell us what&apos;s broken, who&apos;s affected, and your
             best guess at why.
           </p>
@@ -66,7 +66,7 @@ export default function SubmitPage() {
 
           <Field
             label="Why is it happening?"
-            hint="Your best diagnosis. It's okay to be wrong — the community will refine it. But take a swing."
+            hint="Your best diagnosis. It's okay to be wrong, the community will refine it. But take a swing."
           >
             <textarea
               rows={4}

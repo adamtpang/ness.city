@@ -1,0 +1,375 @@
+import type { Citizen, Problem } from "./types";
+
+export const sampleCitizens: Citizen[] = [
+  {
+    id: "u_balaji",
+    handle: "balaji",
+    name: "Balaji S.",
+    avatar: "BS",
+    karma: 0,
+    patronage: 800,
+    solved: 0,
+    funded: 6,
+    joined: "2023-09-01",
+    bio: "Founder. Quiet patron. Funds bounties, lets citizens solve.",
+  },
+  {
+    id: "u_priya",
+    handle: "priya.k",
+    name: "Priya Krishnan",
+    avatar: "PK",
+    karma: 1240,
+    patronage: 90,
+    solved: 8,
+    funded: 2,
+    joined: "2024-02-14",
+    bio: "Logistics lead. Fixing things that should already work.",
+  },
+  {
+    id: "u_marcus",
+    handle: "marcus",
+    name: "Marcus Lee",
+    avatar: "ML",
+    karma: 980,
+    patronage: 240,
+    solved: 6,
+    funded: 4,
+    joined: "2024-03-20",
+    bio: "Infra and tooling. If it's slow, ping me.",
+  },
+  {
+    id: "u_aisha",
+    handle: "aisha",
+    name: "Aisha Bello",
+    avatar: "AB",
+    karma: 720,
+    patronage: 60,
+    solved: 5,
+    funded: 1,
+    joined: "2024-04-02",
+    bio: "Wellbeing & community rituals.",
+  },
+  {
+    id: "u_jonas",
+    handle: "jonas",
+    name: "Jonas Weber",
+    avatar: "JW",
+    karma: 640,
+    patronage: 120,
+    solved: 4,
+    funded: 3,
+    joined: "2024-05-11",
+    bio: "Hardware tinkerer. Bring the broken things.",
+  },
+  {
+    id: "u_emiko",
+    handle: "emiko",
+    name: "Emiko Tanaka",
+    avatar: "ET",
+    karma: 420,
+    patronage: 180,
+    solved: 3,
+    funded: 4,
+    joined: "2024-06-08",
+  },
+  {
+    id: "u_kofi",
+    handle: "kofi",
+    name: "Kofi Mensah",
+    avatar: "KM",
+    karma: 310,
+    patronage: 45,
+    solved: 2,
+    funded: 1,
+    joined: "2024-07-15",
+  },
+  {
+    id: "u_lena",
+    handle: "lena",
+    name: "Lena Petrova",
+    avatar: "LP",
+    karma: 220,
+    patronage: 30,
+    solved: 2,
+    funded: 1,
+    joined: "2024-09-01",
+  },
+  {
+    id: "u_devraj",
+    handle: "devraj",
+    name: "Devraj Iyer",
+    avatar: "DI",
+    karma: 0,
+    patronage: 540,
+    solved: 0,
+    funded: 9,
+    joined: "2024-10-12",
+    bio: "Trader. Doesn't have time to fix. Has money to fund.",
+  },
+  {
+    id: "u_naomi",
+    handle: "naomi",
+    name: "Naomi Park",
+    avatar: "NP",
+    karma: 90,
+    patronage: 320,
+    solved: 1,
+    funded: 7,
+    joined: "2024-11-04",
+    bio: "Founder. Pays for the friction she sees.",
+  },
+];
+
+export const sampleProblems: Problem[] = [
+  {
+    id: "p_001",
+    slug: "wifi-drops-coworking-3pm",
+    title: "Coworking Wi-Fi drops every afternoon around 3pm",
+    summary:
+      "Connection becomes unusable in the main coworking from ~3pm to 5pm. Calls drop, deploys fail, members leave to cafés.",
+    rootCause:
+      "AP-3 in the south wall is on the same channel as the building's neighbour. When their afternoon shift starts, both routers fight for 5GHz band 36. Confirmed via WiFi Analyzer logs (see documentation).",
+    category: "infra",
+    status: "solved",
+    reporterId: "u_priya",
+    createdAt: "2026-04-02",
+    upvotes: 47,
+    affected: 62,
+    proposals: [
+      {
+        id: "pr_001a",
+        authorId: "u_marcus",
+        summary: "Re-channel AP-3 to band 149 + add second AP in south corner",
+        body: "Two-step fix: (1) move AP-3 off the saturated 36 band onto 149, which the neighbour isn't on. (2) Mount a second Unifi U6-Pro on the south column to handle the afternoon load. Estimated parts: $189.",
+        createdAt: "2026-04-04",
+        upvotes: 31,
+      },
+    ],
+    bounty: {
+      proposalId: "pr_001a",
+      goal: 240,
+      state: "paid",
+      claimedBy: "u_marcus",
+      paidAt: "2026-04-09",
+      pledges: [
+        { patronId: "u_balaji", amount: 100, pledgedAt: "2026-04-04" },
+        { patronId: "u_devraj", amount: 60, pledgedAt: "2026-04-05" },
+        { patronId: "u_naomi", amount: 40, pledgedAt: "2026-04-05" },
+        { patronId: "u_emiko", amount: 25, pledgedAt: "2026-04-06" },
+        { patronId: "u_jonas", amount: 15, pledgedAt: "2026-04-06" },
+      ],
+    },
+    documentation: {
+      authorId: "u_marcus",
+      body: "Logged channel utilisation across a week. Band 36 hit 92% saturation between 14:50 and 17:10 every weekday. Switched AP-3 to band 149, added a Unifi U6-Pro mounted on the south column. Latency p95 went from 480ms to 38ms during the problem window. Total parts: $189. $51 returned to bounty pool for next infra fix.",
+      cost: 189,
+      shippedAt: "2026-04-09",
+      upvotes: 31,
+    },
+  },
+  {
+    id: "p_002",
+    slug: "newcomers-lost-first-week",
+    title: "Newcomers spend their first week feeling lost",
+    summary:
+      "New arrivals report not knowing which Slack channels matter, who to ask for what, or where to physically go for meals. Average week-1 satisfaction: 4.2/10.",
+    rootCause:
+      "We have a Notion onboarding doc, but it's 14 pages and last updated 8 months ago. Half the named contacts have left. The real onboarding is tribal. You have to find a friend who'll walk you around.",
+    category: "social",
+    status: "in-progress",
+    reporterId: "u_aisha",
+    createdAt: "2026-04-10",
+    upvotes: 38,
+    affected: 24,
+    proposals: [
+      {
+        id: "pr_002a",
+        authorId: "u_aisha",
+        summary: "Pair every new arrival with a 'first-week buddy'",
+        body: "Auto-pair newcomers with a 30+ day resident on arrival. Buddy commits to 3 short meals in week 1. Light-touch tracking via a shared sheet. Pilot cohort (n=8) scored 8.1/10, almost double the baseline.",
+        createdAt: "2026-04-15",
+        upvotes: 22,
+      },
+    ],
+    bounty: {
+      proposalId: "pr_002a",
+      goal: 600,
+      state: "claimed",
+      claimedBy: "u_aisha",
+      pledges: [
+        { patronId: "u_naomi", amount: 150, pledgedAt: "2026-04-16", note: "I felt this in my first week. Thank you." },
+        { patronId: "u_balaji", amount: 200, pledgedAt: "2026-04-16" },
+        { patronId: "u_devraj", amount: 100, pledgedAt: "2026-04-17" },
+        { patronId: "u_marcus", amount: 80, pledgedAt: "2026-04-17" },
+        { patronId: "u_emiko", amount: 50, pledgedAt: "2026-04-18" },
+        { patronId: "u_kofi", amount: 25, pledgedAt: "2026-04-19" },
+      ],
+    },
+  },
+  {
+    id: "p_003",
+    slug: "kitchen-dishes-pile",
+    title: "Kitchen sink piles up every evening",
+    summary:
+      "Dishes accumulate after dinner. By morning the sink is full. Cleaners arrive at 9am, by which point the smell has set in.",
+    rootCause:
+      "Two compounding causes: (1) the dishwasher cycle is 3 hours, so people queue dishes rather than load them. (2) No clear ownership: everyone assumes the next person will run it.",
+    category: "operations",
+    status: "investigating",
+    reporterId: "u_emiko",
+    createdAt: "2026-04-18",
+    upvotes: 19,
+    affected: 80,
+    proposals: [],
+  },
+  {
+    id: "p_004",
+    slug: "1on1-rooms-always-booked",
+    title: "1-on-1 rooms always booked, but half are empty",
+    summary:
+      "Calendar shows every small room booked 9am to 7pm. Walking past, 40% are visibly empty. People squat bookings 'just in case'.",
+    rootCause:
+      "Booking has no cost and no enforcement. The optimum strategy for any individual is to over-book. Classic tragedy of the commons.",
+    category: "policy",
+    status: "open",
+    reporterId: "u_jonas",
+    createdAt: "2026-04-22",
+    upvotes: 28,
+    affected: 110,
+    proposals: [
+      {
+        id: "pr_004a",
+        authorId: "u_marcus",
+        summary: "Auto-release rooms after 5 minutes of no motion",
+        body: "Cheap PIR motion sensor + Cal.com webhook. Room frees if no movement detected within 5 minutes of booking start. ~$30 in parts per room, ~6 hours of work.",
+        createdAt: "2026-04-24",
+        upvotes: 14,
+      },
+    ],
+    bounty: {
+      proposalId: "pr_004a",
+      goal: 500,
+      state: "collecting",
+      pledges: [
+        { patronId: "u_devraj", amount: 120, pledgedAt: "2026-04-25" },
+        { patronId: "u_naomi", amount: 80, pledgedAt: "2026-04-25" },
+        { patronId: "u_priya", amount: 50, pledgedAt: "2026-04-26" },
+        { patronId: "u_jonas", amount: 30, pledgedAt: "2026-04-26" },
+      ],
+    },
+  },
+  {
+    id: "p_005",
+    slug: "gym-equipment-broken",
+    title: "Half the gym equipment is broken or missing parts",
+    summary:
+      "Cable machine missing the lat bar. Two treadmills out of service for 3+ weeks. Adjustable bench has a wobbling pin.",
+    rootCause:
+      "No-one owns gym maintenance. Issues get reported in #facilities Slack and quietly fall off the feed. Not a budget problem. A routing problem.",
+    category: "operations",
+    status: "in-progress",
+    reporterId: "u_kofi",
+    createdAt: "2026-04-19",
+    upvotes: 24,
+    affected: 45,
+    proposals: [
+      {
+        id: "pr_005a",
+        authorId: "u_jonas",
+        summary: "Set up a #fix-it tag with weekly Friday sweep",
+        body: "Created a #fix-it Slack tag. Anything tagged gets logged to a public Linear board. Volunteering to do a Friday afternoon sweep myself for the next 6 weeks. After that we rotate. Already cleared 4 items this week.",
+        createdAt: "2026-04-23",
+        upvotes: 17,
+      },
+    ],
+    bounty: {
+      proposalId: "pr_005a",
+      goal: 300,
+      state: "funded",
+      pledges: [
+        { patronId: "u_balaji", amount: 100, pledgedAt: "2026-04-24" },
+        { patronId: "u_devraj", amount: 100, pledgedAt: "2026-04-24" },
+        { patronId: "u_emiko", amount: 60, pledgedAt: "2026-04-25" },
+        { patronId: "u_naomi", amount: 40, pledgedAt: "2026-04-25" },
+      ],
+    },
+  },
+  {
+    id: "p_006",
+    slug: "loneliness-third-week",
+    title: "People hit a loneliness wall around week 3",
+    summary:
+      "Weeks 1 to 2 feel novel. Around week 3, several residents report feeling more alone than at home. A few have left early.",
+    rootCause:
+      "Honeymoon period ends but deep relationships haven't formed yet. Most events are large and passive. There's no consistent small-group ritual to build vulnerability.",
+    category: "wellbeing",
+    status: "open",
+    reporterId: "u_lena",
+    createdAt: "2026-04-24",
+    upvotes: 41,
+    affected: 30,
+    proposals: [],
+  },
+  {
+    id: "p_007",
+    slug: "loud-calls-quiet-zone",
+    title: "Loud calls happening in the designated quiet zone",
+    summary:
+      "The library/quiet zone has become the de facto call room because it has the best lighting. Deep-work members are getting pushed to bedrooms.",
+    rootCause:
+      "Signage is small and English-only. Better-lit call rooms exist but feel hidden. The behaviour is rational given the layout. The rules are just badly enforced by space design.",
+    category: "operations",
+    status: "open",
+    reporterId: "u_priya",
+    createdAt: "2026-04-25",
+    upvotes: 15,
+    affected: 35,
+    proposals: [],
+  },
+  {
+    id: "p_008",
+    slug: "visa-runs-disorganized",
+    title: "Visa runs are disorganized: same questions every month",
+    summary:
+      "Every month, 4 to 5 people independently figure out the visa run to JB. Same WhatsApp questions, same wrong info, occasional missed deadlines.",
+    rootCause:
+      "Knowledge isn't compounding. Each person solves it once, then leaves the chat. There's no living document. Just stale screenshots.",
+    category: "policy",
+    status: "investigating",
+    reporterId: "u_marcus",
+    createdAt: "2026-04-20",
+    upvotes: 22,
+    affected: 50,
+    proposals: [
+      {
+        id: "pr_008a",
+        authorId: "u_priya",
+        summary: "Living visa playbook + monthly buddy system",
+        body: "One canonical doc, kept current by whoever last did the run (small karma reward). Plus pair next-month travelers with last-month travelers for a 15-min handoff call.",
+        createdAt: "2026-04-22",
+        upvotes: 11,
+      },
+    ],
+    bounty: {
+      proposalId: "pr_008a",
+      goal: 200,
+      state: "collecting",
+      pledges: [
+        { patronId: "u_devraj", amount: 50, pledgedAt: "2026-04-23" },
+        { patronId: "u_naomi", amount: 30, pledgedAt: "2026-04-24" },
+      ],
+    },
+  },
+];
+
+export function getSampleProblem(slug: string): Problem | undefined {
+  return sampleProblems.find((p) => p.slug === slug);
+}
+
+export function getSampleCitizen(id: string): Citizen | undefined {
+  return sampleCitizens.find((c) => c.id === id);
+}
+
+export function sampleBountyTotal(p: Problem): number {
+  return p.bounty?.pledges.reduce((s, x) => s + x.amount, 0) ?? 0;
+}

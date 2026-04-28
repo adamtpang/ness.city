@@ -1,13 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCitizen, getProblem, problems } from "@/lib/data";
+import {
+  getSampleCitizen,
+  getSampleProblem,
+  sampleProblems,
+} from "@/lib/sample";
 import { StatusBadge, CategoryTag } from "@/components/StatusBadge";
 import { Avatar } from "@/components/Avatar";
 import { BountyPanel } from "@/components/BountyPanel";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 
 export function generateStaticParams() {
-  return problems.map((p) => ({ slug: p.slug }));
+  const real = problems.map((p) => ({ slug: p.slug }));
+  const sample = sampleProblems.map((p) => ({ slug: p.slug }));
+  const seen = new Set<string>();
+  return [...real, ...sample].filter((s) => {
+    if (seen.has(s.slug)) return false;
+    seen.add(s.slug);
+    return true;
+  });
 }
 
 export default async function ProblemPage({
@@ -16,13 +28,47 @@ export default async function ProblemPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const problem = getProblem(slug);
+
+  const realProblem = getProblem(slug);
+  const sampleProblem = !realProblem ? getSampleProblem(slug) : undefined;
+  const problem = realProblem ?? sampleProblem;
+  const isSample = !!sampleProblem;
+
   if (!problem) notFound();
 
-  const reporter = getCitizen(problem.reporterId);
+  const lookupCitizen = isSample ? getSampleCitizen : getCitizen;
+  const reporter = lookupCitizen(problem.reporterId);
 
   return (
     <main className="mx-auto max-w-5xl px-5 pb-16 pt-10">
+      {isSample && (
+        <FadeIn>
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50/70 px-5 py-3">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-[12px]">
+                ✦
+              </span>
+              <div>
+                <div className="text-[13px] font-medium text-amber-950">
+                  This is a worked example.
+                </div>
+                <div className="text-[12px] text-amber-900/80">
+                  Sample data from the Ness walkthrough. Real problems will appear
+                  here once citizens start surfacing them.
+                </div>
+              </div>
+            </div>
+            <Link
+              href="/about"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400 bg-paper px-3 py-1 text-[12px] font-medium text-amber-950 transition-colors hover:bg-amber-100"
+            >
+              Read the walkthrough
+              <span aria-hidden>→</span>
+            </Link>
+          </div>
+        </FadeIn>
+      )}
+
       <FadeIn y={6}>
         <Link
           href="/"
@@ -106,7 +152,7 @@ export default async function ProblemPage({
               ) : (
                 <div className="space-y-3">
                   {problem.proposals.map((p) => {
-                    const author = getCitizen(p.authorId);
+                    const author = lookupCitizen(p.authorId);
                     return (
                       <div
                         key={p.id}
@@ -155,9 +201,9 @@ export default async function ProblemPage({
 
           {problem.documentation && (
             <FadeInOnView>
-              <Section title="Documentation — what shipped">
+              <Section title="Documentation. What shipped.">
                 {(() => {
-                  const author = getCitizen(problem.documentation!.authorId);
+                  const author = lookupCitizen(problem.documentation!.authorId);
                   const doc = problem.documentation!;
                   return (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
@@ -204,7 +250,7 @@ export default async function ProblemPage({
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <FadeIn delay={0.2}>
-            <BountyPanel problem={problem} />
+            <BountyPanel problem={problem} sampleMode={isSample} />
           </FadeIn>
         </aside>
       </div>

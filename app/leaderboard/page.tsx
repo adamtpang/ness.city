@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { topSolvers, topPatrons } from "@/lib/data";
@@ -15,10 +16,11 @@ export default function LeaderboardPage() {
   const solvers = topSolvers();
   const patrons = topPatrons();
   const list = tab === "solvers" ? solvers : patrons;
+  const empty = list.length === 0;
   const max =
     tab === "solvers"
-      ? Math.max(...solvers.map((c) => c.karma))
-      : Math.max(...patrons.map((c) => c.patronage));
+      ? Math.max(1, ...solvers.map((c) => c.karma))
+      : Math.max(1, ...patrons.map((c) => c.patronage));
 
   return (
     <main className="mx-auto max-w-3xl px-5 pb-16 pt-12">
@@ -49,73 +51,106 @@ export default function LeaderboardPage() {
       </FadeIn>
 
       <FadeIn delay={0.1}>
-        <div className="mt-8 overflow-hidden rounded-2xl border border-ink-200">
-          <div className="grid grid-cols-12 gap-4 border-b border-ink-200 bg-paper-tint px-5 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-            <div className="col-span-1">#</div>
-            <div className="col-span-5">Citizen</div>
-            <div className="col-span-2 text-right">
-              {tab === "solvers" ? "Solved" : "Funded"}
-            </div>
-            <div className="col-span-4 text-right">
-              {tab === "solvers" ? "Karma" : "Pledged"}
+        {empty ? (
+          <div className="mt-8 rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-10 text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+              No citizens yet
+            </p>
+            <h2 className="serif mt-2 text-[26px] leading-tight text-ink-950">
+              {tab === "solvers"
+                ? "Karma is earned by shipping documented fixes."
+                : "Attribution is earned by funding open bounties."}
+            </h2>
+            <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
+              {tab === "solvers"
+                ? "First solver of the city: see the example fix to learn the pattern."
+                : "First patrons of the city: pick an open bounty and pledge."}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/about"
+                className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
+              >
+                See the example
+                <span aria-hidden>→</span>
+              </Link>
+              <Link
+                href="/bounties"
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-colors hover:border-ink-950"
+              >
+                Open bounties
+              </Link>
             </div>
           </div>
+        ) : (
+          <div className="mt-8 overflow-hidden rounded-2xl border border-ink-200">
+            <div className="grid grid-cols-12 gap-4 border-b border-ink-200 bg-paper-tint px-5 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+              <div className="col-span-1">#</div>
+              <div className="col-span-5">Citizen</div>
+              <div className="col-span-2 text-right">
+                {tab === "solvers" ? "Solved" : "Funded"}
+              </div>
+              <div className="col-span-4 text-right">
+                {tab === "solvers" ? "Karma" : "Pledged"}
+              </div>
+            </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <StaggerList>
-                {list.map((c, idx) => {
-                  const value = tab === "solvers" ? c.karma : c.patronage;
-                  const count = tab === "solvers" ? c.solved : c.funded;
-                  return (
-                    <StaggerItem key={c.id}>
-                      <div className="grid grid-cols-12 gap-4 border-b border-ink-100 bg-paper px-5 py-4 last:border-0 hover:bg-paper-tint">
-                        <div className="col-span-1 flex items-center font-mono text-[13px] tabular-nums text-ink-400">
-                          {String(idx + 1).padStart(2, "0")}
-                        </div>
-                        <div className="col-span-5 flex min-w-0 items-center gap-3">
-                          <Avatar initials={c.avatar} seed={c.id} size={34} />
-                          <div className="min-w-0">
-                            <div className="truncate text-[14px] font-medium text-ink-950">
-                              {c.name}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <StaggerList>
+                  {list.map((c, idx) => {
+                    const value = tab === "solvers" ? c.karma : c.patronage;
+                    const count = tab === "solvers" ? c.solved : c.funded;
+                    return (
+                      <StaggerItem key={c.id}>
+                        <div className="grid grid-cols-12 gap-4 border-b border-ink-100 bg-paper px-5 py-4 last:border-0 hover:bg-paper-tint">
+                          <div className="col-span-1 flex items-center font-mono text-[13px] tabular-nums text-ink-400">
+                            {String(idx + 1).padStart(2, "0")}
+                          </div>
+                          <div className="col-span-5 flex min-w-0 items-center gap-3">
+                            <Avatar initials={c.avatar} seed={c.id} size={34} />
+                            <div className="min-w-0">
+                              <div className="truncate text-[14px] font-medium text-ink-950">
+                                {c.name}
+                              </div>
+                              <div className="font-mono text-[11px] text-ink-500">
+                                @{c.handle}
+                              </div>
                             </div>
-                            <div className="font-mono text-[11px] text-ink-500">
-                              @{c.handle}
+                          </div>
+                          <div className="col-span-2 flex items-center justify-end text-[14px] tabular-nums text-ink-700">
+                            {count}
+                          </div>
+                          <div className="col-span-4 flex items-center justify-end gap-3">
+                            <div className="hidden max-w-[140px] flex-1 sm:block">
+                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
+                                <div
+                                  className="h-full rounded-full bg-ink-950"
+                                  style={{ width: `${(value / max) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                            <div className="min-w-[80px] text-right serif text-[18px] tabular-nums text-ink-950">
+                              {tab === "solvers"
+                                ? value.toLocaleString()
+                                : `$${value.toLocaleString()}`}
                             </div>
                           </div>
                         </div>
-                        <div className="col-span-2 flex items-center justify-end text-[14px] tabular-nums text-ink-700">
-                          {count}
-                        </div>
-                        <div className="col-span-4 flex items-center justify-end gap-3">
-                          <div className="hidden max-w-[140px] flex-1 sm:block">
-                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
-                              <div
-                                className="h-full rounded-full bg-ink-950"
-                                style={{ width: `${(value / max) * 100}%` }}
-                              />
-                            </div>
-                          </div>
-                          <div className="min-w-[80px] text-right serif text-[18px] tabular-nums text-ink-950">
-                            {tab === "solvers"
-                              ? value.toLocaleString()
-                              : `$${value.toLocaleString()}`}
-                          </div>
-                        </div>
-                      </div>
-                    </StaggerItem>
-                  );
-                })}
-              </StaggerList>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+                      </StaggerItem>
+                    );
+                  })}
+                </StaggerList>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
       </FadeIn>
 
       <FadeIn delay={0.16}>
