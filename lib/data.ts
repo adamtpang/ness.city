@@ -6,18 +6,22 @@ export const citizens: Citizen[] = [
     handle: "balaji",
     name: "Balaji S.",
     avatar: "BS",
-    credit: 0,
+    karma: 0,
+    patronage: 800,
     solved: 0,
+    funded: 6,
     joined: "2023-09-01",
-    bio: "Founder. Mostly observing — credit goes to citizens.",
+    bio: "Founder. Quiet patron — funds bounties, lets citizens solve.",
   },
   {
     id: "u_priya",
     handle: "priya.k",
     name: "Priya Krishnan",
     avatar: "PK",
-    credit: 1240,
+    karma: 1240,
+    patronage: 90,
     solved: 8,
+    funded: 2,
     joined: "2024-02-14",
     bio: "Logistics lead. Fixing things that should already work.",
   },
@@ -26,8 +30,10 @@ export const citizens: Citizen[] = [
     handle: "marcus",
     name: "Marcus Lee",
     avatar: "ML",
-    credit: 980,
+    karma: 980,
+    patronage: 240,
     solved: 6,
+    funded: 4,
     joined: "2024-03-20",
     bio: "Infra and tooling. If it's slow, ping me.",
   },
@@ -36,8 +42,10 @@ export const citizens: Citizen[] = [
     handle: "aisha",
     name: "Aisha Bello",
     avatar: "AB",
-    credit: 720,
+    karma: 720,
+    patronage: 60,
     solved: 5,
+    funded: 1,
     joined: "2024-04-02",
     bio: "Wellbeing & community rituals.",
   },
@@ -46,8 +54,10 @@ export const citizens: Citizen[] = [
     handle: "jonas",
     name: "Jonas Weber",
     avatar: "JW",
-    credit: 640,
+    karma: 640,
+    patronage: 120,
     solved: 4,
+    funded: 3,
     joined: "2024-05-11",
     bio: "Hardware tinkerer. Bring the broken things.",
   },
@@ -56,8 +66,10 @@ export const citizens: Citizen[] = [
     handle: "emiko",
     name: "Emiko Tanaka",
     avatar: "ET",
-    credit: 420,
+    karma: 420,
+    patronage: 180,
     solved: 3,
+    funded: 4,
     joined: "2024-06-08",
   },
   {
@@ -65,8 +77,10 @@ export const citizens: Citizen[] = [
     handle: "kofi",
     name: "Kofi Mensah",
     avatar: "KM",
-    credit: 310,
+    karma: 310,
+    patronage: 45,
     solved: 2,
+    funded: 1,
     joined: "2024-07-15",
   },
   {
@@ -74,9 +88,35 @@ export const citizens: Citizen[] = [
     handle: "lena",
     name: "Lena Petrova",
     avatar: "LP",
-    credit: 220,
+    karma: 220,
+    patronage: 30,
     solved: 2,
+    funded: 1,
     joined: "2024-09-01",
+  },
+  {
+    id: "u_devraj",
+    handle: "devraj",
+    name: "Devraj Iyer",
+    avatar: "DI",
+    karma: 0,
+    patronage: 540,
+    solved: 0,
+    funded: 9,
+    joined: "2024-10-12",
+    bio: "Trader. Doesn't have time to fix. Has money to fund.",
+  },
+  {
+    id: "u_naomi",
+    handle: "naomi",
+    name: "Naomi Park",
+    avatar: "NP",
+    karma: 90,
+    patronage: 320,
+    solved: 1,
+    funded: 7,
+    joined: "2024-11-04",
+    bio: "Founder. Pays for the friction she sees.",
   },
 ];
 
@@ -88,25 +128,44 @@ export const problems: Problem[] = [
     summary:
       "Connection becomes unusable in the main coworking from ~3pm to 5pm. Calls drop, deploys fail, members leave to cafés.",
     rootCause:
-      "AP-3 in the south wall is on the same channel as the building's neighbour. When their afternoon shift starts, both routers fight for 5GHz band 36. We confirmed via WiFi Analyzer logs (see solution).",
+      "AP-3 in the south wall is on the same channel as the building's neighbour. When their afternoon shift starts, both routers fight for 5GHz band 36. Confirmed via WiFi Analyzer logs (see documentation).",
     category: "infra",
     status: "solved",
     reporterId: "u_priya",
     createdAt: "2026-04-02",
     upvotes: 47,
     affected: 62,
-    solutions: [
+    proposals: [
       {
-        id: "s_001",
-        problemId: "p_001",
+        id: "pr_001a",
         authorId: "u_marcus",
         summary: "Re-channel AP-3 to band 149 + add second AP in south corner",
-        body: "Logged channel utilisation across a week — band 36 hit 92% saturation between 14:50–17:10 every weekday. Switched AP-3 to band 149, added a Unifi U6-Pro mounted on the south column. Latency p95 went from 480ms → 38ms during the problem window. Total parts: $189.",
-        shippedAt: "2026-04-09",
+        body: "Two-step fix: (1) move AP-3 off the saturated 36 band onto 149, which the neighbour isn't on. (2) Mount a second Unifi U6-Pro on the south column to handle the afternoon load. Estimated parts: $189.",
         createdAt: "2026-04-04",
         upvotes: 31,
       },
     ],
+    bounty: {
+      proposalId: "pr_001a",
+      goal: 240,
+      state: "paid",
+      claimedBy: "u_marcus",
+      paidAt: "2026-04-09",
+      pledges: [
+        { patronId: "u_balaji", amount: 100, pledgedAt: "2026-04-04" },
+        { patronId: "u_devraj", amount: 60, pledgedAt: "2026-04-05" },
+        { patronId: "u_naomi", amount: 40, pledgedAt: "2026-04-05" },
+        { patronId: "u_emiko", amount: 25, pledgedAt: "2026-04-06" },
+        { patronId: "u_jonas", amount: 15, pledgedAt: "2026-04-06" },
+      ],
+    },
+    documentation: {
+      authorId: "u_marcus",
+      body: "Logged channel utilisation across a week — band 36 hit 92% saturation between 14:50–17:10 every weekday. Switched AP-3 to band 149, added a Unifi U6-Pro mounted on the south column. Latency p95 went from 480ms → 38ms during the problem window. Total parts: $189. $51 returned to bounty pool for next infra fix.",
+      cost: 189,
+      shippedAt: "2026-04-09",
+      upvotes: 31,
+    },
   },
   {
     id: "p_002",
@@ -122,17 +181,30 @@ export const problems: Problem[] = [
     createdAt: "2026-04-10",
     upvotes: 38,
     affected: 24,
-    solutions: [
+    proposals: [
       {
-        id: "s_002",
-        problemId: "p_002",
+        id: "pr_002a",
         authorId: "u_aisha",
         summary: "Pair every new arrival with a 'first-week buddy'",
-        body: "Piloting a buddy system: every newcomer is auto-paired with a 30+ day resident on arrival. Buddy commits to 3 short meals in week 1. Tracking via a shared sheet. Pilot cohort (n=8) scored 8.1/10. Scaling next month.",
+        body: "Auto-pair newcomers with a 30+ day resident on arrival. Buddy commits to 3 short meals in week 1. Light-touch tracking via a shared sheet. Pilot cohort (n=8) scored 8.1/10 — almost double the baseline.",
         createdAt: "2026-04-15",
         upvotes: 22,
       },
     ],
+    bounty: {
+      proposalId: "pr_002a",
+      goal: 600,
+      state: "claimed",
+      claimedBy: "u_aisha",
+      pledges: [
+        { patronId: "u_naomi", amount: 150, pledgedAt: "2026-04-16", note: "I felt this in my first week. Thank you." },
+        { patronId: "u_balaji", amount: 200, pledgedAt: "2026-04-16" },
+        { patronId: "u_devraj", amount: 100, pledgedAt: "2026-04-17" },
+        { patronId: "u_marcus", amount: 80, pledgedAt: "2026-04-17" },
+        { patronId: "u_emiko", amount: 50, pledgedAt: "2026-04-18" },
+        { patronId: "u_kofi", amount: 25, pledgedAt: "2026-04-19" },
+      ],
+    },
   },
   {
     id: "p_003",
@@ -148,7 +220,7 @@ export const problems: Problem[] = [
     createdAt: "2026-04-18",
     upvotes: 19,
     affected: 80,
-    solutions: [],
+    proposals: [],
   },
   {
     id: "p_004",
@@ -164,7 +236,27 @@ export const problems: Problem[] = [
     createdAt: "2026-04-22",
     upvotes: 28,
     affected: 110,
-    solutions: [],
+    proposals: [
+      {
+        id: "pr_004a",
+        authorId: "u_marcus",
+        summary: "Auto-release rooms after 5 minutes of no motion",
+        body: "Cheap PIR motion sensor + Cal.com webhook. Room frees if no movement detected within 5 minutes of booking start. ~$30 in parts per room, ~6 hours of work.",
+        createdAt: "2026-04-24",
+        upvotes: 14,
+      },
+    ],
+    bounty: {
+      proposalId: "pr_004a",
+      goal: 500,
+      state: "collecting",
+      pledges: [
+        { patronId: "u_devraj", amount: 120, pledgedAt: "2026-04-25" },
+        { patronId: "u_naomi", amount: 80, pledgedAt: "2026-04-25" },
+        { patronId: "u_priya", amount: 50, pledgedAt: "2026-04-26" },
+        { patronId: "u_jonas", amount: 30, pledgedAt: "2026-04-26" },
+      ],
+    },
   },
   {
     id: "p_005",
@@ -180,10 +272,9 @@ export const problems: Problem[] = [
     createdAt: "2026-04-19",
     upvotes: 24,
     affected: 45,
-    solutions: [
+    proposals: [
       {
-        id: "s_005",
-        problemId: "p_005",
+        id: "pr_005a",
         authorId: "u_jonas",
         summary: "Set up a #fix-it tag with weekly Friday sweep",
         body: "Created a #fix-it Slack tag — anything tagged gets logged to a public Linear board. Volunteering to do a Friday afternoon sweep myself for the next 6 weeks. After that we rotate. Already cleared 4 items this week.",
@@ -191,6 +282,17 @@ export const problems: Problem[] = [
         upvotes: 17,
       },
     ],
+    bounty: {
+      proposalId: "pr_005a",
+      goal: 300,
+      state: "funded",
+      pledges: [
+        { patronId: "u_balaji", amount: 100, pledgedAt: "2026-04-24" },
+        { patronId: "u_devraj", amount: 100, pledgedAt: "2026-04-24" },
+        { patronId: "u_emiko", amount: 60, pledgedAt: "2026-04-25" },
+        { patronId: "u_naomi", amount: 40, pledgedAt: "2026-04-25" },
+      ],
+    },
   },
   {
     id: "p_006",
@@ -206,7 +308,7 @@ export const problems: Problem[] = [
     createdAt: "2026-04-24",
     upvotes: 41,
     affected: 30,
-    solutions: [],
+    proposals: [],
   },
   {
     id: "p_007",
@@ -222,7 +324,7 @@ export const problems: Problem[] = [
     createdAt: "2026-04-25",
     upvotes: 15,
     affected: 35,
-    solutions: [],
+    proposals: [],
   },
   {
     id: "p_008",
@@ -238,7 +340,25 @@ export const problems: Problem[] = [
     createdAt: "2026-04-20",
     upvotes: 22,
     affected: 50,
-    solutions: [],
+    proposals: [
+      {
+        id: "pr_008a",
+        authorId: "u_priya",
+        summary: "Living visa playbook + monthly buddy system",
+        body: "One canonical doc, kept current by whoever last did the run (small karma reward). Plus pair next-month travelers with last-month travelers for a 15-min handoff call.",
+        createdAt: "2026-04-22",
+        upvotes: 11,
+      },
+    ],
+    bounty: {
+      proposalId: "pr_008a",
+      goal: 200,
+      state: "collecting",
+      pledges: [
+        { patronId: "u_devraj", amount: 50, pledgedAt: "2026-04-23" },
+        { patronId: "u_naomi", amount: 30, pledgedAt: "2026-04-24" },
+      ],
+    },
   },
 ];
 
@@ -250,15 +370,33 @@ export function getCitizen(id: string): Citizen | undefined {
   return citizens.find((c) => c.id === id);
 }
 
-export function topCitizens(): Citizen[] {
+export function topSolvers(): Citizen[] {
   return [...citizens]
-    .filter((c) => c.credit > 0)
-    .sort((a, b) => b.credit - a.credit);
+    .filter((c) => c.karma > 0)
+    .sort((a, b) => b.karma - a.karma);
+}
+
+export function topPatrons(): Citizen[] {
+  return [...citizens]
+    .filter((c) => c.patronage > 0)
+    .sort((a, b) => b.patronage - a.patronage);
+}
+
+export function bountyTotal(p: Problem): number {
+  return p.bounty?.pledges.reduce((s, x) => s + x.amount, 0) ?? 0;
+}
+
+export function activeBounties(): Problem[] {
+  return problems
+    .filter((p) => p.bounty && p.bounty.state !== "paid")
+    .sort((a, b) => bountyTotal(b) - bountyTotal(a));
 }
 
 export const stats = {
   problemsOpen: problems.filter((p) => p.status !== "solved").length,
   problemsSolved: problems.filter((p) => p.status === "solved").length,
-  totalCredit: citizens.reduce((sum, c) => sum + c.credit, 0),
+  totalKarma: citizens.reduce((s, c) => s + c.karma, 0),
+  totalPledged: problems.reduce((s, p) => s + bountyTotal(p), 0),
   citizens: citizens.length,
+  activeBounties: problems.filter((p) => p.bounty && p.bounty.state === "collecting").length,
 };

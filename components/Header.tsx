@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { NessieMark } from "./NessieLogo";
 
 const links = [
   { href: "/", label: "Problems" },
+  { href: "/bounties", label: "Bounties" },
   { href: "/leaderboard", label: "Citizens" },
-  { href: "/about", label: "About" },
+  { href: "/about", label: "How it works" },
 ];
 
 export function Header() {
@@ -22,9 +24,13 @@ export function Header() {
     >
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
         <Link href="/" className="group flex items-center gap-2.5">
-          <div className="relative flex h-7 w-7 items-center justify-center rounded-[6px] bg-ink-950 text-paper">
-            <PlusIcon className="h-3.5 w-3.5" />
-          </div>
+          <motion.div
+            whileHover={{ rotate: -4 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            className="relative flex h-8 w-8 items-center justify-center rounded-[8px] bg-ink-950 text-paper"
+          >
+            <NessieMark className="h-5 w-5" />
+          </motion.div>
           <span className="serif text-[20px] leading-none text-ink-950">
             ness<span className="text-ink-400">.city</span>
           </span>
@@ -74,10 +80,3 @@ export function Header() {
   );
 }
 
-function PlusIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 12 12" fill="none" className={className}>
-      <path d="M6 1V11M1 6H11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}

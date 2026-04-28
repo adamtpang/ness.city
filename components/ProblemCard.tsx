@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Problem } from "@/lib/types";
-import { getCitizen } from "@/lib/data";
+import { getCitizen, bountyTotal } from "@/lib/data";
 import { StatusBadge, CategoryTag } from "./StatusBadge";
 import { Avatar } from "./Avatar";
 
 export function ProblemCard({ problem }: { problem: Problem }) {
   const reporter = getCitizen(problem.reporterId);
-  const solverIds = Array.from(new Set(problem.solutions.map((s) => s.authorId)));
+  const total = bountyTotal(problem);
+  const goal = problem.bounty?.goal ?? 0;
+  const pct = goal > 0 ? Math.min(100, (total / goal) * 100) : 0;
 
   return (
     <motion.div
@@ -47,6 +49,32 @@ export function ProblemCard({ problem }: { problem: Problem }) {
           </div>
         </div>
 
+        {problem.bounty && (
+          <div className="mt-5 rounded-xl border border-ink-200 bg-paper-tint px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                Bounty
+              </span>
+              <span className="font-mono text-[12px] tabular-nums text-ink-700">
+                ${total} / ${goal}
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-100">
+              <div
+                className="h-full rounded-full bg-ink-950"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <div className="mt-1.5 flex items-center justify-between text-[11px] text-ink-500">
+              <span>
+                {problem.bounty.pledges.length}{" "}
+                {problem.bounty.pledges.length === 1 ? "patron" : "patrons"}
+              </span>
+              <span className="capitalize">{problem.bounty.state}</span>
+            </div>
+          </div>
+        )}
+
         <div className="mt-5 flex items-center justify-between border-t border-ink-200 pt-4">
           <div className="flex items-center gap-2.5 text-[12px] text-ink-500">
             {reporter && (
@@ -62,23 +90,13 @@ export function ProblemCard({ problem }: { problem: Problem }) {
           </div>
 
           <div className="flex items-center gap-3 text-[12px]">
-            {problem.solutions.length > 0 ? (
-              <div className="flex items-center gap-2.5">
-                <div className="flex -space-x-1.5">
-                  {solverIds.slice(0, 3).map((id) => {
-                    const c = getCitizen(id);
-                    return c ? (
-                      <Avatar key={id} initials={c.avatar} seed={c.id} size={20} />
-                    ) : null;
-                  })}
-                </div>
-                <span className="text-emerald-700">
-                  {problem.solutions.length}{" "}
-                  {problem.solutions.length === 1 ? "solution" : "solutions"}
-                </span>
-              </div>
+            {problem.proposals.length > 0 ? (
+              <span className="text-ink-700">
+                {problem.proposals.length}{" "}
+                {problem.proposals.length === 1 ? "proposal" : "proposals"}
+              </span>
             ) : (
-              <span className="text-ink-400">no solutions yet</span>
+              <span className="text-ink-400">no proposals yet</span>
             )}
           </div>
         </div>

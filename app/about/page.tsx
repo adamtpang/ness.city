@@ -1,16 +1,25 @@
 import Link from "next/link";
+import { getCitizen, getProblem, bountyTotal } from "@/lib/data";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
+import { Avatar } from "@/components/Avatar";
+import { NessieLogo } from "@/components/NessieLogo";
 
 export default function AboutPage() {
+  const wifi = getProblem("wifi-drops-coworking-3pm")!;
+  const reporter = getCitizen(wifi.reporterId)!;
+  const proposalAuthor = getCitizen(wifi.proposals[0].authorId)!;
+  const solver = getCitizen(wifi.bounty!.claimedBy!)!;
+  const total = bountyTotal(wifi);
+
   return (
-    <main className="mx-auto max-w-2xl px-5 pb-20 pt-12">
+    <main className="mx-auto max-w-2xl px-5 pb-24 pt-14">
       <FadeIn>
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-          The Ness manifesto
+          How Ness works
         </p>
       </FadeIn>
 
-      <FadeIn delay={0.06}>
+      <FadeIn delay={0.05}>
         <h1 className="serif mt-3 text-[52px] leading-[1.02] text-ink-950 sm:text-[64px]">
           A city that
           <br />
@@ -18,128 +27,377 @@ export default function AboutPage() {
         </h1>
       </FadeIn>
 
-      <div className="mt-12 space-y-10">
-        <FadeInOnView>
-          <Block>
-            Network School has a core team. Call them the government. They keep
-            the lights on, the visas working, the roof intact. They are good at
-            their jobs. They are also outnumbered.
-          </Block>
-        </FadeInOnView>
+      <FadeIn delay={0.1}>
+        <div className="mt-7 inline-flex items-center gap-3 rounded-full border border-ink-200 bg-paper-tint px-4 py-2 text-[13px] text-ink-700">
+          <div className="text-ink-950">
+            <NessieLogo className="h-4 w-7" withWater={false} />
+          </div>
+          <span className="serif italic">
+            &ldquo;Whatever the core team can do, they should do. Whatever the
+            community can do, we should do.&rdquo;
+          </span>
+        </div>
+      </FadeIn>
 
-        <FadeInOnView>
-          <Block>
-            A real city — one with a thousand small frictions every day —
-            doesn&apos;t survive top-down. It survives because citizens notice
-            things, name them, and quietly fix them. Ness is the layer where
-            that noticing happens.
-          </Block>
-        </FadeInOnView>
+      <FadeInOnView>
+        <p className="mt-10 text-[18px] leading-[1.7] text-ink-800">
+          Network School has a core team. Call them the government. They keep
+          the lights on, the visas working, the roof intact. They are good at
+          their jobs. They are also outnumbered.
+        </p>
+      </FadeInOnView>
 
-        <FadeInOnView>
-          <H2>Three loops</H2>
-        </FadeInOnView>
+      <FadeInOnView>
+        <p className="mt-6 text-[18px] leading-[1.7] text-ink-800">
+          A real city &mdash; one with a thousand small frictions every day
+          &mdash; doesn&apos;t survive top-down. It survives because citizens
+          notice things, name them, fund them, and quietly fix them.
+        </p>
+      </FadeInOnView>
 
-        <FadeInOnView>
-          <Loop
-            n="01"
-            title="Surface"
-            body="Anyone can surface a problem. The good ones are diagnoses, not complaints — what's happening, who's affected, and a real guess at why. Posting with a real diagnosis earns 5 credit. Posting 'the wifi sucks' does not."
-          />
-        </FadeInOnView>
+      <FadeInOnView>
+        <p className="mt-6 text-[18px] leading-[1.7] text-ink-800">
+          Ness is the engine that turns notice into shipped fixes &mdash; in
+          five steps.
+        </p>
+      </FadeInOnView>
 
-        <FadeInOnView>
-          <Loop
-            n="02"
-            title="Solve"
-            body="A citizen takes the problem and ships a fix. They write what they did, what it cost, and what changed. The documentation is the deliverable — not the act."
-          />
-        </FadeInOnView>
+      {/* Worked example header */}
+      <FadeInOnView>
+        <div className="mt-16 rounded-2xl border border-ink-200 bg-paper-tint p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+            Worked example · real bounty, real fix
+          </p>
+          <h2 className="serif mt-2 text-[26px] leading-tight text-ink-950">
+            {wifi.title}
+          </h2>
+          <p className="mt-2 text-[14px] leading-[1.6] text-ink-600">
+            We&apos;ll walk through how this single problem moved through Ness
+            &mdash; from one citizen noticing, to a paid-out, documented fix.
+          </p>
+        </div>
+      </FadeInOnView>
 
-        <FadeInOnView>
-          <Loop
-            n="03"
-            title="Remember"
-            body="Every documented solution becomes part of the city's memory. Future citizens find it before they re-solve it. The next person doesn't start from zero."
-          />
-        </FadeInOnView>
+      {/* Step 1 */}
+      <Step
+        n="01"
+        title="Surface"
+        actor={
+          <span className="inline-flex items-center gap-2">
+            <Avatar initials={reporter.avatar} seed={reporter.id} size={20} />
+            <span className="text-ink-950">{reporter.name}</span>
+            <span className="text-ink-500">noticed it</span>
+          </span>
+        }
+      >
+        <p>
+          Priya files the problem in 90 seconds. The form requires a real
+          diagnosis &mdash; not a complaint. She writes:
+        </p>
+        <Quote>{wifi.summary}</Quote>
+        <p className="mt-4">
+          Filing earns <KarmaPill>+5</KarmaPill> for surfacing with a real
+          diagnosis. <em>&ldquo;The wifi sucks&rdquo;</em> would have earned
+          zero.
+        </p>
+      </Step>
 
-        <FadeInOnView>
-          <H2>Credit, not karma</H2>
-        </FadeInOnView>
+      {/* Step 2 */}
+      <Step n="02" title="Explain" actor="The community refines the why">
+        <p>
+          The post asks for a root cause, not a symptom. Within a day,
+          Priya, Marcus, and three others converge on:
+        </p>
+        <Quote>{wifi.rootCause}</Quote>
+        <p className="mt-4">
+          The diagnosis is now load-bearing. The next step has something to fix
+          against.
+        </p>
+      </Step>
 
-        <FadeInOnView>
-          <Block>
-            Credit on Ness is permanent and visible. It compounds. It&apos;s how
-            you become a known builder of the place. The leaderboard isn&apos;t
-            a game — it&apos;s the city&apos;s memory of who showed up.
-          </Block>
-        </FadeInOnView>
+      {/* Step 3 */}
+      <Step
+        n="03"
+        title="Propose"
+        actor={
+          <span className="inline-flex items-center gap-2">
+            <Avatar initials={proposalAuthor.avatar} seed={proposalAuthor.id} size={20} />
+            <span className="text-ink-950">{proposalAuthor.name}</span>
+            <span className="text-ink-500">drafts a fix</span>
+          </span>
+        }
+      >
+        <p>
+          Marcus knows networks. He proposes a concrete, two-step fix with a
+          parts list:
+        </p>
+        <Quote>{wifi.proposals[0].summary}</Quote>
+        <p className="mt-4">
+          Proposals are scoped: parts, hours, expected outcome. They&apos;re
+          how the bounty gets sized.
+        </p>
+      </Step>
 
-        <FadeInOnView>
-          <Block>
-            The core team can grant bonus credit when something deserves it.
-            They can&apos;t take credit away. The record stands.
-          </Block>
-        </FadeInOnView>
+      {/* Step 4 */}
+      <Step n="04" title="Bounty" actor="The community pledges money">
+        <p>
+          Patrons crowdfund the proposal. Each pledge is public; each
+          patron earns attribution forever. For this fix:
+        </p>
+        <div className="mt-5 rounded-xl border border-ink-200 bg-paper p-5">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="serif text-[28px] leading-none text-ink-950">
+              ${total}
+            </span>
+            <span className="font-mono text-[11px] text-ink-500">
+              {wifi.bounty!.pledges.length} patrons
+            </span>
+          </div>
+          <ul className="mt-3 space-y-1.5">
+            {wifi.bounty!.pledges.slice(0, 3).map((pl) => {
+              const p = getCitizen(pl.patronId);
+              if (!p) return null;
+              return (
+                <li
+                  key={pl.patronId}
+                  className="flex items-center justify-between text-[13px]"
+                >
+                  <span className="flex items-center gap-2">
+                    <Avatar initials={p.avatar} seed={p.id} size={18} />
+                    <span className="text-ink-700">{p.name}</span>
+                  </span>
+                  <span className="font-mono tabular-nums text-ink-700">
+                    ${pl.amount}
+                  </span>
+                </li>
+              );
+            })}
+            <li className="text-[12px] text-ink-500">
+              + {wifi.bounty!.pledges.length - 3} more
+            </li>
+          </ul>
+        </div>
+        <p className="mt-4">
+          Patrons earn no karma &mdash; they earn{" "}
+          <span className="text-ink-950">attribution</span>. Their name lives
+          on the fix forever, even when they leave NS.
+        </p>
+      </Step>
 
-        <FadeInOnView>
-          <H2>What this is not</H2>
-        </FadeInOnView>
+      {/* Step 5 */}
+      <Step
+        n="05"
+        title="Solve & document"
+        actor={
+          <span className="inline-flex items-center gap-2">
+            <Avatar initials={solver.avatar} seed={solver.id} size={20} />
+            <span className="text-ink-950">{solver.name}</span>
+            <span className="text-ink-500">claims the bounty, ships</span>
+          </span>
+        }
+      >
+        <p>
+          Once funded, any citizen can claim the bounty. They have to ship
+          AND write up what they did &mdash; the documentation is the
+          deliverable.
+        </p>
+        <Quote>{wifi.documentation!.body}</Quote>
+        <p className="mt-4">
+          Marcus earns <KarmaPill>+25</KarmaPill> for documentation,{" "}
+          <KarmaPill>+{wifi.documentation!.upvotes * 8}</KarmaPill> for
+          community upvotes, and the cash bounty. The fix becomes part of the
+          city&apos;s permanent memory &mdash; the next person doesn&apos;t
+          start from zero.
+        </p>
+      </Step>
 
-        <FadeInOnView>
-          <Block>
-            Not a ticketing system. Tickets disappear when closed; problems on
-            Ness leave a trail. Not a forum. Forums optimize for argument; Ness
-            optimizes for shipped fixes. Not a Slack replacement. Slack is fine
-            for the hour. Ness is for the year.
-          </Block>
-        </FadeInOnView>
-
-        <FadeInOnView>
-          <div className="mt-10 flex flex-wrap gap-3 border-t border-ink-200 pt-10">
+      <FadeInOnView>
+        <div className="mt-16 rounded-2xl border border-ink-950 bg-ink-950 p-7 text-paper">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-300">
+            The engine
+          </p>
+          <h2 className="serif mt-2 text-[26px] leading-tight">
+            Surface → Explain → Propose → Bounty → Ship.
+          </h2>
+          <p className="mt-3 text-[15px] leading-[1.65] text-ink-200">
+            Two leaderboards keep score. <strong>Solvers</strong> earn karma.{" "}
+            <strong>Patrons</strong> earn attribution. Neither one runs the
+            city alone &mdash; together they do.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
             <Link
-              href="/submit"
-              className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
+              href="/leaderboard"
+              className="inline-flex items-center gap-2 rounded-full bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-opacity hover:opacity-90"
             >
-              Surface a problem
-              <span aria-hidden>→</span>
+              See the leaderboards →
             </Link>
             <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
+              href="/bounties"
+              className="inline-flex items-center gap-2 rounded-full border border-ink-700 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
             >
-              See the feed
+              Open bounties →
             </Link>
           </div>
+        </div>
+      </FadeInOnView>
+
+      {/* Roadmap */}
+      <FadeInOnView>
+        <div className="mt-20">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            What&apos;s coming
+          </p>
+          <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+            The full city, in phases.
+          </h2>
+        </div>
+      </FadeInOnView>
+
+      <div className="mt-8 space-y-3">
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Now"
+            title="Problems → Bounties → Documentation"
+            body="The five-step engine, live with the inner circle."
+            status="shipped"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Next"
+            title="Auth via NS Directory"
+            body="Sign in with your ns.com identity once Ness is approved on ns.com/platform."
+            status="next"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Next"
+            title="Weekly in-person townhalls"
+            body="One hour a week, in the coworking. Open bounties get pitched, claimed, retired."
+            status="next"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Next"
+            title="Community pulse reports"
+            body="Adam interviews citizens weekly, publishes a clean field report for the core team."
+            status="next"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Later"
+            title="The social graph"
+            body="Citizens list their closest relationships. We crawl, render, and rank — the way Zuck did at Harvard, but for a school of network founders."
+            status="later"
+          />
         </FadeInOnView>
       </div>
+
+      <FadeInOnView>
+        <div className="mt-16 flex flex-wrap gap-3 border-t border-ink-200 pt-10">
+          <Link
+            href="/submit"
+            className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
+          >
+            Surface a problem
+            <span aria-hidden>→</span>
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
+          >
+            See the feed
+          </Link>
+        </div>
+      </FadeInOnView>
     </main>
   );
 }
 
-function Block({ children }: { children: React.ReactNode }) {
+function Step({
+  n,
+  title,
+  actor,
+  children,
+}: {
+  n: string;
+  title: string;
+  actor: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <p className="text-[18px] leading-[1.7] text-ink-800">{children}</p>
-  );
-}
-
-function H2({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="serif text-[28px] leading-tight text-ink-950">
-      {children}
-    </h2>
-  );
-}
-
-function Loop({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-ink-200 bg-paper p-6 sm:p-7">
-      <div className="flex items-baseline gap-3">
-        <span className="font-mono text-[12px] tracking-[0.1em] text-ink-500">{n}</span>
-        <h3 className="serif text-[22px] text-ink-950">{title}</h3>
+    <FadeInOnView>
+      <div className="mt-10 grid gap-5 sm:grid-cols-[60px_1fr]">
+        <div className="hidden sm:block">
+          <div className="serif text-[40px] leading-none text-ink-300">{n}</div>
+        </div>
+        <div className="rounded-2xl border border-ink-200 bg-paper p-6 sm:p-7">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="serif text-[24px] leading-tight text-ink-950">
+              {title}
+            </h3>
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-400 sm:hidden">
+              Step {n}
+            </span>
+          </div>
+          <div className="mt-2 text-[13px] text-ink-500">{actor}</div>
+          <div className="mt-5 space-y-0 text-[15.5px] leading-[1.7] text-ink-700">
+            {children}
+          </div>
+        </div>
       </div>
-      <p className="mt-3 text-[16px] leading-[1.7] text-ink-700">{body}</p>
+    </FadeInOnView>
+  );
+}
+
+function Quote({ children }: { children: React.ReactNode }) {
+  return (
+    <blockquote className="mt-4 border-l-2 border-ink-950 pl-4 text-[15px] italic text-ink-700">
+      {children}
+    </blockquote>
+  );
+}
+
+function KarmaPill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-ink-300 bg-paper-tint px-2 py-0.5 font-mono text-[11px] tabular-nums text-ink-950">
+      {children}
+    </span>
+  );
+}
+
+function RoadmapRow({
+  phase,
+  title,
+  body,
+  status,
+}: {
+  phase: string;
+  title: string;
+  body: string;
+  status: "shipped" | "next" | "later";
+}) {
+  const dot =
+    status === "shipped"
+      ? "bg-emerald-600"
+      : status === "next"
+        ? "bg-amber-500"
+        : "bg-ink-400";
+  return (
+    <div className="grid grid-cols-[80px_1fr] gap-5 rounded-2xl border border-ink-200 bg-paper p-5 sm:p-6">
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+        <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-500">
+          {phase}
+        </span>
+      </div>
+      <div>
+        <h3 className="serif text-[18px] leading-tight text-ink-950">{title}</h3>
+        <p className="mt-1.5 text-[14px] leading-[1.6] text-ink-600">{body}</p>
+      </div>
     </div>
   );
 }

@@ -5,20 +5,44 @@ export type Citizen = {
   handle: string;
   name: string;
   avatar: string;
-  credit: number;
+  karma: number;
+  patronage: number;
   solved: number;
+  funded: number;
   joined: string;
   bio?: string;
 };
 
-export type Solution = {
+export type SolutionProposal = {
   id: string;
-  problemId: string;
   authorId: string;
   summary: string;
   body: string;
-  shippedAt?: string;
   createdAt: string;
+  upvotes: number;
+};
+
+export type Pledge = {
+  patronId: string;
+  amount: number;
+  pledgedAt: string;
+  note?: string;
+};
+
+export type Bounty = {
+  proposalId: string;
+  goal: number;
+  pledges: Pledge[];
+  state: "collecting" | "funded" | "claimed" | "paid";
+  claimedBy?: string;
+  paidAt?: string;
+};
+
+export type Documentation = {
+  authorId: string;
+  body: string;
+  cost?: number;
+  shippedAt: string;
   upvotes: number;
 };
 
@@ -34,5 +58,7 @@ export type Problem = {
   createdAt: string;
   upvotes: number;
   affected: number;
-  solutions: Solution[];
+  proposals: SolutionProposal[];
+  bounty?: Bounty;
+  documentation?: Documentation;
 };

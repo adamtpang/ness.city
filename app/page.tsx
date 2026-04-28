@@ -21,7 +21,7 @@ export default function Home() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ink-950 opacity-40" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-ink-950" />
             </span>
-            {stats.citizens} citizens online
+            in beta · {stats.citizens} citizens · ${stats.totalPledged.toLocaleString()} on the table
           </div>
         </FadeIn>
 
@@ -36,9 +36,9 @@ export default function Home() {
 
         <FadeIn delay={0.12}>
           <p className="mt-6 max-w-2xl text-[16px] leading-[1.6] text-ink-600 sm:text-[17px]">
-            The core team can&apos;t see every problem. Ness is where citizens
-            surface issues, name root causes, ship fixes, and earn social credit
-            for the documentation they leave behind.
+            Surface problems. Diagnose root causes. Fund the fixes. Solvers earn
+            karma; patrons earn attribution. The city pays for what it wants
+            shipped.
           </p>
         </FadeIn>
 
@@ -52,10 +52,16 @@ export default function Home() {
               <span aria-hidden>→</span>
             </Link>
             <Link
-              href="/about"
+              href="/bounties"
               className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
             >
-              How Ness works
+              See open bounties
+            </Link>
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-[14px] font-medium text-ink-700 transition-colors hover:text-ink-950"
+            >
+              How it works →
             </Link>
           </div>
         </FadeIn>
@@ -64,8 +70,8 @@ export default function Home() {
           <div className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-ink-200 sm:grid-cols-4">
             <Stat label="Problems open" value={stats.problemsOpen} />
             <Stat label="Problems solved" value={stats.problemsSolved} />
-            <Stat label="Credit issued" value={stats.totalCredit} />
-            <Stat label="Citizens" value={stats.citizens} />
+            <Stat label="Pledged" value={stats.totalPledged} prefix="$" />
+            <Stat label="Karma issued" value={stats.totalKarma} />
           </div>
         </FadeIn>
       </section>
@@ -108,10 +114,19 @@ export default function Home() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+  label,
+  value,
+  prefix = "",
+}: {
+  label: string;
+  value: number;
+  prefix?: string;
+}) {
   return (
     <div className="bg-paper px-5 py-6">
       <div className="serif text-[36px] leading-none tabular-nums text-ink-950">
+        {prefix}
         <CountUp to={value} />
       </div>
       <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-ink-500">
