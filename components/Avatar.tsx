@@ -1,12 +1,12 @@
 const palette = [
-  "from-ember-500 to-ember-600",
-  "from-violet-500 to-violet-700",
-  "from-cyan-500 to-cyan-700",
-  "from-pink-500 to-pink-700",
-  "from-emerald-500 to-emerald-700",
-  "from-blue-500 to-blue-700",
-  "from-rose-500 to-rose-700",
-  "from-amber-500 to-amber-700",
+  "bg-[#1f2937] text-white",
+  "bg-[#7c2d12] text-white",
+  "bg-[#365314] text-white",
+  "bg-[#831843] text-white",
+  "bg-[#1e3a8a] text-white",
+  "bg-[#581c87] text-white",
+  "bg-[#0c4a6e] text-white",
+  "bg-[#7c2d12] text-white",
 ];
 
 function hash(s: string) {
@@ -24,10 +24,10 @@ export function Avatar({
   seed: string;
   size?: number;
 }) {
-  const grad = palette[hash(seed) % palette.length];
+  const cls = palette[hash(seed) % palette.length];
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${grad} text-[10px] font-semibold text-ink-950 ring-1 ring-ink-950`}
+      className={`relative flex shrink-0 items-center justify-center rounded-full font-medium ring-1 ring-paper ${cls}`}
       style={{ width: size, height: size, fontSize: size * 0.36 }}
     >
       {initials}
