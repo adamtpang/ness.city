@@ -297,48 +297,64 @@ export default function AboutPage() {
         <FadeInOnView>
           <RoadmapRow
             phase="Now"
-            title="Problems. Bounties. Documentation."
-            body="The five-step engine, live with the inner circle. Real data starts empty."
+            title="Townhall UI + draft form + open-source repo"
+            body="The civic-layer UI is live. Drafts persist locally. Repo is public on GitHub under MIT, with branch protection so Adam controls the merge button."
             status="shipped"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
-            phase="Next"
-            title="Auth via NS Directory"
-            body="Sign in with your ns.com identity once Ness is approved on ns.com/platform."
+            phase="Now"
+            title="Feedback widget"
+            body="Floating button on every page. One tap rates Ness 1 to 5. If under 5, it asks why. The submission files a labeled GitHub issue into adamtpang/ness."
+            status="shipped"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Now"
+            title="A3 App application"
+            body="Ness applies as an A3 App at Network School. Unofficial NS. One-month initial term. Symbiotic, not parasitic. Renewal at NS discretion."
             status="next"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Next"
-            title="Discord listener bot"
-            body="Scrape NS Discord, surface candidate problems from live conversations, route them to the core team or the lore team (longtermer council) for triage."
+            title="Postgres + auth + real writes"
+            body="Vercel Postgres for the data. Clerk for auth in beta, swap to NS Directory once ns.com/platform approves. Real submit, pledge, claim, upvote."
             status="next"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Next"
-            title="Weekly in-person townhalls"
-            body="One hour a week, in the coworking. Open bounties get pitched, claimed, retired."
+            title="USDC bounties on Base"
+            body="No Stripe. NS members already hold USDC wallets. Pledges escrow on Base, payout wallet to wallet when a bounty is claimed and shipped. Ness handles the schema, the chain handles the money."
             status="next"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Next"
-            title="Community pulse reports"
-            body="Adam interviews citizens weekly, publishes a clean field report for the core team."
+            title="Discord hiring import (Jobs)"
+            body="Phase 1: a member-side export of the NS hiring thread, run through an LLM extractor, populated into the Jobs board manually each week. Phase 2: a proper bot once NS admins invite it. No user-token scraping. The path is the right one, not the fast one."
+            status="next"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Next"
+            title="Weekly in-person townhalls + pulse reports"
+            body="One hour a week in the coworking, where open bounties get pitched, claimed, retired. Adam runs a parallel weekly pulse, interviewing citizens and publishing a clean field report for the core team."
             status="next"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Later"
-            title="The social graph"
-            body="Citizens list their closest relationships. We crawl, render, and rank, the way Zuck did at Harvard, but for a school of network founders."
+            title="Atlas. Jobs. Market."
+            body="The other three tools in the platform. Atlas first (the social graph), then Jobs as a real bot, then Market consolidating nsmarket.app and redmart.xyz. Each one earns its place by solving something real."
             status="later"
           />
         </FadeInOnView>

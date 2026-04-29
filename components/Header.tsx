@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { NessieMark } from "./NessieLogo";
 
 const links = [
-  { href: "/", label: "Problems" },
+  { href: "/", label: "Townhall" },
   { href: "/bounties", label: "Bounties" },
   { href: "/leaderboard", label: "Citizens" },
-  { href: "/about", label: "How it works" },
+  { href: "/#tools", label: "Platform" },
+  { href: "/about", label: "About" },
 ];
 
 export function Header() {

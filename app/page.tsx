@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { problems, stats } from "@/lib/data";
+import { tools } from "@/lib/tools";
 import { ProblemCard } from "@/components/ProblemCard";
+import { ToolCard } from "@/components/ToolCard";
+import { IntegrationsPanel } from "@/components/IntegrationsPanel";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
 import { CountUp } from "@/components/motion/CountUp";
@@ -22,24 +25,25 @@ export default function Home() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ink-950 opacity-40" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-ink-950" />
             </span>
-            in beta · open-sourcing Network School
+            in beta · open-source tooling for Network School
           </div>
         </FadeIn>
 
         <FadeIn delay={0.06}>
           <h1 className="serif mt-7 max-w-3xl text-[44px] leading-[1.02] text-ink-950 sm:text-[68px] sm:leading-[1.0]">
-            The civic layer
+            The community
             <br />
-            for{" "}
+            platform for{" "}
             <span className="italic">Network School</span>.
           </h1>
         </FadeIn>
 
         <FadeIn delay={0.12}>
           <p className="mt-6 max-w-2xl text-[16px] leading-[1.6] text-ink-600 sm:text-[17px]">
-            Surface problems. Diagnose root causes. Fund the fixes. Solvers earn
-            karma. Patrons earn attribution. Think of it as ns.com with issues
-            and pull requests.
+            Open-source tooling for an open-source community. The first tool is
+            a civic layer where citizens surface problems, fund the fixes, and
+            ship them. More tools follow. Think of it as ns.com with issues,
+            pull requests, and a public square.
           </p>
         </FadeIn>
 
@@ -58,12 +62,12 @@ export default function Home() {
             >
               See the worked example
             </Link>
-            <Link
-              href="/bounties"
+            <a
+              href="#tools"
               className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-[14px] font-medium text-ink-700 transition-colors hover:text-ink-950"
             >
-              Open bounties →
-            </Link>
+              The platform ↓
+            </a>
           </div>
         </FadeIn>
 
@@ -79,12 +83,42 @@ export default function Home() {
 
       <div className="divider" />
 
+      {/* The platform: tools grid */}
+      <section id="tools" className="scroll-mt-24 py-14">
+        <FadeInOnView>
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+              The platform
+            </p>
+            <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+              Four tools. One city.
+            </h2>
+            <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
+              Ness is a portfolio of small, opinionated tools for Network
+              School. Each one solves a specific problem the community keeps
+              hitting. The civic layer ships first. The rest follow.
+            </p>
+          </div>
+        </FadeInOnView>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          {tools.map((t) => (
+            <FadeInOnView key={t.id}>
+              <ToolCard tool={t} />
+            </FadeInOnView>
+          ))}
+        </div>
+      </section>
+
+      <div className="divider" />
+
+      {/* Townhall feed */}
       <section className="py-14">
         <FadeInOnView>
           <div className="flex items-end justify-between">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-                The feed
+                Townhall · the feed
               </p>
               <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
                 What needs fixing
@@ -159,6 +193,30 @@ export default function Home() {
             ))}
           </StaggerList>
         )}
+      </section>
+
+      <div className="divider" />
+
+      {/* Integrations */}
+      <section className="py-14">
+        <FadeInOnView>
+          <div className="mb-8">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+              Integrations
+            </p>
+            <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+              Connected to the rest of the network.
+            </h2>
+            <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
+              Ness is one of many things citizens use to run NS. The wider
+              network it plugs into, or wants to.
+            </p>
+          </div>
+        </FadeInOnView>
+
+        <FadeInOnView>
+          <IntegrationsPanel />
+        </FadeInOnView>
       </section>
     </main>
   );
