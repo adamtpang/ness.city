@@ -31,7 +31,7 @@ export default function MarketPage() {
       <FadeInOnView>
         <div className="mt-12 grid gap-3 sm:grid-cols-3">
           <Card title="Products">
-            Physical and digital goods made by NS citizens. From coffee beans to
+            Physical and digital goods made by citizens. From coffee beans to
             saunas to SaaS keys.
           </Card>
           <Card title="Services">
@@ -77,11 +77,11 @@ export default function MarketPage() {
             </li>
             <li>
               <span className="font-mono text-ink-400">·</span> Single seller
-              identity, tied to ns.com/directory.
+              identity, tied to community auth once approved.
             </li>
             <li>
-              <span className="font-mono text-ink-400">·</span> Stripe Connect
-              for payouts. Escrow until delivery confirmed.
+              <span className="font-mono text-ink-400">·</span> USDC payouts
+              wallet to wallet on Base. Escrow until delivery confirmed.
             </li>
           </ul>
         </div>

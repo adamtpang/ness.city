@@ -8,8 +8,8 @@ import { NessieMark } from "./NessieLogo";
 const links = [
   { href: "/", label: "Townhall" },
   { href: "/bounties", label: "Bounties" },
+  { href: "/jobs", label: "Jobs" },
   { href: "/leaderboard", label: "Citizens" },
-  { href: "/#tools", label: "Platform" },
   { href: "/about", label: "About" },
 ];
 

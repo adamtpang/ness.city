@@ -18,13 +18,14 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Ness · The civic layer for Network School",
+  title: "Ness · The civic layer for builders",
   description:
-    "Surface problems, document root causes, ship solutions, earn social credit. The community OS for Network School.",
+    "Surface problems. Diagnose root causes. Fund the fixes in USDC. Solvers earn karma. Patrons earn attribution. Open-source community tooling.",
   metadataBase: new URL("https://ness.city"),
   openGraph: {
-    title: "Ness · The civic layer for Network School",
-    description: "Bottom-up problem solving for Network School.",
+    title: "Ness · The civic layer for builders",
+    description:
+      "Surface problems. Diagnose root causes. Fund the fixes. Open-source community tooling.",
     url: "https://ness.city",
     siteName: "Ness",
     type: "website",
@@ -45,7 +46,7 @@ export default function RootLayout({
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.5</span>
+                <span>ness.city · v0.6</span>
                 <span className="text-ink-300">·</span>
                 <span>
                   a node in{" "}
@@ -53,13 +54,14 @@ export default function RootLayout({
                   <span className="text-ink-400">(soon)</span>
                 </span>
               </div>
-              <span>Built bottom-up by citizens of Network School.</span>
+              <span>Built bottom-up by citizens, for citizens.</span>
             </div>
             <div className="mt-5 border-t border-ink-100 pt-4 text-[11px] text-ink-400">
               <span className="font-mono uppercase tracking-[0.18em] text-ink-500">
-                Unofficial NS
+                Independent project
               </span>{" "}
-              · An A3 app built at Network School. Not owned, funded, or endorsed by NS0 PTE LTD.
+              · App built at Network School. Not owned, funded, or endorsed by
+              NS0 PTE LTD. Ness is its own brand and operates separately.
             </div>
           </div>
         </footer>

@@ -21,10 +21,10 @@ export default function AtlasPage() {
 
       <FadeIn delay={0.1}>
         <p className="mt-5 text-[17px] leading-[1.7] text-ink-700">
-          The second tool in the Ness platform. A social PageRank experiment for
-          Network School. Citizens list their closest five relationships. We
-          crawl, render, and rank. The way Zuck did it at Harvard, but for a
-          school of network founders.
+          The second tool in the Ness platform. A social PageRank experiment.
+          Citizens list their closest five relationships. We crawl, render,
+          and rank. The way Zuck did it at Harvard, but for a community of
+          network founders.
         </p>
       </FadeIn>
 
@@ -40,7 +40,7 @@ export default function AtlasPage() {
             </li>
             <li className="flex gap-3">
               <span className="serif w-6 text-ink-400">·</span>
-              Who are the loners? The people no-one named but who showed up every day.
+              Who are the quiet ones? The people no-one named but who showed up every day.
             </li>
             <li className="flex gap-3">
               <span className="serif w-6 text-ink-400">·</span>
@@ -62,8 +62,8 @@ export default function AtlasPage() {
           <ol className="mt-4 space-y-4 text-[15.5px] leading-[1.7] text-ink-700">
             <li>
               <span className="serif text-ink-400">01.</span> Each citizen
-              names their five closest people in NS. Private to them, public in
-              aggregate.
+              names their five closest people in the city. Private to them,
+              public in aggregate.
             </li>
             <li>
               <span className="serif text-ink-400">02.</span> The graph runs a
@@ -75,9 +75,9 @@ export default function AtlasPage() {
               other people&apos;s individual scores.
             </li>
             <li>
-              <span className="serif text-ink-400">04.</span> The core team
-              sees the connector list (with consent) so they can support the
-              people supporting everyone else.
+              <span className="serif text-ink-400">04.</span> Connectors are
+              celebrated (with consent) so the people supporting everyone else
+              get supported back.
             </li>
           </ol>
         </div>

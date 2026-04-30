@@ -3,7 +3,6 @@ import { problems, stats } from "@/lib/data";
 import { tools } from "@/lib/tools";
 import { ProblemCard } from "@/components/ProblemCard";
 import { ToolCard } from "@/components/ToolCard";
-import { IntegrationsPanel } from "@/components/IntegrationsPanel";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
 import { CountUp } from "@/components/motion/CountUp";
@@ -25,25 +24,24 @@ export default function Home() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ink-950 opacity-40" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-ink-950" />
             </span>
-            in beta · open-source tooling for Network School
+            in beta · open-source community tooling
           </div>
         </FadeIn>
 
         <FadeIn delay={0.06}>
           <h1 className="serif mt-7 max-w-3xl text-[44px] leading-[1.02] text-ink-950 sm:text-[68px] sm:leading-[1.0]">
-            The community
+            The civic layer
             <br />
-            platform for{" "}
-            <span className="italic">Network School</span>.
+            for <span className="italic">builders</span>.
           </h1>
         </FadeIn>
 
         <FadeIn delay={0.12}>
           <p className="mt-6 max-w-2xl text-[16px] leading-[1.6] text-ink-600 sm:text-[17px]">
-            Open-source tooling for an open-source community. The first tool is
-            a civic layer where citizens surface problems, fund the fixes, and
-            ship them. More tools follow. Think of it as ns.com with issues,
-            pull requests, and a public square.
+            Open-source community tooling. The first tool is a civic layer
+            where citizens surface problems, fund the fixes in USDC, and ship
+            them. Solvers earn karma. Patrons earn attribution. More tools
+            follow.
           </p>
         </FadeIn>
 
@@ -94,9 +92,9 @@ export default function Home() {
               Four tools. One city.
             </h2>
             <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
-              Ness is a portfolio of small, opinionated tools for Network
-              School. Each one solves a specific problem the community keeps
-              hitting. The civic layer ships first. The rest follow.
+              Ness is a portfolio of small, opinionated tools for ambitious
+              communities. Each one solves a specific problem the community
+              keeps hitting. The civic layer ships first. The rest follow.
             </p>
           </div>
         </FadeInOnView>
@@ -195,29 +193,6 @@ export default function Home() {
         )}
       </section>
 
-      <div className="divider" />
-
-      {/* Integrations */}
-      <section className="py-14">
-        <FadeInOnView>
-          <div className="mb-8">
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-              Integrations
-            </p>
-            <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
-              Connected to the rest of the network.
-            </h2>
-            <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
-              Ness is one of many things citizens use to run NS. The wider
-              network it plugs into, or wants to.
-            </p>
-          </div>
-        </FadeInOnView>
-
-        <FadeInOnView>
-          <IntegrationsPanel />
-        </FadeInOnView>
-      </section>
     </main>
   );
 }

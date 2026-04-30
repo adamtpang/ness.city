@@ -1,16 +1,16 @@
 # Ness · `ness.city`
 
-The community platform for **Network School**. Open-source tooling for an open-source community.
+The civic layer for builders. Open-source tooling for ambitious communities.
 
-> **Unofficial NS.** An A3 app built at Network School. Not owned, funded, or endorsed by NS0 PTE LTD.
+> **Independent project.** App built at Network School. Not owned, funded, or endorsed by NS0 PTE LTD. Ness is its own brand and operates separately.
 
 ## What it is
 
-Ness is a portfolio of small, opinionated tools for NS members:
+Ness is a portfolio of small, opinionated tools for community-driven cities:
 
 - **Townhall** (live UI). Civic layer. Problems become bounties become fixes. Solvers earn karma. Patrons earn attribution.
+- **Jobs** (live, hand-curated). Public openings filtered by category. Direct apply links.
 - **Atlas** (in design). Social PageRank. Map the relationships in the city.
-- **Jobs** (planned). Discord hiring board, structured.
 - **Market** (planned). Products / services / assets. Consolidates `nsmarket.app` and `redmart.xyz`.
 
 ## The five-step engine (Townhall)
@@ -18,7 +18,7 @@ Ness is a portfolio of small, opinionated tools for NS members:
 1. **Surface**. Anyone files a problem with a real diagnosis. (+5 karma.)
 2. **Explain**. The community refines the root cause.
 3. **Propose**. A citizen drafts a concrete fix.
-4. **Bounty**. Patrons crowdfund the proposal in USDC.
+4. **Bounty**. Patrons crowdfund the proposal in USDC on Base.
 5. **Ship**. A solver claims, ships, documents. (+25 karma + the bounty + permanent attribution for the patrons.)
 
 ## Stack
@@ -27,7 +27,7 @@ Ness is a portfolio of small, opinionated tools for NS members:
 - TailwindCSS 3 · Framer Motion
 - Inter (body) + Instrument Serif (display) via `next/font/google`
 - Deployed on Vercel
-- Backend (in progress): Vercel Postgres, USDC on Base for bounty payouts, Discord exports for Jobs
+- Backend (in progress): Vercel Postgres, USDC on Base for bounty payouts
 
 ## Local dev
 
@@ -40,7 +40,7 @@ Open http://localhost:3000.
 
 ### Env vars
 
-- `GITHUB_FEEDBACK_TOKEN` — GitHub PAT with `public_repo` scope. Powers the feedback widget that files issues into this repo.
+- `GITHUB_FEEDBACK_TOKEN` — GitHub PAT with `Issues: write` on this repo. Powers the feedback widget that files issues into `adamtpang/ness`.
 
 ## Bigger picture
 

@@ -45,9 +45,9 @@ export default function AboutPage() {
 
       <FadeInOnView>
         <p className="mt-10 text-[18px] leading-[1.7] text-ink-800">
-          Network School has a core team. Call them the government. They keep
-          the lights on, the visas working, the roof intact. They are good at
-          their jobs. They are also outnumbered.
+          Every community has a core team. Call them the government. They keep
+          the lights on. They keep the visas working. They keep the roof
+          intact. They are good at their jobs. They are also outnumbered.
         </p>
       </FadeInOnView>
 
@@ -62,8 +62,9 @@ export default function AboutPage() {
       <FadeInOnView>
         <p className="mt-6 text-[18px] leading-[1.7] text-ink-800">
           Ness is the engine that turns notice into shipped fixes, in five
-          steps. Think of it as ns.com with issues and pull requests. The
-          first open-source attempt at a Network School.
+          steps. The same shape an open-source repo has, applied to a
+          community: issues become problems, pull requests become solutions,
+          attribution sticks to the people who actually shipped.
         </p>
       </FadeInOnView>
 
@@ -194,7 +195,7 @@ export default function AboutPage() {
         <p className="mt-4">
           Patrons earn no karma. They earn{" "}
           <span className="text-ink-950">attribution</span>. Their name lives
-          on the fix forever, even when they leave NS.
+          on the fix forever, even when they leave the city.
         </p>
       </Step>
 
@@ -264,18 +265,17 @@ export default function AboutPage() {
             Ness is one node in <span className="italic">interneta</span>.
           </h2>
           <p className="mt-4 text-[16px] leading-[1.7] text-ink-700">
-            ness.city is the bottom-up civic infra for Network School. NS
-            itself is one node in a larger vision Adam calls{" "}
-            <span className="text-ink-950">interneta</span>: the next evolution
-            of the West, built on the thesis Balaji laid out in The Network
-            State. Ness is a working prototype of how a single network-state
-            community can open-source itself the way GitHub repos do. Issues
-            become problems. Pull requests become solutions. Every fix is
-            attributed forever.
+            Ness is one tool in a larger umbrella Adam Pang is building called{" "}
+            <span className="text-ink-950">interneta</span>: civic
+            infrastructure for the kind of community that lives partly online,
+            partly off, and answers to its citizens. The thinking comes from
+            Balaji&apos;s The Network State. The shape comes from how
+            open-source repos work: issues, pull requests, attribution that
+            sticks. The first community Ness was built at gave us the
+            constraints. The platform is general.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Pill href="https://thenetworkstate.com">thenetworkstate.com</Pill>
-            <Pill href="https://nsnodes.com">nsnodes.com</Pill>
             <Pill>interneta.world (soon)</Pill>
           </div>
         </div>
@@ -313,8 +313,16 @@ export default function AboutPage() {
         <FadeInOnView>
           <RoadmapRow
             phase="Now"
-            title="A3 App application"
-            body="Ness applies as an A3 App at Network School. Unofficial NS. One-month initial term. Symbiotic, not parasitic. Renewal at NS discretion."
+            title="Jobs board"
+            body="Curated public openings, filtered by role and remote. v1 is hand-curated. v2 will pull from approved sources via direct integration, not user-token scraping."
+            status="shipped"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Now"
+            title="A3 application + permissioning"
+            body="Operating as an Unofficial A3 App. One-month initial term. Symbiotic, not parasitic. Permission-first relationship with the host community."
             status="next"
           />
         </FadeInOnView>
@@ -322,7 +330,7 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Next"
             title="Postgres + auth + real writes"
-            body="Vercel Postgres for the data. Clerk for auth in beta, swap to NS Directory once ns.com/platform approves. Real submit, pledge, claim, upvote."
+            body="Vercel Postgres for the data. Clerk for auth in beta, with a path to community-directory single sign-on once approved. Real submit, pledge, claim, upvote."
             status="next"
           />
         </FadeInOnView>
@@ -330,15 +338,7 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Next"
             title="USDC bounties on Base"
-            body="No Stripe. NS members already hold USDC wallets. Pledges escrow on Base, payout wallet to wallet when a bounty is claimed and shipped. Ness handles the schema, the chain handles the money."
-            status="next"
-          />
-        </FadeInOnView>
-        <FadeInOnView>
-          <RoadmapRow
-            phase="Next"
-            title="Discord hiring import (Jobs)"
-            body="Phase 1: a member-side export of the NS hiring thread, run through an LLM extractor, populated into the Jobs board manually each week. Phase 2: a proper bot once NS admins invite it. No user-token scraping. The path is the right one, not the fast one."
+            body="No Stripe. Community members already hold USDC wallets. Pledges escrow on Base, payout wallet to wallet when a bounty is claimed and shipped. Ness handles the schema, the chain handles the money."
             status="next"
           />
         </FadeInOnView>
@@ -346,15 +346,15 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Next"
             title="Weekly in-person townhalls + pulse reports"
-            body="One hour a week in the coworking, where open bounties get pitched, claimed, retired. Adam runs a parallel weekly pulse, interviewing citizens and publishing a clean field report for the core team."
+            body="One hour a week, in person. Open bounties get pitched, claimed, retired. A parallel weekly pulse interviews citizens and publishes a clean field report back to the host community's leadership."
             status="next"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Later"
-            title="Atlas. Jobs. Market."
-            body="The other three tools in the platform. Atlas first (the social graph), then Jobs as a real bot, then Market consolidating nsmarket.app and redmart.xyz. Each one earns its place by solving something real."
+            title="Atlas + Market"
+            body="The remaining tools. Atlas (social graph). Market (products, services, assets). Each one earns its place by solving something real."
             status="later"
           />
         </FadeInOnView>
