@@ -1,87 +1,69 @@
 import Link from "next/link";
-import { problems, stats } from "@/lib/data";
 import { tools } from "@/lib/tools";
-import { ProblemCard } from "@/components/ProblemCard";
 import { ToolCard } from "@/components/ToolCard";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
-import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
-import { CountUp } from "@/components/motion/CountUp";
 
 export default function Home() {
-  const sorted = [...problems].sort((a, b) => {
-    const order: Record<string, number> = { open: 0, investigating: 1, "in-progress": 2, solved: 3 };
-    if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
-    return b.upvotes - a.upvotes;
-  });
-  const empty = sorted.length === 0;
-
   return (
     <main className="mx-auto max-w-5xl px-5">
-      <section className="pt-16 pb-12 sm:pt-24 sm:pb-16">
+      {/* Hero */}
+      <section className="pt-16 pb-14 sm:pt-24 sm:pb-20">
         <FadeIn>
           <div className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-3 py-1 font-mono text-[11px] text-ink-600">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ink-950 opacity-40" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-ink-950" />
             </span>
-            in beta · open-source community tooling
+            in beta · open-source · MIT
           </div>
         </FadeIn>
 
         <FadeIn delay={0.06}>
           <h1 className="serif mt-7 max-w-3xl text-[44px] leading-[1.02] text-ink-950 sm:text-[68px] sm:leading-[1.0]">
-            The civic layer
+            Civic infrastructure
             <br />
             for <span className="italic">builders</span>.
           </h1>
         </FadeIn>
 
         <FadeIn delay={0.12}>
-          <p className="mt-6 max-w-2xl text-[16px] leading-[1.6] text-ink-600 sm:text-[17px]">
-            Open-source community tooling. The first tool is a civic layer
-            where citizens surface problems, fund the fixes in USDC, and ship
-            them. Solvers earn karma. Patrons earn attribution. More tools
-            follow.
+          <p className="mt-6 max-w-2xl text-[16px] leading-[1.65] text-ink-600 sm:text-[17px]">
+            Ness is a portfolio of small, opinionated tools for ambitious
+            communities. The first tool, Townhall, turns problems into
+            bounties into shipped fixes. The next ones map who knows whom,
+            match resumes to opportunities, and run the local economy.
+            Everything is free to use, public to read, and easy to fork.
           </p>
         </FadeIn>
 
         <FadeIn delay={0.18}>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              href="/submit"
+              href="/solve"
               className="inline-flex items-center gap-2.5 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
             >
-              Surface a problem
+              Open Townhall
               <span aria-hidden>→</span>
             </Link>
             <Link
-              href="/about"
+              href="/jobs"
               className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
             >
-              See the worked example
+              Browse Jobs
             </Link>
-            <a
-              href="#tools"
+            <Link
+              href="/about"
               className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-[14px] font-medium text-ink-700 transition-colors hover:text-ink-950"
             >
-              The platform ↓
-            </a>
-          </div>
-        </FadeIn>
-
-        <FadeIn delay={0.28}>
-          <div className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-ink-200 sm:grid-cols-4">
-            <Stat label="Problems open" value={stats.problemsOpen} />
-            <Stat label="Problems solved" value={stats.problemsSolved} />
-            <Stat label="Pledged" value={stats.totalPledged} prefix="$" />
-            <Stat label="Karma issued" value={stats.totalKarma} />
+              How it works →
+            </Link>
           </div>
         </FadeIn>
       </section>
 
       <div className="divider" />
 
-      {/* The platform: tools grid */}
+      {/* Tools grid */}
       <section id="tools" className="scroll-mt-24 py-14">
         <FadeInOnView>
           <div>
@@ -92,9 +74,8 @@ export default function Home() {
               Four tools. One city.
             </h2>
             <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
-              Ness is a portfolio of small, opinionated tools for ambitious
-              communities. Each one solves a specific problem the community
-              keeps hitting. The civic layer ships first. The rest follow.
+              Each tool solves a specific problem the community keeps hitting.
+              The civic layer ships first. The rest follow.
             </p>
           </div>
         </FadeInOnView>
@@ -110,111 +91,167 @@ export default function Home() {
 
       <div className="divider" />
 
-      {/* Townhall feed */}
+      {/* What's free */}
       <section className="py-14">
         <FadeInOnView>
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-                Townhall · the feed
-              </p>
-              <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
-                What needs fixing
-              </h2>
-              <p className="mt-2 max-w-md text-[14px] text-ink-600">
-                Open problems rise. Solved problems sink into the city&apos;s
-                memory. Sorted by signal.
-              </p>
-            </div>
-            {!empty && (
-              <div className="hidden items-center gap-1 rounded-full border border-ink-200 bg-paper p-1 text-[12px] sm:flex">
-                <button className="rounded-full bg-ink-950 px-3 py-1.5 text-paper">All</button>
-                <button className="rounded-full px-3 py-1.5 text-ink-600 hover:text-ink-950">Open</button>
-                <button className="rounded-full px-3 py-1.5 text-ink-600 hover:text-ink-950">In progress</button>
-                <button className="rounded-full px-3 py-1.5 text-ink-600 hover:text-ink-950">Solved</button>
-              </div>
-            )}
-          </div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            What you can do right now
+          </p>
+          <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+            Free, in five clicks.
+          </h2>
+          <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
+            No login, no email gate, no paywall. Free tooling builds trust.
+            Trust builds networks.
+          </p>
         </FadeInOnView>
 
-        {empty ? (
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <FadeInOnView>
-            <div className="mt-8 grid gap-3 sm:grid-cols-[1fr_1fr]">
-              <div className="rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-8">
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                  The feed is open
-                </p>
-                <h3 className="serif mt-2 text-[26px] leading-tight text-ink-950">
-                  Be the first to surface a problem.
-                </h3>
-                <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
-                  Ness starts empty. Every entry on the feed will be a real
-                  problem from a real citizen. The seed for everything that
-                  follows: bounty, fix, documentation, karma.
-                </p>
-                <Link
-                  href="/submit"
-                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
-                >
-                  Surface a problem
-                  <span aria-hidden>→</span>
-                </Link>
-              </div>
-              <Link
-                href="/about"
-                className="group rounded-2xl border border-ink-200 bg-paper p-8 transition-colors hover:border-ink-950"
-              >
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                  Worked example
-                </p>
-                <h3 className="serif mt-2 text-[26px] leading-tight text-ink-950 transition-opacity group-hover:opacity-70">
-                  See how a real fix moves through Ness.
-                </h3>
-                <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
-                  We walk through one bounty end to end. Priya surfaces a wifi
-                  problem. Marcus proposes a fix. Five patrons crowdfund $240.
-                  Marcus ships and documents.
-                </p>
-                <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-ink-950">
-                  Read the walkthrough
-                  <span aria-hidden>→</span>
-                </span>
-              </Link>
-            </div>
+            <FreeCard
+              eyebrow="Townhall"
+              title="Surface a problem in 90 seconds"
+              body="A real diagnosis, not a complaint. Earns +5 karma when writes go live. Until then, drafts persist locally."
+              href="/solve/new"
+              cta="Start drafting"
+            />
           </FadeInOnView>
-        ) : (
-          <StaggerList className="mt-8 grid gap-3">
-            {sorted.map((p) => (
-              <StaggerItem key={p.id}>
-                <ProblemCard problem={p} />
-              </StaggerItem>
-            ))}
-          </StaggerList>
-        )}
+          <FadeInOnView>
+            <FreeCard
+              eyebrow="Jobs"
+              title="Curated openings, no login"
+              body="36 hand-picked public jobs across engineering, AI, design, product. Direct apply links to the company's own page."
+              href="/jobs"
+              cta="Browse jobs"
+            />
+          </FadeInOnView>
+          <FadeInOnView>
+            <FreeCard
+              eyebrow="Townhall"
+              title="See an end-to-end fix"
+              body="A walkthrough of one bounty. Five patrons crowdfund $240. A solver ships, documents, claims. The pattern in 8 minutes."
+              href="/about"
+              cta="Read the walkthrough"
+            />
+          </FadeInOnView>
+          <FadeInOnView>
+            <FreeCard
+              eyebrow="Citizens"
+              title="Two leaderboards, both free"
+              body="Solvers earn karma. Patrons earn permanent attribution. The board is the city's memory of who showed up."
+              href="/citizens"
+              cta="See the leaderboards"
+            />
+          </FadeInOnView>
+          <FadeInOnView>
+            <FreeCard
+              eyebrow="Match · soon"
+              title="Resume → top opportunities"
+              body="Drop a resume. We score it against every open role and every bounty. Get back the 80%+ matches with next steps."
+              href="/match"
+              cta="See the plan"
+            />
+          </FadeInOnView>
+          <FadeInOnView>
+            <FreeCard
+              eyebrow="Tools · soon"
+              title="The free utility belt"
+              body="NS points calculator. Visa-run planner. Bounty USD-to-karma converter. Small calculators, no login."
+              href="/tools"
+              cta="Peek at the roadmap"
+            />
+          </FadeInOnView>
+        </div>
       </section>
 
+      <div className="divider" />
+
+      {/* Open source */}
+      <section className="py-14">
+        <FadeInOnView>
+          <div className="rounded-2xl border border-ink-950 bg-ink-950 p-7 text-paper sm:p-9">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-300">
+              Open source · MIT
+            </p>
+            <h2 className="serif mt-2 text-[28px] leading-tight sm:text-[36px]">
+              Read the code. Fork the city. Send a PR.
+            </h2>
+            <p className="mt-3 max-w-2xl text-[15px] leading-[1.65] text-ink-200">
+              The repo is public on GitHub under MIT. The merge button is mine.
+              That&apos;s the deal: anyone can read, fork, suggest, and learn.
+              Adam reviews and merges PRs from outside collaborators on the
+              same bar as internal ones: clarity, correctness, taste.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                href="https://github.com/adamtpang/ness"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-paper px-5 py-2.5 text-[13px] font-medium text-ink-950 transition-opacity hover:opacity-90"
+              >
+                Open the repo
+                <span aria-hidden>↗</span>
+              </a>
+              <a
+                href="https://github.com/adamtpang/ness/blob/main/CONTRIBUTING.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-ink-700 px-5 py-2.5 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
+              >
+                How to contribute
+              </a>
+              <a
+                href="https://github.com/adamtpang/ness/issues?q=label%3Afeedback"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-medium text-ink-300 transition-colors hover:text-paper"
+              >
+                See feedback issues →
+              </a>
+            </div>
+          </div>
+        </FadeInOnView>
+      </section>
     </main>
   );
 }
 
-function Stat({
-  label,
-  value,
-  prefix = "",
+function FreeCard({
+  eyebrow,
+  title,
+  body,
+  href,
+  cta,
 }: {
-  label: string;
-  value: number;
-  prefix?: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
 }) {
   return (
-    <div className="bg-paper px-5 py-6">
-      <div className="serif text-[36px] leading-none tabular-nums text-ink-950">
-        {prefix}
-        <CountUp to={value} />
-      </div>
-      <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-ink-500">
-        {label}
-      </div>
-    </div>
+    <Link
+      href={href}
+      className="group flex h-full flex-col rounded-2xl border border-ink-200 bg-paper p-5 transition-colors hover:border-ink-950"
+    >
+      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+        {eyebrow}
+      </p>
+      <h3 className="serif mt-2 text-[20px] leading-tight text-ink-950 transition-opacity group-hover:opacity-70">
+        {title}
+      </h3>
+      <p className="mt-2 flex-1 text-[13.5px] leading-[1.6] text-ink-600">
+        {body}
+      </p>
+      <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-950">
+        {cta}
+        <span
+          aria-hidden
+          className="transition-transform group-hover:translate-x-0.5"
+        >
+          →
+        </span>
+      </span>
+    </Link>
   );
 }

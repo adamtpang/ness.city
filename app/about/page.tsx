@@ -84,7 +84,7 @@ export default function AboutPage() {
             work once people use it.
           </p>
           <Link
-            href={`/problems/${wifi.slug}`}
+            href={`/solve/${wifi.slug}`}
             className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-ink-950 hover:opacity-70"
           >
             Open the example problem page
@@ -240,7 +240,7 @@ export default function AboutPage() {
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
-              href="/leaderboard"
+              href="/citizens"
               className="inline-flex items-center gap-2 rounded-full bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-opacity hover:opacity-90"
             >
               See the leaderboards →
@@ -363,7 +363,7 @@ export default function AboutPage() {
       <FadeInOnView>
         <div className="mt-16 flex flex-wrap gap-3 border-t border-ink-200 pt-10">
           <Link
-            href="/submit"
+            href="/solve/new"
             className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
           >
             Surface a problem

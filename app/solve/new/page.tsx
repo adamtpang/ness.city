@@ -163,10 +163,10 @@ export default function SubmitPage() {
         <FadeIn delay={0.12}>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/"
+              href="/solve"
               className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
             >
-              Back to feed
+              Back to townhall
               <span aria-hidden>→</span>
             </Link>
             <button
@@ -185,10 +185,10 @@ export default function SubmitPage() {
     <main className="mx-auto max-w-2xl px-5 pb-16 pt-10">
       <FadeIn y={6}>
         <Link
-          href="/"
+          href="/solve"
           className="inline-flex items-center gap-1.5 text-[12px] text-ink-500 transition-colors hover:text-ink-950"
         >
-          <span aria-hidden>←</span> back to feed
+          <span aria-hidden>←</span> back to townhall
         </Link>
       </FadeIn>
 

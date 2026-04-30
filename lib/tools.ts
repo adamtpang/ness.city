@@ -17,7 +17,7 @@ export const tools: Tool[] = [
     description:
       "The live tool. Anyone surfaces a problem with a real diagnosis. Patrons crowdfund the fix in USDC. Solvers ship and document. Two leaderboards keep score.",
     status: "live",
-    href: "/",
+    href: "/solve",
   },
   {
     id: "jobs",

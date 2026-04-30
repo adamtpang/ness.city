@@ -71,10 +71,10 @@ export default async function ProblemPage({
 
       <FadeIn y={6}>
         <Link
-          href="/"
+          href="/solve"
           className="inline-flex items-center gap-1.5 text-[12px] text-ink-500 transition-colors hover:text-ink-950"
         >
-          <span aria-hidden>←</span> back to feed
+          <span aria-hidden>←</span> back to townhall
         </Link>
       </FadeIn>
 
@@ -106,7 +106,7 @@ export default async function ProblemPage({
             <div className="mt-5 flex items-center gap-3 text-[13px] text-ink-600">
               {reporter && (
                 <Link
-                  href="/leaderboard"
+                  href="/citizens"
                   className="flex items-center gap-2 transition-colors hover:text-ink-950"
                 >
                   <Avatar initials={reporter.avatar} seed={reporter.id} size={24} />

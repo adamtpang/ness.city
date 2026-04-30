@@ -19,7 +19,7 @@ export function ProblemCard({ problem }: { problem: Problem }) {
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <Link
-        href={`/problems/${problem.slug}`}
+        href={`/solve/${problem.slug}`}
         className="group block rounded-2xl border border-ink-200 bg-paper p-6 transition-colors hover:border-ink-400"
       >
         <div className="flex items-start justify-between gap-6">

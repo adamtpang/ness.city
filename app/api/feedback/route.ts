@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-const REPO_OWNER = "adamtpang";
-const REPO_NAME = "ness";
 const MAX_MESSAGE = 4000;
 
 type Body = {
@@ -20,6 +18,14 @@ function clean(value: unknown, max = 200): string | undefined {
   return trimmed.slice(0, max);
 }
 
+const RATING_LABELS: Record<number, string> = {
+  1: "Broken",
+  2: "Rough",
+  3: "Fine",
+  4: "Good",
+  5: "Loved it",
+};
+
 export async function POST(request: Request) {
   let body: Body;
   try {
@@ -32,77 +38,49 @@ export async function POST(request: Request) {
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return new NextResponse("Rating must be an integer 1-5", { status: 400 });
   }
+
   const message = clean(body.message, MAX_MESSAGE);
   const page = clean(body.page, 200) ?? "/";
   const referrer = clean(body.referrer, 200);
+  const at = new Date().toISOString();
 
-  const token = process.env.GITHUB_FEEDBACK_TOKEN;
-  if (!token) {
-    return new NextResponse(
-      "GITHUB_FEEDBACK_TOKEN not configured. Add it in Vercel project env.",
-      { status: 503 },
-    );
-  }
+  // Always log to server-side console (visible in Vercel function logs).
+  // Adam can review via the Vercel dashboard.
+  console.log(
+    JSON.stringify({
+      type: "ness.feedback",
+      at,
+      rating,
+      label: RATING_LABELS[rating],
+      page,
+      referrer,
+      message: message ?? null,
+    }),
+  );
 
-  const ratingLabels: Record<number, string> = {
-    1: "Broken",
-    2: "Rough",
-    3: "Fine",
-    4: "Good",
-    5: "Loved it",
-  };
-
-  const title = `Feedback ${rating}/5 (${ratingLabels[rating]}) on ${page}`;
-
-  const issueBody = [
-    `**Rating:** ${rating}/5 (${ratingLabels[rating]})`,
-    `**Page:** \`${page}\``,
-    referrer ? `**Referrer:** ${referrer}` : null,
-    "",
-    message ? `> ${message.split("\n").join("\n> ")}` : "_(no comment)_",
-    "",
-    "---",
-    "_Filed automatically by the Ness feedback widget._",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  const labels = ["feedback", `rating-${rating}`];
-
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`,
-      {
+  // Optional: forward to a Discord webhook if configured.
+  // Adam sets DISCORD_FEEDBACK_WEBHOOK in Vercel env, no code changes needed.
+  const webhook = process.env.DISCORD_FEEDBACK_WEBHOOK;
+  if (webhook) {
+    try {
+      const lines = [
+        `**Feedback ${rating}/5** (${RATING_LABELS[rating]}) on \`${page}\``,
+        message ? `> ${message.split("\n").join("\n> ")}` : "_(no comment)_",
+        referrer ? `_referrer: ${referrer}_` : null,
+      ].filter(Boolean);
+      await fetch(webhook, {
         method: "POST",
-        headers: {
-          Accept: "application/vnd.github+json",
-          Authorization: `Bearer ${token}`,
-          "X-GitHub-Api-Version": "2022-11-28",
-          "Content-Type": "application/json",
-          "User-Agent": "ness.city-feedback-widget",
-        },
-        body: JSON.stringify({ title, body: issueBody, labels }),
-      },
-    );
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      return new NextResponse(
-        `GitHub API ${res.status}: ${text.slice(0, 300)}`,
-        { status: 502 },
-      );
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: lines.join("\n"),
+          username: "Ness Feedback",
+        }),
+      });
+    } catch {
+      // Webhook failures shouldn't block the user response. Log only.
+      console.error("Discord webhook failed");
     }
-
-    const data = (await res.json()) as { html_url?: string; number?: number };
-    return NextResponse.json({
-      ok: true,
-      url: data.html_url ?? null,
-      number: data.number ?? null,
-    });
-  } catch (err) {
-    return new NextResponse(
-      `Network error: ${err instanceof Error ? err.message : "unknown"}`,
-      { status: 502 },
-    );
   }
+
+  return NextResponse.json({ ok: true });
 }

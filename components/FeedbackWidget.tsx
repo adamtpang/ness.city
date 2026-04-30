@@ -128,7 +128,7 @@ export function FeedbackWidget() {
                       How&apos;s Ness right now?
                     </h3>
                     <p className="mt-1 text-[12px] text-ink-500">
-                      One tap. Lands as a GitHub issue.
+                      One tap. Adam reads every one.
                     </p>
                     <div className="mt-4 grid grid-cols-5 gap-1.5">
                       {RATINGS.map((n) => (
@@ -194,7 +194,7 @@ export function FeedbackWidget() {
                 {stage === "submitting" && (
                   <div className="flex items-center gap-3 py-4">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-ink-950" />
-                    <p className="text-[14px] text-ink-700">Filing issue...</p>
+                    <p className="text-[14px] text-ink-700">Sending...</p>
                   </div>
                 )}
 
@@ -208,16 +208,14 @@ export function FeedbackWidget() {
                       Thanks for the signal.
                     </h3>
                     <p className="mt-2 text-[13px] leading-[1.6] text-ink-600">
-                      Filed as a GitHub issue on{" "}
+                      Adam triages feedback weekly. The list at{" "}
                       <a
-                        href="https://github.com/adamtpang/ness/issues?q=label%3Afeedback"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="/feedback"
                         className="text-ink-950 underline-offset-4 hover:underline"
                       >
-                        adamtpang/ness
-                      </a>
-                      . Adam triages weekly.
+                        /feedback
+                      </a>{" "}
+                      explains how it&apos;s handled.
                     </p>
                     <button
                       onClick={() => setOpen(false)}
@@ -232,14 +230,14 @@ export function FeedbackWidget() {
                   <div>
                     <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-900">
                       <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                      Couldn&apos;t file
+                      Couldn&apos;t send
                     </div>
                     <h3 className="serif mt-3 text-[20px] leading-tight text-ink-950">
-                      The issue didn&apos;t go through.
+                      The feedback didn&apos;t go through.
                     </h3>
                     <p className="mt-2 text-[13px] leading-[1.6] text-ink-600">
-                      Probably a missing GitHub token in Vercel env. The
-                      feedback was: <span className="text-ink-950">{rating}/5</span>
+                      Network error. Your input:{" "}
+                      <span className="text-ink-950">{rating}/5</span>
                       {comment && <>, &ldquo;{comment}&rdquo;</>}.
                     </p>
                     {errorMsg && (

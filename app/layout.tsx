@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
@@ -46,7 +47,7 @@ export default function RootLayout({
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.6</span>
+                <span>ness.city · v0.7</span>
                 <span className="text-ink-300">·</span>
                 <span>
                   a node in{" "}
@@ -66,6 +67,7 @@ export default function RootLayout({
           </div>
         </footer>
         <FeedbackWidget />
+        <Analytics />
       </body>
     </html>
   );

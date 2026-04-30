@@ -6,10 +6,10 @@ import { usePathname } from "next/navigation";
 import { NessieMark } from "./NessieLogo";
 
 const links = [
-  { href: "/", label: "Townhall" },
+  { href: "/solve", label: "Townhall" },
   { href: "/bounties", label: "Bounties" },
   { href: "/jobs", label: "Jobs" },
-  { href: "/leaderboard", label: "Citizens" },
+  { href: "/citizens", label: "Citizens" },
   { href: "/about", label: "About" },
 ];
 
@@ -62,7 +62,7 @@ export function Header() {
         </nav>
 
         <Link
-          href="/submit"
+          href="/solve/new"
           className="group inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
         >
           Surface a problem
