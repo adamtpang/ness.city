@@ -49,7 +49,7 @@ export default function RootLayout({
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.9</span>
+                <span>ness.city · v0.11</span>
                 <span className="text-ink-300">·</span>
                 <span>
                   a node in{" "}

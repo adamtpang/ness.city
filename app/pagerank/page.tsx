@@ -616,6 +616,37 @@ export default function PageRankPage() {
       </FadeInOnView>
 
       <FadeInOnView>
+        <div className="mt-10 rounded-2xl border border-garden-200 bg-garden-50/60 p-6 sm:p-7">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-garden-700">
+            Coming next · Tournament input
+          </p>
+          <h3 className="serif mt-2 text-[24px] leading-tight text-ink-950">
+            One click at a time. No typing.
+          </h3>
+          <p className="mt-3 text-[14.5px] leading-[1.7] text-ink-700">
+            Naming 63 people from memory is hard. Recognising someone when
+            you see their face is easy. The next iteration of PageRank input
+            is a <strong>tournament</strong>: we show you two citizens at a
+            time and ask &ldquo;who do you know better?&rdquo; You click. We
+            update Elo-style closeness ratings and surface the next pair.
+            About 30 rounds gets us a stable ranked list per citizen,
+            which becomes the weighted edges into the PageRank graph.
+          </p>
+          <p className="mt-3 text-[14.5px] leading-[1.7] text-ink-700">
+            The input pool is bootstrapped from the host community
+            directory. So the very first time you open Tournament, the
+            faces are already people you might know. Cold start solved by
+            the same trick Zuck pulled at Harvard: pre-populate the
+            graph, let the network effect do the rest.
+          </p>
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-garden-300 bg-paper px-3 py-1 font-mono text-[11px] text-garden-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-garden-500" />
+            Lands in v0.12. The schema already has the rings table.
+          </div>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
         <div className="mt-10 rounded-2xl border border-nessie-200 bg-nessie-50/60 p-6 sm:p-7">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-nessie-700">
             Compared to ns.com/pals

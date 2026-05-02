@@ -3,40 +3,19 @@ import { dbProblemToTownhall, listProblems } from "@/lib/db/queries";
 import { ProblemCard } from "@/components/ProblemCard";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
-import { CountUp } from "@/components/motion/CountUp";
-import { isDbConfigured, getDb, schema } from "@/lib/db";
-import { sql } from "drizzle-orm";
-
-async function loadStats() {
-  if (!isDbConfigured) {
-    return { problemsOpen: 0, problemsSolved: 0, totalKarma: 0, totalPledged: 0 };
-  }
-  const db = getDb();
-  const [counts] = (await db.execute(sql.raw(`
-    select
-      coalesce(sum(case when status <> 'solved' then 1 else 0 end), 0)::int as open_count,
-      coalesce(sum(case when status = 'solved' then 1 else 0 end), 0)::int as solved_count
-    from problems
-  `))) as unknown as Array<{ open_count: number; solved_count: number }>;
-  const [karmaRow] = (await db.execute(sql.raw(`
-    select coalesce(sum(karma), 0)::int as total from citizens
-  `))) as unknown as Array<{ total: number }>;
-  const [pledgesRow] = (await db.execute(sql.raw(`
-    select coalesce(sum(amount_cents), 0)::int as total from pledges
-  `))) as unknown as Array<{ total: number }>;
-  return {
-    problemsOpen: counts?.open_count ?? 0,
-    problemsSolved: counts?.solved_count ?? 0,
-    totalKarma: karmaRow?.total ?? 0,
-    totalPledged: Math.round((pledgesRow?.total ?? 0) / 100),
-  };
-}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const STEPS = [
+  { n: "01", title: "Surface", body: "Post the problem." },
+  { n: "02", title: "Propose", body: "Pitch the fix." },
+  { n: "03", title: "Pledge", body: "Fund the bounty." },
+  { n: "04", title: "Ship", body: "Document. Get paid." },
+];
+
 export default async function SolvePage() {
-  const [rows, stats] = await Promise.all([listProblems(), loadStats()]);
+  const rows = await listProblems();
   const problems = rows.map((r) =>
     dbProblemToTownhall({
       ...r,
@@ -58,127 +37,76 @@ export default async function SolvePage() {
   const empty = sorted.length === 0;
 
   return (
-    <main className="mx-auto max-w-5xl px-5 pb-16">
-      <section className="pt-12 pb-8 sm:pt-16">
+    <main className="mx-auto max-w-4xl px-5 pb-16">
+      {/* Hero */}
+      <section className="pt-14 pb-10 sm:pt-20">
         <FadeIn>
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-            Townhall
-          </p>
-        </FadeIn>
-
-        <FadeIn delay={0.05}>
-          <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950 sm:text-[56px]">
-            What needs fixing.
+          <h1 className="serif text-[56px] leading-[1.0] text-ink-950 sm:text-[88px]">
+            Solve.
           </h1>
         </FadeIn>
 
-        <FadeIn delay={0.1}>
-          <p className="mt-3 max-w-2xl text-[15px] leading-[1.6] text-ink-600 sm:text-[16px]">
-            Citizens surface problems with real diagnoses. Patrons crowdfund
-            the fixes in USDC. Solvers ship and document. The whole loop is
-            public, attributed, and permanent.
+        <FadeIn delay={0.05}>
+          <p className="mt-3 max-w-xl text-[16px] leading-[1.55] text-ink-600 sm:text-[17px]">
+            Post a problem. Someone proposes a fix. Patrons pledge. The solver
+            ships, documents, and gets paid.
           </p>
         </FadeIn>
 
-        <FadeIn delay={0.16}>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+        <FadeIn delay={0.1}>
+          <div className="mt-7">
             <Link
               href="/solve/new"
-              className="inline-flex items-center gap-2.5 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
+              className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
             >
               Surface a problem
               <span aria-hidden>→</span>
             </Link>
-            <Link
-              href="/bounties"
-              className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
-            >
-              See open bounties
-            </Link>
-            <Link
-              href="/about"
-              className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-[14px] font-medium text-ink-700 transition-colors hover:text-ink-950"
-            >
-              Worked example →
-            </Link>
           </div>
         </FadeIn>
 
-        <FadeIn delay={0.24}>
-          <div className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-ink-200 sm:grid-cols-4">
-            <Stat label="Problems open" value={stats.problemsOpen} />
-            <Stat label="Problems solved" value={stats.problemsSolved} />
-            <Stat label="Pledged" value={stats.totalPledged} prefix="$" />
-            <Stat label="Karma issued" value={stats.totalKarma} />
-          </div>
+        {/* Steps strip */}
+        <FadeIn delay={0.18}>
+          <ol className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-ink-200 sm:grid-cols-4">
+            {STEPS.map((s) => (
+              <li key={s.n} className="bg-paper px-5 py-4">
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-400">
+                  {s.n}
+                </span>
+                <h3 className="serif mt-1 text-[20px] leading-tight text-ink-950">
+                  {s.title}
+                </h3>
+                <p className="mt-1 text-[12.5px] leading-[1.5] text-ink-600">
+                  {s.body}
+                </p>
+              </li>
+            ))}
+          </ol>
         </FadeIn>
       </section>
 
-      <div className="divider" />
-
-      <section className="py-10">
-        <FadeInOnView>
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-                The feed
-              </p>
-              <h2 className="serif mt-2 text-[28px] leading-tight text-ink-950">
-                Sorted by signal
-              </h2>
-              <p className="mt-2 max-w-md text-[13.5px] text-ink-600">
-                Open problems rise. Solved problems sink into the city&apos;s
-                memory.
-              </p>
-            </div>
-          </div>
-        </FadeInOnView>
-
+      {/* Feed */}
+      <section className="pt-2 pb-10">
         {empty ? (
           <FadeInOnView>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-8">
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                  The feed is open
-                </p>
-                <h3 className="serif mt-2 text-[24px] leading-tight text-ink-950">
-                  Be the first to surface a problem.
-                </h3>
-                <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
-                  Every entry will be a real problem from a real citizen.
-                  Earns +5 karma on submit.
-                </p>
-                <Link
-                  href="/solve/new"
-                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
-                >
-                  Surface a problem
-                  <span aria-hidden>→</span>
-                </Link>
-              </div>
+            <div className="rounded-2xl border border-dashed border-ink-300 bg-paper-tint px-6 py-10 text-center">
+              <p className="serif text-[24px] text-ink-950">
+                Nothing to fix yet.
+              </p>
+              <p className="mt-2 text-[13.5px] text-ink-600">
+                Be the first.
+              </p>
               <Link
-                href="/about"
-                className="group rounded-2xl border border-ink-200 bg-paper p-8 transition-colors hover:border-ink-950"
+                href="/solve/new"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
               >
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                  Worked example
-                </p>
-                <h3 className="serif mt-2 text-[24px] leading-tight text-ink-950 transition-opacity group-hover:opacity-70">
-                  See how a fix moves through Ness.
-                </h3>
-                <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
-                  Five steps end-to-end. Same flow that ships every fix on
-                  the live feed.
-                </p>
-                <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-ink-950">
-                  Read the walkthrough
-                  <span aria-hidden>→</span>
-                </span>
+                Surface a problem
+                <span aria-hidden>→</span>
               </Link>
             </div>
           </FadeInOnView>
         ) : (
-          <StaggerList className="mt-8 grid gap-3">
+          <StaggerList className="grid gap-3">
             {sorted.map((p) => (
               <StaggerItem key={p.id}>
                 <ProblemCard problem={p} />
@@ -188,27 +116,5 @@ export default async function SolvePage() {
         )}
       </section>
     </main>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  prefix = "",
-}: {
-  label: string;
-  value: number;
-  prefix?: string;
-}) {
-  return (
-    <div className="bg-paper px-5 py-6">
-      <div className="serif text-[32px] leading-none tabular-nums text-ink-950">
-        {prefix}
-        <CountUp to={value} />
-      </div>
-      <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-ink-500">
-        {label}
-      </div>
-    </div>
   );
 }
