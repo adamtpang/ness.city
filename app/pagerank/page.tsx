@@ -469,6 +469,111 @@ export default function PageRankPage() {
       </FadeInOnView>
 
       <FadeInOnView>
+        <div className="mt-10 overflow-hidden rounded-2xl border border-ink-200 bg-paper">
+          <div className="border-b border-ink-100 bg-paper-tint px-5 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+              How the crawl runs · step by step
+            </p>
+          </div>
+          <ol className="px-5 py-6 sm:px-7 space-y-5 text-[14.5px] leading-[1.7] text-ink-700">
+            <li>
+              <p>
+                <span className="font-mono text-[12px] text-ink-950">1.</span>{" "}
+                <strong>Collect rings.</strong> Each citizen submits up to 63
+                names across rounds 1 to 6. Each name becomes a directed edge
+                from them to the named citizen, weighted by which round it
+                appeared in (R1 = 6, R2 = 5, R3 = 4, R4 = 3, R5 = 2, R6 = 1).
+                Stored in the{" "}
+                <span className="font-mono text-[12px] text-ink-950">
+                  pagerank_rings
+                </span>{" "}
+                table.
+              </p>
+            </li>
+            <li>
+              <p>
+                <span className="font-mono text-[12px] text-ink-950">2.</span>{" "}
+                <strong>Resolve handles to citizens.</strong> A name like
+                &ldquo;priya.k&rdquo; resolves to a real citizen record if one
+                exists. Unmatched names stay as ghost nodes with no outgoing
+                edges (they receive but don&apos;t pass on rank). This avoids
+                inflating rank for handles nobody recognizes.
+              </p>
+            </li>
+            <li>
+              <p>
+                <span className="font-mono text-[12px] text-ink-950">3.</span>{" "}
+                <strong>Initialize ranks.</strong> Every node gets rank{" "}
+                <span className="font-mono text-[12px] text-ink-950">1/N</span>
+                . With 100 citizens, every starting rank is 0.01. Rank is a
+                probability: the chance that a random walker through the graph
+                lands on this node.
+              </p>
+            </li>
+            <li>
+              <p>
+                <span className="font-mono text-[12px] text-ink-950">4.</span>{" "}
+                <strong>Iterate.</strong> One pass: every node passes its
+                current rank to the people it named, in proportion to the
+                weight of those names. Then we add the damping correction
+                (1&minus;d)/N to every node. Then we normalize so all ranks
+                sum back to 1. Repeat for 30 to 50 passes.
+              </p>
+            </li>
+            <li>
+              <p>
+                <span className="font-mono text-[12px] text-ink-950">5.</span>{" "}
+                <strong>Watch convergence.</strong> Each pass, the ranks
+                shift less than the one before. We stop when the largest
+                rank change in a pass is below epsilon (e.g. 0.0001). At
+                that point the ranking is stable: it&apos;s a property of
+                the graph, not of where we started.
+              </p>
+            </li>
+            <li>
+              <p>
+                <span className="font-mono text-[12px] text-ink-950">6.</span>{" "}
+                <strong>Publish.</strong> The ranked list is the leaderboard.
+                Connectors rise, bridges rise, the quiet ones who got named
+                by the right people rise. Ranks update nightly as new rings
+                come in.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <div className="mt-6 rounded-2xl border border-ink-200 bg-paper-tint p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+            What &ldquo;rings to compute&rdquo; means
+          </p>
+          <h3 className="serif mt-2 text-[20px] leading-tight text-ink-950">
+            We need a graph before we can rank it.
+          </h3>
+          <p className="mt-2 text-[14.5px] leading-[1.7] text-ink-700">
+            A single citizen&apos;s ring is a star: one center, up to 63
+            outbound edges. Star graphs aren&apos;t interesting; PageRank on a
+            star is trivial. The signal kicks in when many stars overlap and
+            you can chase importance through the graph: A names B, B names C,
+            so C inherits a fraction of A&apos;s rank through B. Below
+            ~5 citizens with full rings, the ranks just track raw inbound
+            mention count. Above 20 to 30, real PageRank dynamics emerge.
+            The leaderboard automatically switches from &ldquo;weighted
+            mentions&rdquo; to &ldquo;true PageRank&rdquo; once that
+            threshold passes.
+          </p>
+          <p className="mt-3 text-[14.5px] leading-[1.7] text-ink-700">
+            For NS specifically: a single Forest City cohort is ~100 people.
+            If 30 submit rings, you have a tractable graph. If 60 submit, the
+            ranking starts looking like Pals on intent steroids. If everyone
+            submits, you have something genuinely new: a quantitative
+            self-portrait of the social fabric, refreshed weekly.
+          </p>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
         <div className="mt-10 grid gap-3 sm:grid-cols-2">
           <Card title="How we adapt it for Ness">
             <p>

@@ -70,6 +70,18 @@ body {
   100% { transform: translate3d(-30px, 30px, 0) scale(0.98); }
 }
 
+@keyframes ness-drift-c {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-80px, -40px, 0) scale(1.1); }
+  100% { transform: translate3d(40px, 50px, 0) scale(0.94); }
+}
+
+@keyframes ness-drift-d {
+  0%   { transform: translate(-50%, 0) scale(1); }
+  50%  { transform: translate(-50%, 30px) scale(1.05); }
+  100% { transform: translate(-50%, -10px) scale(0.97); }
+}
+
 @keyframes ness-wave {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-40px); }
@@ -78,6 +90,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   [style*="ness-drift-a"],
   [style*="ness-drift-b"],
+  [style*="ness-drift-c"],
+  [style*="ness-drift-d"],
   [style*="ness-wave"] {
     animation: none !important;
   }
