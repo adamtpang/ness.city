@@ -9,14 +9,15 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
+    "db:apply": "node scripts/db-apply.mjs",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.1.0",
     "@vercel/analytics": "^2.0.1",
     "drizzle-orm": "^0.45.2",
     "framer-motion": "^12.38.0",
     "next": "^16.2.4",
+    "postgres": "^3.4.9",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },

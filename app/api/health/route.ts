@@ -43,11 +43,10 @@ export async function GET() {
 
     const counts: Record<string, number> = {};
     for (const t of tables) {
-      const result = await db.execute(
+      const rows = (await db.execute(
         sql.raw(`select count(*)::int as count from "${t}"`),
-      );
-      const row = (result.rows ?? [])[0] as { count?: number } | undefined;
-      counts[t] = row?.count ?? 0;
+      )) as unknown as Array<{ count?: number }>;
+      counts[t] = rows[0]?.count ?? 0;
     }
 
     return NextResponse.json({

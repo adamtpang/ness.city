@@ -14,7 +14,8 @@ type Draft = {
   summary: string;
   rootCause: string;
   affected: string;
-  savedAt?: string;
+  reporterDisplayName: string;
+  reporterHandle: string;
 };
 
 const EMPTY: Draft = {
@@ -23,29 +24,46 @@ const EMPTY: Draft = {
   summary: "",
   rootCause: "",
   affected: "",
+  reporterDisplayName: "",
+  reporterHandle: "",
 };
 
-const STORAGE_KEY = "ness:problem-draft:v1";
-const SUBMITTED_KEY = "ness:problem-submitted:v1";
+const STORAGE_KEY = "ness:problem-draft:v2";
+const IDENTITY_KEY = "ness:identity:v1";
+
+type Submitted = {
+  draft: Draft;
+  slug: string;
+  problemId: string;
+  karmaAwarded: number;
+  serverMode: boolean;
+};
 
 export default function SubmitPage() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [touched, setTouched] = useState(false);
-  const [submitted, setSubmitted] = useState<Draft | null>(null);
+  const [submitted, setSubmitted] = useState<Submitted | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Restore draft on mount
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Draft;
-        setDraft(parsed);
+        setDraft({ ...EMPTY, ...parsed });
         setTouched(true);
       }
-      const sub = localStorage.getItem(SUBMITTED_KEY);
-      if (sub) setSubmitted(JSON.parse(sub) as Draft);
+      const id = localStorage.getItem(IDENTITY_KEY);
+      if (id) {
+        const parsed = JSON.parse(id) as { name: string; handle: string };
+        setDraft((d) => ({
+          ...d,
+          reporterDisplayName: d.reporterDisplayName || parsed.name || "",
+          reporterHandle: d.reporterHandle || parsed.handle || "",
+        }));
+      }
     } catch {
       /* ignore */
     } finally {
@@ -53,14 +71,12 @@ export default function SubmitPage() {
     }
   }, []);
 
-  // Auto-save draft
   useEffect(() => {
-    if (!hydrated) return;
-    if (!touched) return;
+    if (!hydrated || !touched) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     } catch {
-      /* quota or private mode */
+      /* ignore */
     }
   }, [draft, touched, hydrated]);
 
@@ -71,32 +87,97 @@ export default function SubmitPage() {
   }
 
   function reset() {
-    setDraft(EMPTY);
+    setDraft({
+      ...EMPTY,
+      reporterDisplayName: draft.reporterDisplayName,
+      reporterHandle: draft.reporterHandle,
+    });
     setSubmitted(null);
     setTouched(false);
     setError(null);
     try {
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(SUBMITTED_KEY);
     } catch {
       /* ignore */
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!draft.title.trim()) return setError("Give your problem a title.");
     if (!draft.category) return setError("Pick a category.");
     if (!draft.summary.trim()) return setError("Describe what's happening.");
-    if (!draft.rootCause.trim()) return setError("Take a swing at why it's happening.");
+    if (!draft.rootCause.trim())
+      return setError("Take a swing at why it's happening.");
+    if (!draft.reporterDisplayName.trim())
+      return setError("Add your display name so the karma lands in the right account.");
+    if (!draft.reporterHandle.trim())
+      return setError("Add a short handle (no @, just letters).");
 
-    const stamped: Draft = { ...draft, savedAt: new Date().toISOString() };
+    setSubmitting(true);
     try {
-      localStorage.setItem(SUBMITTED_KEY, JSON.stringify(stamped));
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* ignore */
+      const res = await fetch("/api/problems", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: draft.title.trim(),
+          summary: draft.summary.trim(),
+          rootCause: draft.rootCause.trim(),
+          category: draft.category,
+          reporterDisplayName: draft.reporterDisplayName.trim(),
+          reporterHandle: draft.reporterHandle.trim().replace(/^@/, "").toLowerCase(),
+          affected: draft.affected ? Number(draft.affected) : 0,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        problem?: { id: string; slug: string };
+        karmaAwarded?: number;
+        error?: string;
+      };
+
+      if (!res.ok || !data.ok || !data.problem) {
+        // Fallback: save locally and let the user know.
+        if (res.status === 503) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+          setSubmitted({
+            draft,
+            slug: "",
+            problemId: "local-only",
+            karmaAwarded: 0,
+            serverMode: false,
+          });
+          return;
+        }
+        setError(data.error ?? `HTTP ${res.status}`);
+        return;
+      }
+
+      // Success: clear draft, store identity for future submissions
+      try {
+        localStorage.setItem(
+          IDENTITY_KEY,
+          JSON.stringify({
+            name: draft.reporterDisplayName.trim(),
+            handle: draft.reporterHandle.trim().replace(/^@/, "").toLowerCase(),
+          }),
+        );
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+
+      setSubmitted({
+        draft,
+        slug: data.problem.slug,
+        problemId: data.problem.id,
+        karmaAwarded: data.karmaAwarded ?? 0,
+        serverMode: true,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Network error");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitted(stamped);
   }
 
   if (submitted) {
@@ -104,30 +185,42 @@ export default function SubmitPage() {
       <main className="mx-auto max-w-2xl px-5 pb-16 pt-12">
         <FadeIn>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-700">
-            Saved
+            {submitted.serverMode ? "Published" : "Saved locally"}
           </p>
           <h1 className="serif mt-2 text-[40px] leading-[1.05] text-ink-950">
-            Your problem is queued.
+            {submitted.serverMode
+              ? "Your problem is live."
+              : "Your problem is queued."}
           </h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
-            Ness doesn&apos;t have a backend yet, so we saved your submission to
-            this browser. Once auth and Postgres land (the next milestone), this
-            becomes the first real problem on the feed and you get +5 karma.
-          </p>
+          {submitted.serverMode ? (
+            <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
+              You earned{" "}
+              <span className="inline-flex items-center rounded-full border border-ink-300 bg-paper-tint px-2 py-0.5 font-mono text-[12px] tabular-nums text-ink-950">
+                +{submitted.karmaAwarded}
+              </span>{" "}
+              karma for surfacing with a real diagnosis. The problem is now on
+              the townhall feed.
+            </p>
+          ) : (
+            <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
+              Database isn&apos;t configured yet. We saved your draft to this
+              browser. Refresh once Postgres is wired and submit again.
+            </p>
+          )}
         </FadeIn>
 
         <FadeIn delay={0.06}>
           <div className="mt-8 overflow-hidden rounded-2xl border border-ink-200 bg-paper">
             <div className="border-b border-ink-200 bg-paper-tint px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-              Draft preview
+              {submitted.serverMode ? "Published" : "Draft preview"}
             </div>
             <div className="space-y-4 p-6">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                  {submitted.category}
+                  {submitted.draft.category}
                 </p>
                 <h2 className="serif mt-1 text-[22px] leading-tight text-ink-950">
-                  {submitted.title}
+                  {submitted.draft.title}
                 </h2>
               </div>
               <div>
@@ -135,7 +228,7 @@ export default function SubmitPage() {
                   Summary
                 </p>
                 <p className="mt-1 text-[14px] leading-[1.65] text-ink-700">
-                  {submitted.summary}
+                  {submitted.draft.summary}
                 </p>
               </div>
               <div>
@@ -143,35 +236,33 @@ export default function SubmitPage() {
                   Why it happens
                 </p>
                 <p className="mt-1 text-[14px] leading-[1.65] text-ink-700">
-                  {submitted.rootCause}
+                  {submitted.draft.rootCause}
                 </p>
               </div>
-              {submitted.affected && (
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                    Citizens affected
-                  </p>
-                  <p className="mt-1 text-[14px] tabular-nums text-ink-700">
-                    {submitted.affected}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </FadeIn>
 
         <FadeIn delay={0.12}>
           <div className="mt-6 flex flex-wrap gap-3">
+            {submitted.serverMode && submitted.slug && (
+              <Link
+                href={`/solve/${submitted.slug}`}
+                className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
+              >
+                Open the problem page
+                <span aria-hidden>→</span>
+              </Link>
+            )}
             <Link
               href="/solve"
-              className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
+              className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-2.5 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
             >
               Back to townhall
-              <span aria-hidden>→</span>
             </Link>
             <button
               onClick={reset}
-              className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-2.5 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-medium text-ink-700 transition-colors hover:text-ink-950"
             >
               Submit another
             </button>
@@ -202,8 +293,8 @@ export default function SubmitPage() {
           </h1>
           <p className="mt-3 text-[15px] leading-[1.6] text-ink-600">
             The best problems on Ness aren&apos;t complaints. They&apos;re
-            diagnoses. Tell us what&apos;s broken, who&apos;s affected, and your
-            best guess at why.
+            diagnoses. Tell us what&apos;s broken, who&apos;s affected, and
+            your best guess at why. Earns +5 karma on submit.
           </p>
           {touched && hydrated && !submitted && (
             <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-paper-tint px-3 py-1 font-mono text-[11px] text-ink-500">
@@ -288,16 +379,38 @@ export default function SubmitPage() {
             />
           </Field>
 
-          <Field label="Roughly how many citizens are affected?">
-            <input
-              type="number"
-              inputMode="numeric"
-              value={draft.affected}
-              onChange={(e) => update("affected", e.target.value)}
-              placeholder="62"
-              className="w-32 rounded-xl border border-ink-200 bg-paper px-4 py-3 text-[15px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
-            />
-          </Field>
+          <div className="grid gap-5 sm:grid-cols-3">
+            <Field label="Your name">
+              <input
+                type="text"
+                value={draft.reporterDisplayName}
+                onChange={(e) => update("reporterDisplayName", e.target.value)}
+                placeholder="Adam Pang"
+                className="w-full rounded-xl border border-ink-200 bg-paper px-4 py-3 text-[15px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+              />
+            </Field>
+            <Field label="Handle">
+              <input
+                type="text"
+                value={draft.reporterHandle}
+                onChange={(e) =>
+                  update("reporterHandle", e.target.value.replace(/^@/, ""))
+                }
+                placeholder="adam"
+                className="w-full rounded-xl border border-ink-200 bg-paper px-4 py-3 text-[15px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+              />
+            </Field>
+            <Field label="Citizens affected (rough)">
+              <input
+                type="number"
+                inputMode="numeric"
+                value={draft.affected}
+                onChange={(e) => update("affected", e.target.value)}
+                placeholder="62"
+                className="w-full rounded-xl border border-ink-200 bg-paper px-4 py-3 text-[15px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+              />
+            </Field>
+          </div>
 
           <AnimatePresence>
             {error && (
@@ -315,15 +428,16 @@ export default function SubmitPage() {
 
           <div className="flex items-center justify-between gap-3 border-t border-ink-200 pt-6">
             <p className="max-w-xs text-[12px] text-ink-500">
-              Backend lands next milestone. For now, drafts save locally and
-              queue for the first real publish.
+              Submitting earns +5 karma and lands the problem on the live
+              feed. No login required for v0.10.
             </p>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
+              disabled={submitting}
+              className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800 disabled:opacity-60"
             >
-              Submit problem
-              <span aria-hidden>→</span>
+              {submitting ? "Sending…" : "Submit problem"}
+              {!submitting && <span aria-hidden>→</span>}
             </button>
           </div>
         </form>
