@@ -404,16 +404,80 @@ export default function PageRankPage() {
         </p>
       </FadeInOnView>
 
-      {/* Privacy + how it works */}
+      {/* Algorithm deep-dive */}
       <FadeInOnView>
-        <div className="mt-16 grid gap-3 sm:grid-cols-2">
-          <Card title="How PageRank works">
+        <div className="mt-20">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            How the math works
+          </p>
+          <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+            PageRank in one paragraph.
+          </h2>
+          <p className="mt-3 max-w-2xl text-[15.5px] leading-[1.7] text-ink-700">
+            Brin and Page, two Stanford grad students, wrote PageRank in 1996
+            to rank web pages by importance. Their insight: a page is
+            important not because it links to many things, but because
+            <em> many important things link to it.</em> The same trick works
+            on any directed graph, including a graph of who-named-whom in a
+            small city.
+          </p>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <div className="mt-8 overflow-hidden rounded-2xl border border-ink-200 bg-paper">
+          <div className="border-b border-ink-100 bg-paper-tint px-5 py-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+              The formula
+            </p>
+          </div>
+          <div className="px-5 py-6 sm:px-7">
+            <pre className="overflow-x-auto rounded-xl bg-ink-950 p-5 font-mono text-[13px] leading-[1.7] text-paper">
+{`PR(p) = (1 - d) / N
+      + d × Σ ( PR(q) / L(q) )   for every q that names p`}
+            </pre>
+            <ul className="mt-5 space-y-2.5 text-[14px] leading-[1.65] text-ink-700">
+              <li>
+                <span className="font-mono text-[12px] text-ink-950">PR(p)</span>{" "}
+                is the rank of person <em>p</em>.
+              </li>
+              <li>
+                <span className="font-mono text-[12px] text-ink-950">N</span> is
+                the total number of citizens.
+              </li>
+              <li>
+                <span className="font-mono text-[12px] text-ink-950">L(q)</span>{" "}
+                is the number of names <em>q</em> wrote in their ring (so each
+                vote is split across the names q spent it on).
+              </li>
+              <li>
+                <span className="font-mono text-[12px] text-ink-950">d</span>{" "}
+                is the damping factor, classically{" "}
+                <span className="font-mono text-[12px] text-ink-950">0.85</span>.
+                It says: 85% of importance flows through who-named-whom; 15%
+                of it diffuses uniformly to everyone (the &ldquo;random
+                surfer&rdquo; or &ldquo;random citizen you might bump into&rdquo;).
+              </li>
+              <li>
+                We iterate the formula until ranks stop changing. About 30 to
+                50 passes over the graph is enough to converge for a city of
+                a few hundred citizens.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <div className="mt-10 grid gap-3 sm:grid-cols-2">
+          <Card title="How we adapt it for Ness">
             <p>
-              Each citizen names their ring. The algorithm gives each name
-              weight, and weight propagates: being named by a well-named
-              person counts more than being named by a stranger. The
-              leaderboard surfaces the connectors, the bridges, and the
-              quiet ones who hold the city together.
+              We treat each ring as an edge with weight. Round 1 names count
+              for 6, Round 2 for 5, &hellip; Round 6 for 1. Closer ties get
+              more importance flow than acquaintance ties. We also reward
+              <em> reciprocity</em>: if A names B and B names A, the edge
+              counts double. Convergence runs nightly once the backend is
+              live.
             </p>
           </Card>
           <Card title="Why doubling rings">
@@ -421,27 +485,74 @@ export default function PageRankPage() {
               Human social structure layers in roughly doubling sizes
               (Dunbar). Asking for one name first removes friction. Each
               ring after that asks for half the trust depth and twice the
-              breadth. By round six, you&apos;ve mapped the relationships
-              that matter.
+              breadth. By round six, you&apos;ve mapped 63 names: the
+              relationships that matter.
+            </p>
+          </Card>
+          <Card title="What the leaderboard surfaces">
+            <p>
+              <strong>Connectors:</strong> high PageRank, named by a wide
+              cross-section of citizens.{" "}
+              <strong>Bridges:</strong> high betweenness centrality, the
+              people who join otherwise-disconnected clusters.{" "}
+              <strong>Quiet ones:</strong> named by very few citizens despite
+              showing up every day. Ness highlights all three, with permission.
             </p>
           </Card>
           <Card title="Privacy stance">
             <p>
-              Your ring stays on your device until you opt in to the social
-              graph. Once opted in, only the aggregate is computed; nobody
-              sees your individual list. Citizens you named never see they
-              were named by you specifically.
+              Your ring stays on your device until you opt into the social
+              graph. Once opted in, only the aggregate score is published.
+              Nobody sees your individual list. Citizens you named never see
+              that you named them specifically.
             </p>
           </Card>
-          <Card title="The Facemash echo">
-            <p>
-              Zuckerberg&apos;s Facemash at Harvard ranked classmates by
-              hot-or-not. PageRank flips that energy. Same data appetite,
-              different ranking criterion. Who do citizens trust enough to
-              name in their inner ring? That&apos;s the city&apos;s real
-              social fabric.
-            </p>
-          </Card>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <div className="mt-10 rounded-2xl border border-nessie-200 bg-nessie-50/60 p-6 sm:p-7">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-nessie-700">
+            Compared to ns.com/pals
+          </p>
+          <h3 className="serif mt-2 text-[24px] leading-tight text-ink-950">
+            Pals connects. PageRank ranks.
+          </h3>
+          <p className="mt-2 text-[14.5px] leading-[1.7] text-ink-700">
+            <a
+              href="https://ns.com/pals"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-nessie-700 underline-offset-4 hover:underline"
+            >
+              ns.com/pals
+            </a>{" "}
+            is a Network School feature for finding and connecting to other
+            members. It surfaces who you might want to meet. PageRank works
+            on a different layer: it takes the connections people make and
+            quantifies who matters across the whole graph. Pals is
+            recommendation. PageRank is rank. They&apos;re complementary.
+            Pals helps a citizen, PageRank tells the city about itself.
+          </p>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <div className="mt-10 rounded-2xl border border-ink-200 bg-paper p-6 sm:p-7">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+            The Facemash echo
+          </p>
+          <h3 className="serif mt-2 text-[22px] leading-tight text-ink-950">
+            Same data appetite. Different ranking criterion.
+          </h3>
+          <p className="mt-2 text-[14.5px] leading-[1.7] text-ink-700">
+            Zuckerberg&apos;s Facemash at Harvard ranked classmates by
+            hot-or-not. The data was the same shape: who is paying attention
+            to whom. PageRank inverts that energy. Instead of vanity, trust.
+            Instead of ratings by strangers, naming by friends. Instead of a
+            leaderboard that humiliates, one that surfaces the connectors
+            who quietly hold the city together.
+          </p>
         </div>
       </FadeInOnView>
 

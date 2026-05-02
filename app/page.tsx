@@ -3,6 +3,39 @@ import { tools } from "@/lib/tools";
 import { ToolCard } from "@/components/ToolCard";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 
+const DIFFERENTIATION_ROWS: { dim: string; them: string; us: string }[] = [
+  {
+    dim: "Shape",
+    them: "Index of links to external apps",
+    us: "Integrated platform with its own tools",
+  },
+  {
+    dim: "Loop",
+    them: "Browse what exists, suggest what's missing",
+    us: "Surface, fund, ship, document. Karma + USDC.",
+  },
+  {
+    dim: "Visual mode",
+    them: "Color-coded canvas of nodes",
+    us: "Editorial monochrome, serif headlines, Nessie",
+  },
+  {
+    dim: "Auth",
+    them: "Discord-gated, members only",
+    us: "Open. No login required to browse or draft",
+  },
+  {
+    dim: "Voice",
+    them: "Neutral aggregator",
+    us: "Opinionated. Adam's POV. Wrong on purpose sometimes",
+  },
+  {
+    dim: "Goal",
+    them: "Map the ecosystem",
+    us: "Pave streets in one specific city",
+  },
+];
+
 export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-5">
@@ -171,6 +204,60 @@ export default function Home() {
             />
           </FadeInOnView>
         </div>
+      </section>
+
+      <div className="divider" />
+
+      {/* Differentiation */}
+      <section className="py-14">
+        <FadeInOnView>
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            Not a directory
+          </p>
+          <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+            Ness builds. Directories index.
+          </h2>
+          <p className="mt-3 max-w-2xl text-[15px] leading-[1.65] text-ink-600">
+            There are good directories of community tooling already. Ness is
+            something different: a small set of integrated tools with their
+            own opinions and an economic loop attached. Same neighbourhood,
+            different building.
+          </p>
+        </FadeInOnView>
+
+        <FadeInOnView>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-ink-200 bg-paper">
+            <div className="grid grid-cols-[1fr_1fr_1fr] gap-px border-b border-ink-200 bg-ink-200">
+              <div className="bg-paper-tint px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                What it is
+              </div>
+              <div className="bg-paper-tint px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                Directories (e.g. tools.ns.com, nstools.xyz)
+              </div>
+              <div className="bg-paper-tint px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-nessie-700">
+                Ness
+              </div>
+            </div>
+            {DIFFERENTIATION_ROWS.map((row, idx) => (
+              <div
+                key={row.dim}
+                className={`grid grid-cols-[1fr_1fr_1fr] gap-px ${
+                  idx > 0 ? "border-t border-ink-100" : ""
+                }`}
+              >
+                <div className="bg-paper px-4 py-3 text-[12.5px] text-ink-700">
+                  {row.dim}
+                </div>
+                <div className="bg-paper px-4 py-3 text-[12.5px] text-ink-500">
+                  {row.them}
+                </div>
+                <div className="bg-paper px-4 py-3 text-[12.5px] text-ink-950">
+                  {row.us}
+                </div>
+              </div>
+            ))}
+          </div>
+        </FadeInOnView>
       </section>
 
       <div className="divider" />

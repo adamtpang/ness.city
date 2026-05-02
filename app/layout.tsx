@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
+import { LiveBackground } from "@/components/LiveBackground";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,13 +42,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-dvh bg-paper font-sans text-ink-950 antialiased">
+        <LiveBackground />
         <Header />
         {children}
         <footer className="mt-32 border-t border-ink-200 py-10">
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.8</span>
+                <span>ness.city · v0.9</span>
                 <span className="text-ink-300">·</span>
                 <span>
                   a node in{" "}

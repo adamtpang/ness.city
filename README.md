@@ -41,7 +41,21 @@ Open http://localhost:3000.
 
 ### Env vars
 
-- `GITHUB_FEEDBACK_TOKEN` — GitHub PAT with `Issues: write` on this repo. Powers the feedback widget that files issues into `adamtpang/ness`.
+- `DATABASE_URL` (or `POSTGRES_URL`) — Postgres connection string. Auto-injected by Vercel when you provision Postgres in the project Storage tab. Required for any real writes.
+- `DISCORD_FEEDBACK_WEBHOOK` — optional. If set, the feedback widget also posts to this Discord webhook in addition to logging.
+
+## Backend
+
+Drizzle + Vercel Postgres. Schema lives in [`lib/db/schema.ts`](lib/db/schema.ts), with eight tables covering citizens, problems, proposals, bounties, pledges, documentation, pagerank_rings, and feedback.
+
+The first real API routes are live:
+
+- `GET /api/health` — DB reachability + row counts
+- `GET /api/problems` — list latest problems
+- `POST /api/problems` — create a problem (awards +5 karma to the reporter)
+- `POST /api/feedback` — log a feedback widget submission (writes to DB when configured)
+
+Setup steps in [`docs/backend.md`](docs/backend.md). 10 minutes once you provision Postgres.
 
 ## Bigger picture
 

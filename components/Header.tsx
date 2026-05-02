@@ -26,9 +26,9 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
         <Link href="/" className="group flex items-center gap-2.5">
           <motion.div
-            whileHover={{ rotate: -4 }}
+            whileHover={{ rotate: -4, scale: 1.04 }}
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            className="relative flex h-8 w-8 items-center justify-center rounded-[8px] bg-ink-950 text-paper"
+            className="relative flex h-8 w-8 items-center justify-center rounded-[8px] bg-nessie-600 text-paper shadow-[0_2px_8px_-2px_rgba(37,99,235,0.5)]"
           >
             <NessieMark className="h-5 w-5" />
           </motion.div>

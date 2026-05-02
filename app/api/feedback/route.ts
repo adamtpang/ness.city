@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { getDb, isDbConfigured, schema } from "@/lib/db";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const MAX_MESSAGE = 4000;
 
@@ -57,6 +59,22 @@ export async function POST(request: Request) {
       message: message ?? null,
     }),
   );
+
+  // Persist to Postgres if configured. Best-effort; failures don't block.
+  if (isDbConfigured) {
+    try {
+      const db = getDb();
+      await db.insert(schema.feedback).values({
+        rating,
+        message: message ?? null,
+        page,
+        referrer: referrer ?? null,
+        meta: null,
+      });
+    } catch (err) {
+      console.error("feedback db insert failed", err);
+    }
+  }
 
   // Optional: forward to a Discord webhook if configured.
   // Adam sets DISCORD_FEEDBACK_WEBHOOK in Vercel env, no code changes needed.
