@@ -5,12 +5,15 @@ import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { NessieMark } from "./NessieLogo";
 
+// Header nav mirrors the city map. Five places, in the order a visitor
+// usually wants to walk: orient, see what's open, see who's funded,
+// see the people, see the connectors.
 const links = [
+  { href: "/about", label: "Welcome" },
   { href: "/solve", label: "Townhall" },
-  { href: "/pagerank", label: "PageRank" },
   { href: "/bounties", label: "Bounties" },
   { href: "/citizens", label: "Citizens" },
-  { href: "/about", label: "About" },
+  { href: "/pagerank", label: "Observatory" },
 ];
 
 export function Header() {

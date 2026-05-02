@@ -1,14 +1,21 @@
 import Link from "next/link";
-import { tools } from "@/lib/tools";
-import { ToolCard } from "@/components/ToolCard";
-import { SolarpunkSkyline } from "@/components/SolarpunkSkyline";
+import { NessCityMap } from "@/components/NessCityMap";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
+
+const QUICK_LINKS = [
+  { href: "/about", label: "Welcome Center", note: "How Ness works" },
+  { href: "/solve", label: "Townhall", note: "Surface, fund, ship" },
+  { href: "/citizens", label: "Citizens Hall", note: "Leaderboards" },
+  { href: "/pagerank", label: "Observatory", note: "Map who knows whom" },
+  { href: "/bounties", label: "Bounty Bureau", note: "Open bounties" },
+  { href: "/solve/new", label: "The Loch", note: "Surface a problem" },
+];
 
 export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-5">
-      {/* Hero with solarpunk skyline */}
-      <section className="relative pt-16 pb-14 sm:pt-24 sm:pb-20">
+      {/* Hero with city map */}
+      <section className="pt-12 pb-12 sm:pt-16">
         <FadeIn>
           <div className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-3 py-1 font-mono text-[11px] text-ink-600">
             <span className="relative flex h-1.5 w-1.5">
@@ -19,23 +26,63 @@ export default function Home() {
           </div>
         </FadeIn>
 
-        <FadeIn delay={0.06}>
-          <h1 className="serif mt-7 max-w-3xl text-[44px] leading-[1.02] text-ink-950 sm:text-[68px] sm:leading-[1.0]">
-            Civic infrastructure
-            <br />
-            for <span className="italic">builders</span>.
+        <FadeIn delay={0.05}>
+          <h1 className="serif mt-6 max-w-3xl text-[44px] leading-[1.02] text-ink-950 sm:text-[64px] sm:leading-[1.0]">
+            Welcome to Ness.
           </h1>
         </FadeIn>
 
-        <FadeIn delay={0.12}>
-          <p className="mt-6 max-w-2xl text-[16px] leading-[1.6] text-ink-600 sm:text-[17px]">
-            Surface a problem. Pledge to fix it. Solver ships, gets paid.
-            That&apos;s Ness.
+        <FadeIn delay={0.1}>
+          <p className="mt-4 max-w-xl text-[15.5px] leading-[1.55] text-ink-600 sm:text-[17px]">
+            A small city of tools for builders. Click any landmark to enter.
           </p>
         </FadeIn>
 
         <FadeIn delay={0.18}>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-8">
+            <NessCityMap />
+          </div>
+        </FadeIn>
+
+        {/* Text fallback / accessibility */}
+        <FadeIn delay={0.24}>
+          <ul className="mt-6 grid grid-cols-2 gap-2 text-[13px] sm:grid-cols-3">
+            {QUICK_LINKS.map((q) => (
+              <li key={q.href}>
+                <Link
+                  href={q.href}
+                  className="group flex items-baseline gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-paper-tint"
+                >
+                  <span className="font-medium text-ink-950 group-hover:text-nessie-700">
+                    {q.label}
+                  </span>
+                  <span className="text-ink-500">·</span>
+                  <span className="text-ink-500">{q.note}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </FadeIn>
+      </section>
+
+      <div className="divider" />
+
+      {/* The loop, in one paragraph */}
+      <section className="py-14">
+        <FadeInOnView>
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            The loop
+          </p>
+          <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+            Post a problem. Fund the fix. Ship it. Repeat.
+          </h2>
+          <p className="mt-3 max-w-2xl text-[15.5px] leading-[1.65] text-ink-700">
+            Citizens surface real problems with real diagnoses. Anyone can
+            propose a fix. Patrons crowdfund the proposal in USDC. The first
+            citizen to claim and ship the fix gets the bounty and the karma.
+            The whole loop is public, attributed, and permanent.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/solve"
               className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
@@ -45,40 +92,12 @@ export default function Home() {
             </Link>
             <Link
               href="/about"
-              className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-[14px] font-medium text-ink-700 transition-colors hover:text-ink-950"
+              className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
             >
-              How it works →
+              Read the walkthrough
             </Link>
           </div>
-        </FadeIn>
-
-        <FadeIn delay={0.3}>
-          <SolarpunkSkyline className="mt-14" />
-        </FadeIn>
-      </section>
-
-      <div className="divider" />
-
-      {/* Tools grid */}
-      <section id="tools" className="scroll-mt-24 py-14">
-        <FadeInOnView>
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-              The platform
-            </p>
-            <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
-              Four tools. One city.
-            </h2>
-          </div>
         </FadeInOnView>
-
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          {tools.map((t) => (
-            <FadeInOnView key={t.id}>
-              <ToolCard tool={t} />
-            </FadeInOnView>
-          ))}
-        </div>
       </section>
 
       <div className="divider" />
@@ -91,7 +110,7 @@ export default function Home() {
               Open source · MIT
             </p>
             <h2 className="serif mt-2 text-[28px] leading-tight sm:text-[36px]">
-              Read the code. Fork the city. Send a PR.
+              Read the code. Fork the city.
             </h2>
             <p className="mt-3 max-w-2xl text-[15px] leading-[1.65] text-ink-200">
               Public on GitHub under MIT. The merge button is Adam&apos;s.
