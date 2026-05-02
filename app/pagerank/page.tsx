@@ -1,0 +1,574 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
+
+type Connection = {
+  id: string;
+  name: string;
+  round: number;
+  addedAt: number;
+};
+
+const ROUNDS: { round: number; count: number; label: string; prompt: string }[] = [
+  {
+    round: 1,
+    count: 1,
+    label: "Closest",
+    prompt: "Name the one person you'd take a bullet for at NS.",
+  },
+  {
+    round: 2,
+    count: 2,
+    label: "Inner ring",
+    prompt: "Now two more. People who know what's going on with you.",
+  },
+  {
+    round: 3,
+    count: 4,
+    label: "Close",
+    prompt: "Four more. The people whose week affects yours.",
+  },
+  {
+    round: 4,
+    count: 8,
+    label: "Regular",
+    prompt: "Eight more. The faces you actually look for at events.",
+  },
+  {
+    round: 5,
+    count: 16,
+    label: "Network",
+    prompt: "Sixteen more. People you'd grab coffee with on purpose.",
+  },
+  {
+    round: 6,
+    count: 32,
+    label: "Acquainted",
+    prompt: "Thirty-two more. People you'd recognize, name, and remember.",
+  },
+];
+
+const STORAGE_KEY = "ness.pagerank.v1";
+
+// Mock leaderboard. Replaces with real data once backend is wired.
+const STUB_LEADERBOARD = [
+  { id: "u_priya", name: "Priya Krishnan", handle: "priya.k", named: 23 },
+  { id: "u_marcus", name: "Marcus Lee", handle: "marcus", named: 19 },
+  { id: "u_aisha", name: "Aisha Bello", handle: "aisha", named: 17 },
+  { id: "u_balaji", name: "Balaji S.", handle: "balaji", named: 15 },
+  { id: "u_jonas", name: "Jonas Weber", handle: "jonas", named: 12 },
+  { id: "u_naomi", name: "Naomi Park", handle: "naomi", named: 11 },
+  { id: "u_emiko", name: "Emiko Tanaka", handle: "emiko", named: 9 },
+  { id: "u_devraj", name: "Devraj Iyer", handle: "devraj", named: 7 },
+];
+
+export default function PageRankPage() {
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [draft, setDraft] = useState("");
+  const [hydrated, setHydrated] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Connection[];
+        if (Array.isArray(parsed)) setConnections(parsed);
+      }
+    } catch {
+      /* noop */
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist on change
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(connections));
+    } catch {
+      /* noop */
+    }
+  }, [connections, hydrated]);
+
+  const byRound = useMemo(() => {
+    const map = new Map<number, Connection[]>();
+    for (const c of connections) {
+      const arr = map.get(c.round) ?? [];
+      arr.push(c);
+      map.set(c.round, arr);
+    }
+    return map;
+  }, [connections]);
+
+  // Determine the current round (first round that isn't full)
+  const currentRound = useMemo(() => {
+    for (const r of ROUNDS) {
+      const have = byRound.get(r.round)?.length ?? 0;
+      if (have < r.count) return r;
+    }
+    return null; // all done
+  }, [byRound]);
+
+  const totalAdded = connections.length;
+  const totalGoal = ROUNDS.reduce((s, r) => s + r.count, 0);
+
+  function addConnection() {
+    const name = draft.trim();
+    if (!name || !currentRound) return;
+    setConnections((prev) => [
+      ...prev,
+      {
+        id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        name,
+        round: currentRound.round,
+        addedAt: Date.now(),
+      },
+    ]);
+    setDraft("");
+  }
+
+  function removeConnection(id: string) {
+    setConnections((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  function reset() {
+    if (typeof window !== "undefined" && !window.confirm("Clear your ring and start over?")) return;
+    setConnections([]);
+  }
+
+  return (
+    <main className="mx-auto max-w-5xl px-5 pb-20 pt-12">
+      {/* Header */}
+      <FadeIn>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+          PageRank
+        </p>
+        <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950 sm:text-[60px]">
+          Map your ring.
+        </h1>
+        <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
+          Name the people closest to you at NS in doubling rings. One. Two
+          more. Four more. Eight more. Sixteen more. Thirty-two more. Each
+          ring is half your last one in importance and twice the size. Stays
+          on your device until backend is live.
+        </p>
+      </FadeIn>
+
+      {/* Round tracker pills */}
+      <FadeIn delay={0.06}>
+        <div className="mt-8 flex flex-wrap items-center gap-2">
+          {ROUNDS.map((r) => {
+            const have = byRound.get(r.round)?.length ?? 0;
+            const done = have >= r.count;
+            const active = currentRound?.round === r.round;
+            return (
+              <div
+                key={r.round}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] transition-colors ${
+                  done
+                    ? "border border-emerald-200 bg-emerald-50 text-emerald-900"
+                    : active
+                      ? "border border-ink-950 bg-ink-950 text-paper"
+                      : "border border-ink-200 bg-paper text-ink-500"
+                }`}
+              >
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em]">
+                  R{r.round}
+                </span>
+                <span className="font-medium">{r.label}</span>
+                <span className="font-mono text-[11px] tabular-nums opacity-80">
+                  {have}/{r.count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </FadeIn>
+
+      {/* Two-column: form + viz */}
+      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_minmax(0,520px)]">
+        {/* Left: current round form */}
+        <FadeIn delay={0.1}>
+          <div className="rounded-2xl border border-ink-200 bg-paper p-6">
+            {currentRound ? (
+              <>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                  Round {currentRound.round} · {currentRound.label}
+                </p>
+                <h2 className="serif mt-2 text-[24px] leading-tight text-ink-950">
+                  {currentRound.prompt}
+                </h2>
+                <p className="mt-2 text-[12.5px] text-ink-500">
+                  {(byRound.get(currentRound.round)?.length ?? 0)} of{" "}
+                  {currentRound.count} added in this ring.
+                </p>
+
+                <div className="mt-5 flex gap-2">
+                  <input
+                    type="text"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addConnection();
+                    }}
+                    placeholder="Name or handle"
+                    autoFocus
+                    className="flex-1 rounded-xl border border-ink-200 bg-paper px-4 py-2.5 text-[14px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+                  />
+                  <button
+                    onClick={addConnection}
+                    disabled={!draft.trim()}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800 disabled:opacity-40 disabled:hover:bg-ink-950"
+                  >
+                    Add
+                    <span aria-hidden>↵</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-700">
+                  All rings complete
+                </p>
+                <h2 className="serif mt-2 text-[24px] leading-tight text-ink-950">
+                  Sixty-three names. That&apos;s the city you live in.
+                </h2>
+                <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
+                  When PageRank goes live with the backend, your ring becomes
+                  the seed for a community-wide social graph. The most-named
+                  citizens rise. The connectors get visible. The quiet ones
+                  too.
+                </p>
+                <button
+                  onClick={reset}
+                  className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-ink-200 px-3 py-1.5 text-[12px] text-ink-700 transition-colors hover:border-ink-950 hover:text-ink-950"
+                >
+                  Start over
+                </button>
+              </div>
+            )}
+
+            {/* List of names per round */}
+            {totalAdded > 0 && (
+              <div className="mt-7 border-t border-ink-100 pt-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                    Your ring · {totalAdded} of {totalGoal}
+                  </p>
+                  <button
+                    onClick={reset}
+                    className="text-[11px] text-ink-400 transition-colors hover:text-ink-950"
+                  >
+                    reset
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {ROUNDS.filter((r) => (byRound.get(r.round)?.length ?? 0) > 0).map(
+                    (r) => (
+                      <div key={r.round}>
+                        <div className="mb-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">
+                          <span>R{r.round}</span>
+                          <span>·</span>
+                          <span>{r.label}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          <AnimatePresence>
+                            {byRound.get(r.round)!.map((c) => (
+                              <motion.span
+                                key={c.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.18 }}
+                                className="group inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-paper-tint px-2.5 py-1 text-[12px] text-ink-800"
+                              >
+                                {c.name}
+                                <button
+                                  onClick={() => removeConnection(c.id)}
+                                  aria-label={`Remove ${c.name}`}
+                                  className="text-ink-400 transition-colors group-hover:text-ink-950"
+                                >
+                                  ×
+                                </button>
+                              </motion.span>
+                            ))}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </FadeIn>
+
+        {/* Right: ring visualization */}
+        <FadeIn delay={0.16}>
+          <div className="rounded-2xl border border-ink-200 bg-paper p-5 sm:p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+              Your ring, drawn
+            </p>
+            <RingViz connections={connections} />
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-ink-500">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-ink-950" />
+                you
+              </span>
+              {ROUNDS.map((r) => {
+                const have = byRound.get(r.round)?.length ?? 0;
+                const opacity = 1 - (r.round - 1) * 0.13;
+                return (
+                  <span key={r.round} className="inline-flex items-center gap-1.5">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full bg-ink-950"
+                      style={{ opacity }}
+                    />
+                    R{r.round} ({have}/{r.count})
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </FadeIn>
+      </div>
+
+      {/* Stub leaderboard */}
+      <FadeInOnView>
+        <div className="mt-16">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            Most-named citizens · the Facemash analog
+          </p>
+          <h2 className="serif mt-2 text-[28px] leading-tight text-ink-950">
+            Who the city named.
+          </h2>
+          <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
+            Once enough citizens map their rings, PageRank ranks who the
+            community has named most, weighted by who named them. Below is a
+            preview of the format with stub data. Real numbers go live once
+            the backend ships.
+          </p>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <div className="mt-6 overflow-hidden rounded-2xl border border-ink-200 opacity-90">
+          <div className="grid grid-cols-12 gap-4 border-b border-ink-200 bg-paper-tint px-5 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+            <div className="col-span-1">#</div>
+            <div className="col-span-7">Citizen</div>
+            <div className="col-span-4 text-right">Times named</div>
+          </div>
+          {STUB_LEADERBOARD.map((c, idx) => {
+            const pct = (c.named / STUB_LEADERBOARD[0].named) * 100;
+            return (
+              <div
+                key={c.id}
+                className="grid grid-cols-12 gap-4 border-b border-ink-100 bg-paper px-5 py-3 last:border-0"
+              >
+                <div className="col-span-1 flex items-center font-mono text-[12px] tabular-nums text-ink-400">
+                  {String(idx + 1).padStart(2, "0")}
+                </div>
+                <div className="col-span-7 flex items-center gap-3">
+                  <div className="text-[14px] font-medium text-ink-950">
+                    {c.name}
+                  </div>
+                  <div className="font-mono text-[11px] text-ink-500">
+                    @{c.handle}
+                  </div>
+                </div>
+                <div className="col-span-4 flex items-center justify-end gap-3">
+                  <div className="hidden max-w-[140px] flex-1 sm:block">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
+                      <div
+                        className="h-full rounded-full bg-ink-950"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="min-w-[40px] text-right font-mono text-[13px] tabular-nums text-ink-950">
+                    {c.named}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-[11px] text-ink-400">
+          Stub data. Real PageRank computes once enough citizens have mapped
+          their rings.
+        </p>
+      </FadeInOnView>
+
+      {/* Privacy + how it works */}
+      <FadeInOnView>
+        <div className="mt-16 grid gap-3 sm:grid-cols-2">
+          <Card title="How PageRank works">
+            <p>
+              Each citizen names their ring. The algorithm gives each name
+              weight, and weight propagates: being named by a well-named
+              person counts more than being named by a stranger. The
+              leaderboard surfaces the connectors, the bridges, and the
+              quiet ones who hold the city together.
+            </p>
+          </Card>
+          <Card title="Why doubling rings">
+            <p>
+              Human social structure layers in roughly doubling sizes
+              (Dunbar). Asking for one name first removes friction. Each
+              ring after that asks for half the trust depth and twice the
+              breadth. By round six, you&apos;ve mapped the relationships
+              that matter.
+            </p>
+          </Card>
+          <Card title="Privacy stance">
+            <p>
+              Your ring stays on your device until you opt in to the social
+              graph. Once opted in, only the aggregate is computed; nobody
+              sees your individual list. Citizens you named never see they
+              were named by you specifically.
+            </p>
+          </Card>
+          <Card title="The Facemash echo">
+            <p>
+              Zuckerberg&apos;s Facemash at Harvard ranked classmates by
+              hot-or-not. PageRank flips that energy. Same data appetite,
+              different ranking criterion. Who do citizens trust enough to
+              name in their inner ring? That&apos;s the city&apos;s real
+              social fabric.
+            </p>
+          </Card>
+        </div>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <div className="mt-12 flex flex-wrap gap-3">
+          <Link
+            href="/citizens"
+            className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
+          >
+            See the karma + patron leaderboards
+            <span aria-hidden>→</span>
+          </Link>
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
+          >
+            How Ness works
+          </Link>
+        </div>
+      </FadeInOnView>
+    </main>
+  );
+}
+
+function RingViz({ connections }: { connections: Connection[] }) {
+  // Concentric ring layout
+  const SIZE = 460;
+  const CENTER = SIZE / 2;
+  const RING_BASE_R = 38;
+  const RING_STEP = 32;
+
+  return (
+    <svg
+      viewBox={`0 0 ${SIZE} ${SIZE}`}
+      className="mx-auto mt-3 block h-auto w-full max-w-[460px]"
+      aria-label="Concentric ring visualization of your closest connections"
+    >
+      {/* Concentric guide circles */}
+      {ROUNDS.map((r) => {
+        const radius = RING_BASE_R + r.round * RING_STEP;
+        return (
+          <circle
+            key={`g-${r.round}`}
+            cx={CENTER}
+            cy={CENTER}
+            r={radius}
+            fill="none"
+            stroke="#e5e5e5"
+            strokeDasharray="2 4"
+            strokeWidth={1}
+          />
+        );
+      })}
+
+      {/* Connection dots */}
+      {ROUNDS.map((r) => {
+        const ringConnections = connections.filter((c) => c.round === r.round);
+        const radius = RING_BASE_R + r.round * RING_STEP;
+        const opacity = 1 - (r.round - 1) * 0.11;
+        const phase = (r.round * Math.PI) / 9; // small rotation per ring for visual variety
+        return ringConnections.map((c, i) => {
+          const angle = (i / r.count) * Math.PI * 2 + phase - Math.PI / 2;
+          const x = CENTER + Math.cos(angle) * radius;
+          const y = CENTER + Math.sin(angle) * radius;
+          const initials = c.name
+            .split(/\s+/)
+            .map((w) => w[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
+          return (
+            <g key={c.id}>
+              <motion.circle
+                initial={{ r: 0, opacity: 0 }}
+                animate={{ r: 12, opacity }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                cx={x}
+                cy={y}
+                fill="#0a0a0a"
+              />
+              <motion.text
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15, duration: 0.25 }}
+                x={x}
+                y={y + 3.5}
+                textAnchor="middle"
+                fontSize="9"
+                fontFamily="ui-monospace, SFMono-Regular, monospace"
+                fill="#ffffff"
+              >
+                {initials}
+              </motion.text>
+            </g>
+          );
+        });
+      })}
+
+      {/* Center: you */}
+      <circle cx={CENTER} cy={CENTER} r={18} fill="#0a0a0a" />
+      <text
+        x={CENTER}
+        y={CENTER + 3.5}
+        textAnchor="middle"
+        fontSize="10"
+        fontFamily="ui-monospace, SFMono-Regular, monospace"
+        fill="#ffffff"
+      >
+        YOU
+      </text>
+    </svg>
+  );
+}
+
+function Card({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-ink-200 bg-paper p-5">
+      <h3 className="serif text-[18px] leading-tight text-ink-950">{title}</h3>
+      <div className="mt-2 text-[13.5px] leading-[1.65] text-ink-700">
+        {children}
+      </div>
+    </div>
+  );
+}

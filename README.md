@@ -2,7 +2,7 @@
 
 The civic layer for builders. Open-source tooling for ambitious communities.
 
-> **Independent project.** App built at Network School. Not owned, funded, or endorsed by NS0 PTE LTD. Ness is its own brand and operates separately.
+> **Independent project.** Not affiliated with Network School (ns.com). Ness is its own brand and operates separately.
 
 ## What it is
 
@@ -10,7 +10,8 @@ Ness is a portfolio of small, opinionated tools for community-driven cities:
 
 - **Townhall** (live UI). Civic layer. Problems become bounties become fixes. Solvers earn karma. Patrons earn attribution.
 - **Jobs** (live, hand-curated). Public openings filtered by category. Direct apply links.
-- **Atlas** (in design). Social PageRank. Map the relationships in the city.
+- **PageRank** (live UI). Map your ring in doubling rounds. Social PageRank surfaces who the city named most.
+- **Match** (in design). Drop a resume, get the 80%+ matches across jobs and bounties.
 - **Market** (planned). Products / services / assets. Consolidates `nsmarket.app` and `redmart.xyz`.
 
 ## The five-step engine (Townhall)

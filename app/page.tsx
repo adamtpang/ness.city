@@ -154,6 +154,15 @@ export default function Home() {
           </FadeInOnView>
           <FadeInOnView>
             <FreeCard
+              eyebrow="PageRank"
+              title="Map your ring in six rounds"
+              body="Name 1, then 2, then 4, then 8, then 16, then 32. Save state on your device. See who the city has named most."
+              href="/pagerank"
+              cta="Start mapping"
+            />
+          </FadeInOnView>
+          <FadeInOnView>
+            <FreeCard
               eyebrow="Tools · soon"
               title="The free utility belt"
               body="NS points calculator. Visa-run planner. Bounty USD-to-karma converter. Small calculators, no login."

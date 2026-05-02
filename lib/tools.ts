@@ -29,13 +29,13 @@ export const tools: Tool[] = [
     href: "/jobs",
   },
   {
-    id: "atlas",
-    name: "Atlas",
-    tagline: "Social PageRank. Map the city.",
+    id: "pagerank",
+    name: "PageRank",
+    tagline: "Social PageRank. Map your ring.",
     description:
-      "Citizens list their closest relationships. We crawl, render, and rank. The way Zuck did it at Harvard, but for a community of network founders. Find the connectors. Find the quiet ones.",
-    status: "in-design",
-    href: "/atlas",
+      "Name your closest connections in doubling rings: 1, 2, 4, 8, 16, 32. PageRank ranks who the city named most, weighted by who named them. The connectors emerge. The quiet ones too.",
+    status: "live",
+    href: "/pagerank",
   },
   {
     id: "market",

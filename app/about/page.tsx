@@ -314,23 +314,23 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Now"
             title="Jobs board"
-            body="Curated public openings, filtered by role and remote. v1 is hand-curated. v2 will pull from approved sources via direct integration, not user-token scraping."
+            body="Curated public openings, filtered by role and remote. v1 is hand-curated. v2 aggregates from approved public APIs only (RemoteOK, YC's Work at a Startup, etc.)."
             status="shipped"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Now"
-            title="A3 application + permissioning"
-            body="Operating as an Unofficial A3 App. One-month initial term. Symbiotic, not parasitic. Permission-first relationship with the host community."
-            status="next"
+            title="PageRank"
+            body="Map your ring in doubling rounds: 1, 2, 4, 8, 16, 32. Interactive seeding lives on your device until the backend ships. Stub leaderboard previews the format."
+            status="shipped"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Next"
             title="Postgres + auth + real writes"
-            body="Vercel Postgres for the data. Clerk for auth in beta, with a path to community-directory single sign-on once approved. Real submit, pledge, claim, upvote."
+            body="Vercel Postgres for the data. Clerk for auth in beta. Real submit, pledge, claim, upvote. Resume upload for the Match feature."
             status="next"
           />
         </FadeInOnView>
@@ -338,23 +338,31 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Next"
             title="USDC bounties on Base"
-            body="No Stripe. Community members already hold USDC wallets. Pledges escrow on Base, payout wallet to wallet when a bounty is claimed and shipped. Ness handles the schema, the chain handles the money."
+            body="No Stripe. Citizens already hold USDC wallets. Pledges escrow on Base, payout wallet to wallet when a bounty is claimed and shipped. Ness handles the schema, the chain handles the money."
             status="next"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Next"
-            title="Weekly in-person townhalls + pulse reports"
-            body="One hour a week, in person. Open bounties get pitched, claimed, retired. A parallel weekly pulse interviews citizens and publishes a clean field report back to the host community's leadership."
+            title="Match: resume to opportunities"
+            body="Drop a resume. Score against every open job and every active bounty. Surface the 80%+ matches with concrete next steps."
             status="next"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
             phase="Later"
-            title="Atlas + Market"
-            body="The remaining tools. Atlas (social graph). Market (products, services, assets). Each one earns its place by solving something real."
+            title="Formal permissions + integrations"
+            body="Once Ness has its own traction and a track record, we open conversations about formal directory + auth integrations with the host community. Position of strength, not asking for permission first."
+            status="later"
+          />
+        </FadeInOnView>
+        <FadeInOnView>
+          <RoadmapRow
+            phase="Later"
+            title="Market"
+            body="Products, services, assets marketplace. Consolidates nsmarket.app and redmart.xyz. Ships once the bounty engine is shipping real fixes."
             status="later"
           />
         </FadeInOnView>
