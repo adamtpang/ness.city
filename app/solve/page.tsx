@@ -1,11 +1,50 @@
 import Link from "next/link";
-import { problems, stats } from "@/lib/data";
+import { dbProblemToTownhall, listProblems } from "@/lib/db/queries";
 import { ProblemCard } from "@/components/ProblemCard";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
 import { CountUp } from "@/components/motion/CountUp";
+import { isDbConfigured, getDb, schema } from "@/lib/db";
+import { sql } from "drizzle-orm";
 
-export default function SolvePage() {
+async function loadStats() {
+  if (!isDbConfigured) {
+    return { problemsOpen: 0, problemsSolved: 0, totalKarma: 0, totalPledged: 0 };
+  }
+  const db = getDb();
+  const [counts] = (await db.execute(sql.raw(`
+    select
+      coalesce(sum(case when status <> 'solved' then 1 else 0 end), 0)::int as open_count,
+      coalesce(sum(case when status = 'solved' then 1 else 0 end), 0)::int as solved_count
+    from problems
+  `))) as unknown as Array<{ open_count: number; solved_count: number }>;
+  const [karmaRow] = (await db.execute(sql.raw(`
+    select coalesce(sum(karma), 0)::int as total from citizens
+  `))) as unknown as Array<{ total: number }>;
+  const [pledgesRow] = (await db.execute(sql.raw(`
+    select coalesce(sum(amount_cents), 0)::int as total from pledges
+  `))) as unknown as Array<{ total: number }>;
+  return {
+    problemsOpen: counts?.open_count ?? 0,
+    problemsSolved: counts?.solved_count ?? 0,
+    totalKarma: karmaRow?.total ?? 0,
+    totalPledged: Math.round((pledgesRow?.total ?? 0) / 100),
+  };
+}
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function SolvePage() {
+  const [rows, stats] = await Promise.all([listProblems(), loadStats()]);
+  const problems = rows.map((r) =>
+    dbProblemToTownhall({
+      ...r,
+      proposals: [],
+      bounty: null,
+      documentation: null,
+    }),
+  );
   const sorted = [...problems].sort((a, b) => {
     const order: Record<string, number> = {
       open: 0,
@@ -92,14 +131,6 @@ export default function SolvePage() {
                 memory.
               </p>
             </div>
-            {!empty && (
-              <div className="hidden items-center gap-1 rounded-full border border-ink-200 bg-paper p-1 text-[12px] sm:flex">
-                <button className="rounded-full bg-ink-950 px-3 py-1.5 text-paper">All</button>
-                <button className="rounded-full px-3 py-1.5 text-ink-600 hover:text-ink-950">Open</button>
-                <button className="rounded-full px-3 py-1.5 text-ink-600 hover:text-ink-950">In progress</button>
-                <button className="rounded-full px-3 py-1.5 text-ink-600 hover:text-ink-950">Solved</button>
-              </div>
-            )}
           </div>
         </FadeInOnView>
 
@@ -114,9 +145,8 @@ export default function SolvePage() {
                   Be the first to surface a problem.
                 </h3>
                 <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
-                  Ness starts empty. Every entry will be a real problem from a
-                  real citizen. The seed for everything that follows: bounty,
-                  fix, documentation, karma.
+                  Every entry will be a real problem from a real citizen.
+                  Earns +5 karma on submit.
                 </p>
                 <Link
                   href="/solve/new"
@@ -137,9 +167,8 @@ export default function SolvePage() {
                   See how a fix moves through Ness.
                 </h3>
                 <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
-                  Five steps: surface, explain, propose, bounty, ship. We walk
-                  through one wifi outage end to end, with five patrons
-                  crowdfunding $240 and a solver documenting the fix.
+                  Five steps end-to-end. Same flow that ships every fix on
+                  the live feed.
                 </p>
                 <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-ink-950">
                   Read the walkthrough

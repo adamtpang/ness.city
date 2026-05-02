@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  jobs,
+  companiesWithRoles,
   jobCategories,
   jobStats,
+  type CompanyWithRoles,
   type JobCategory,
-  type Job,
+  type Role,
 } from "@/lib/jobs";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
@@ -26,23 +27,36 @@ const categoryDot: Record<JobCategory, string> = {
   fellowship: "bg-ink-700",
 };
 
+function daysAgo(iso: string) {
+  const ms = Date.now() - new Date(iso).getTime();
+  const days = Math.max(0, Math.floor(ms / 86_400_000));
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export default function JobsPage() {
   const [filter, setFilter] = useState<CategoryFilter>("all");
   const [remoteOnly, setRemoteOnly] = useState(false);
 
-  const filtered = useMemo(() => {
-    return jobs
-      .filter((j) => filter === "all" || j.category === filter)
-      .filter((j) => !remoteOnly || j.remote)
-      .sort(
-        (a, b) =>
-          new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime(),
-      );
+  const grouped = useMemo(() => {
+    const all = companiesWithRoles();
+    return all
+      .map((c) => ({
+        ...c,
+        roles: c.roles
+          .filter((r) => filter === "all" || r.category === filter)
+          .filter((r) => !remoteOnly || r.remote),
+      }))
+      .filter((c) => c.roles.length > 0);
   }, [filter, remoteOnly]);
 
   const counts = useMemo(() => {
-    const acc: Record<string, number> = { all: jobs.length };
-    for (const j of jobs) acc[j.category] = (acc[j.category] ?? 0) + 1;
+    const acc: Record<string, number> = { all: jobStats.total };
+    for (const c of companiesWithRoles()) {
+      for (const r of c.roles) acc[r.category] = (acc[r.category] ?? 0) + 1;
+    }
     return acc;
   }, []);
 
@@ -57,8 +71,9 @@ export default function JobsPage() {
         </h1>
         <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
           Public job listings spotted in the wild and curated each week.
-          Compensation transparent where it&apos;s known. Direct apply links,
-          no aggregator middlemen, no logins required.
+          Cards are grouped by company so you can see who&apos;s hiring,
+          who founded the place, and what roles are open. Apply directly on
+          the company&apos;s own page; no aggregator middlemen.
         </p>
       </FadeIn>
 
@@ -133,7 +148,7 @@ export default function JobsPage() {
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.2 }}
         >
-          {filtered.length === 0 ? (
+          {grouped.length === 0 ? (
             <div className="mt-10 rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-10 text-center">
               <p className="serif text-[22px] text-ink-950">
                 Nothing in this filter.
@@ -143,10 +158,10 @@ export default function JobsPage() {
               </p>
             </div>
           ) : (
-            <StaggerList className="mt-6 overflow-hidden rounded-2xl border border-ink-200 bg-paper">
-              {filtered.map((j, idx) => (
-                <StaggerItem key={j.id}>
-                  <JobRow job={j} divider={idx > 0} />
+            <StaggerList className="mt-6 grid gap-3">
+              {grouped.map((c) => (
+                <StaggerItem key={c.id}>
+                  <CompanyCard company={c} />
                 </StaggerItem>
               ))}
             </StaggerList>
@@ -154,7 +169,7 @@ export default function JobsPage() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-10 rounded-2xl border border-ink-200 bg-paper-tint p-6">
+      <div className="mt-12 rounded-2xl border border-ink-200 bg-paper-tint p-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
           About this board
         </p>
@@ -163,24 +178,17 @@ export default function JobsPage() {
         </h2>
         <p className="mt-3 text-[14px] leading-[1.6] text-ink-700">
           Every listing here points at a public job page on the hiring
-          company&apos;s own site. We don&apos;t republish private posts, we
-          don&apos;t scrape Discord, we don&apos;t intermediate the
-          application. The board is just a clean reading layer over openings
-          worth applying to. Have one to add? File it on Townhall.
+          company&apos;s own site. Founder names are public information,
+          listed for context. No private data is republished. Have a
+          listing to add? File it on Townhall.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link
             href="/solve/new"
             className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
           >
-            Surface a job
+            Surface a listing
             <span aria-hidden>→</span>
-          </Link>
-          <Link
-            href="/about"
-            className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-colors hover:border-ink-950"
-          >
-            How Ness works
           </Link>
         </div>
       </div>
@@ -188,60 +196,107 @@ export default function JobsPage() {
   );
 }
 
-function JobRow({ job, divider }: { job: Job; divider: boolean }) {
+function CompanyCard({ company }: { company: CompanyWithRoles }) {
+  const { name, founders, blurb, url, roles } = company;
+
+  return (
+    <div className="group rounded-2xl border border-ink-200 bg-paper p-6 transition-colors hover:border-ink-400">
+      {/* Company header */}
+      <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
+        <div>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="serif text-[24px] leading-tight text-ink-950 transition-opacity hover:opacity-70"
+          >
+            {name}
+            <span aria-hidden className="ml-1.5 text-[14px] text-ink-400">
+              ↗
+            </span>
+          </a>
+          {founders && founders.length > 0 && (
+            <p className="mt-1 text-[12.5px] text-ink-600">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-500">
+                Founded by
+              </span>{" "}
+              {founders.join(", ")}
+            </p>
+          )}
+          {blurb && (
+            <p className="mt-2 text-[13.5px] leading-[1.6] text-ink-600">
+              {blurb}
+            </p>
+          )}
+        </div>
+        <div className="shrink-0">
+          <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-paper-tint px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-700">
+            {roles.length} {roles.length === 1 ? "role" : "roles"}
+          </span>
+        </div>
+      </div>
+
+      {/* Roles */}
+      <ul className="mt-5 divide-y divide-ink-100 border-t border-ink-100">
+        {roles.map((r) => (
+          <li key={r.id}>
+            <RoleRow role={r} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function RoleRow({ role }: { role: Role }) {
   return (
     <a
-      href={job.link}
-      target={job.link.startsWith("mailto:") ? undefined : "_blank"}
+      href={role.link}
+      target={role.link.startsWith("mailto:") ? undefined : "_blank"}
       rel="noopener noreferrer"
-      className={`group grid grid-cols-12 items-center gap-3 px-5 py-4 transition-colors hover:bg-paper-tint sm:gap-4 ${
-        divider ? "border-t border-ink-100" : ""
-      }`}
+      className="group/row grid grid-cols-12 items-center gap-3 py-3 transition-colors hover:bg-paper-tint/50 sm:gap-4"
     >
       <div className="col-span-12 sm:col-span-6">
         <div className="flex items-center gap-2">
           <span
-            className={`h-1.5 w-1.5 rounded-full ${categoryDot[job.category]}`}
+            className={`h-1.5 w-1.5 rounded-full ${categoryDot[role.category]}`}
             aria-hidden
           />
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-            {job.category}
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-500">
+            {role.category}
           </span>
-          {job.type !== "fulltime" && (
+          {role.type !== "fulltime" && (
             <>
               <span className="text-ink-300">·</span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                {job.type}
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-500">
+                {role.type}
               </span>
             </>
           )}
+          <span className="text-ink-300">·</span>
+          <span className="text-[10.5px] text-ink-400">{daysAgo(role.postedAt)}</span>
         </div>
-        <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
-          <h3 className="serif text-[18px] leading-tight text-ink-950 transition-opacity group-hover:opacity-70">
-            {job.title}
-          </h3>
-          <span className="text-[13px] text-ink-500">{job.company}</span>
-        </div>
-        {job.blurb && (
-          <p className="mt-1 line-clamp-1 text-[12.5px] text-ink-600">
-            {job.blurb}
-          </p>
+        <h3 className="mt-1 text-[15px] font-medium leading-tight text-ink-950 transition-opacity group-hover/row:text-ink-700">
+          {role.title}
+        </h3>
+        {role.blurb && (
+          <p className="mt-1 line-clamp-1 text-[12.5px] text-ink-600">{role.blurb}</p>
         )}
       </div>
 
       <div className="col-span-6 flex items-center gap-2 text-[12px] text-ink-700 sm:col-span-3">
-        <span>{job.location}</span>
-        {job.remote && (
+        <span>{role.location}</span>
+        {role.remote && (
           <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-900">
             Remote
           </span>
         )}
       </div>
 
-      <div className="col-span-3 flex items-center justify-end gap-3 sm:col-span-2">
-        {job.comp ? (
+      <div className="col-span-3 flex items-center justify-end sm:col-span-2">
+        {role.comp ? (
           <span className="font-mono text-[12px] tabular-nums text-ink-900">
-            {job.comp}
+            {role.comp}
           </span>
         ) : (
           <span className="font-mono text-[11px] text-ink-400">—</span>
@@ -249,11 +304,11 @@ function JobRow({ job, divider }: { job: Job; divider: boolean }) {
       </div>
 
       <div className="col-span-3 flex items-center justify-end sm:col-span-1">
-        <span className="inline-flex items-center gap-1 text-[13px] font-medium text-ink-950">
+        <span className="inline-flex items-center gap-1 rounded-full bg-nessie-600 px-3 py-1 text-[12px] font-medium text-paper transition-opacity group-hover/row:opacity-90">
           Apply
           <span
             aria-hidden
-            className="transition-transform group-hover:translate-x-0.5"
+            className="transition-transform group-hover/row:translate-x-0.5"
           >
             ↗
           </span>

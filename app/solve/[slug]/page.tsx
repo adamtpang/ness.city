@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCitizen, getProblem, problems } from "@/lib/data";
+import { dbProblemToTownhall, getProblemBySlug } from "@/lib/db/queries";
 import {
   getSampleCitizen,
   getSampleProblem,
@@ -10,16 +10,20 @@ import { StatusBadge, CategoryTag } from "@/components/StatusBadge";
 import { Avatar } from "@/components/Avatar";
 import { BountyPanel } from "@/components/BountyPanel";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
+import {
+  ProposeForm,
+  StartBountyForm,
+  PledgeForm,
+  DocumentForm,
+} from "@/components/TownhallActions";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+// We still pre-render the sample slugs so /about's worked-example link
+// works even if there are no real entries yet.
 export function generateStaticParams() {
-  const real = problems.map((p) => ({ slug: p.slug }));
-  const sample = sampleProblems.map((p) => ({ slug: p.slug }));
-  const seen = new Set<string>();
-  return [...real, ...sample].filter((s) => {
-    if (seen.has(s.slug)) return false;
-    seen.add(s.slug);
-    return true;
-  });
+  return sampleProblems.map((p) => ({ slug: p.slug }));
 }
 
 export default async function ProblemPage({
@@ -29,15 +33,32 @@ export default async function ProblemPage({
 }) {
   const { slug } = await params;
 
-  const realProblem = getProblem(slug);
-  const sampleProblem = !realProblem ? getSampleProblem(slug) : undefined;
-  const problem = realProblem ?? sampleProblem;
-  const isSample = !!sampleProblem;
+  const dbRow = await getProblemBySlug(slug);
+  const sampleProblem = !dbRow ? getSampleProblem(slug) : undefined;
+  const problem = dbRow
+    ? dbProblemToTownhall(dbRow)
+    : sampleProblem;
+  const isSample = !dbRow && !!sampleProblem;
 
   if (!problem) notFound();
 
-  const lookupCitizen = isSample ? getSampleCitizen : getCitizen;
-  const reporter = lookupCitizen(problem.reporterId);
+  const reporter = isSample
+    ? getSampleCitizen(problem.reporterId)
+    : null; // db reporters resolve through the embedded reporterDisplayName instead
+
+  const reporterName =
+    reporter?.name ??
+    (dbRow?.reporterDisplayName ?? "Anonymous");
+  const reporterAvatar =
+    reporter?.avatar ??
+    (dbRow?.reporterDisplayName ?? "AN")
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  const reporterSeed =
+    reporter?.id ?? (dbRow?.reporterId ?? slug);
 
   return (
     <main className="mx-auto max-w-5xl px-5 pb-16 pt-10">
@@ -53,8 +74,9 @@ export default async function ProblemPage({
                   This is a worked example.
                 </div>
                 <div className="text-[12px] text-amber-900/80">
-                  Sample data from the Ness walkthrough. Real problems will appear
-                  here once citizens start surfacing them.
+                  Sample data from the Ness walkthrough. Real problems live in
+                  the DB and render with full proposal / bounty / pledge / doc
+                  forms.
                 </div>
               </div>
             </div>
@@ -104,27 +126,26 @@ export default async function ProblemPage({
 
           <FadeIn delay={0.16}>
             <div className="mt-5 flex items-center gap-3 text-[13px] text-ink-600">
-              {reporter && (
-                <Link
-                  href="/citizens"
-                  className="flex items-center gap-2 transition-colors hover:text-ink-950"
-                >
-                  <Avatar initials={reporter.avatar} seed={reporter.id} size={24} />
-                  <span>
-                    Surfaced by <span className="text-ink-950">{reporter.name}</span>
-                  </span>
-                </Link>
-              )}
+              <Link
+                href="/citizens"
+                className="flex items-center gap-2 transition-colors hover:text-ink-950"
+              >
+                <Avatar initials={reporterAvatar} seed={reporterSeed} size={24} />
+                <span>
+                  Surfaced by{" "}
+                  <span className="text-ink-950">{reporterName}</span>
+                </span>
+              </Link>
               <span className="text-ink-300">·</span>
               <span>{problem.affected} citizens affected</span>
-              <span className="text-ink-300">·</span>
-              <span className="tabular-nums">{problem.upvotes} signal</span>
             </div>
           </FadeIn>
 
           <FadeInOnView>
             <Section title="Summary">
-              <p className="text-[17px] leading-[1.7] text-ink-800">{problem.summary}</p>
+              <p className="text-[17px] leading-[1.7] text-ink-800">
+                {problem.summary}
+              </p>
             </Section>
           </FadeInOnView>
 
@@ -139,58 +160,52 @@ export default async function ProblemPage({
           <FadeInOnView>
             <Section title={`Solution proposals (${problem.proposals.length})`}>
               {problem.proposals.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-10 text-center">
-                  <p className="serif text-[20px] text-ink-950">No proposals yet.</p>
-                  <p className="mt-1.5 text-[13px] text-ink-500">
-                    First proposal anchors the bounty. +25 karma.
+                <div className="rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-7 text-center">
+                  <p className="serif text-[20px] text-ink-950">
+                    No proposals yet.
                   </p>
-                  <button className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800">
-                    Propose a solution
-                    <span aria-hidden>→</span>
-                  </button>
+                  <p className="mt-1.5 text-[13px] text-ink-500">
+                    First proposal anchors the bounty.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {problem.proposals.map((p) => {
-                    const author = lookupCitizen(p.authorId);
+                    const author = isSample
+                      ? getSampleCitizen(p.authorId)
+                      : null;
+                    const name = author?.name ?? "Anonymous";
+                    const initials =
+                      author?.avatar ??
+                      name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
                     return (
                       <div
                         key={p.id}
                         className="rounded-2xl border border-ink-200 bg-paper p-6"
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar
+                            initials={initials}
+                            seed={author?.id ?? p.id}
+                            size={32}
+                          />
+                          <div>
+                            <div className="text-[14px] font-medium text-ink-950">
+                              {name}
+                            </div>
                             {author && (
-                              <>
-                                <Avatar initials={author.avatar} seed={author.id} size={32} />
-                                <div>
-                                  <div className="text-[14px] font-medium text-ink-950">
-                                    {author.name}
-                                  </div>
-                                  <div className="font-mono text-[11px] text-ink-500">
-                                    @{author.handle}
-                                  </div>
-                                </div>
-                              </>
+                              <div className="font-mono text-[11px] text-ink-500">
+                                @{author.handle}
+                              </div>
                             )}
                           </div>
                         </div>
-
                         <h3 className="serif mt-4 text-[22px] leading-tight text-ink-950">
                           {p.summary}
                         </h3>
                         <p className="mt-2.5 text-[15px] leading-[1.65] text-ink-700">
                           {p.body}
                         </p>
-
-                        <div className="mt-5 flex items-center gap-5 border-t border-ink-200 pt-3.5 text-[12px] text-ink-500">
-                          <button className="transition-colors hover:text-ink-950">
-                            ↑ {p.upvotes}
-                          </button>
-                          <button className="transition-colors hover:text-ink-950">
-                            Comment
-                          </button>
-                        </div>
                       </div>
                     );
                   })}
@@ -199,59 +214,79 @@ export default async function ProblemPage({
             </Section>
           </FadeInOnView>
 
+          {/* Live action: propose */}
+          {!isSample && problem.status !== "solved" && (
+            <FadeInOnView>
+              <div className="mt-6">
+                <ProposeForm problemSlug={problem.slug} />
+              </div>
+            </FadeInOnView>
+          )}
+
+          {/* Live action: open bounty (if proposals exist but no bounty) */}
+          {!isSample && !problem.bounty && problem.proposals.length > 0 && (
+            <FadeInOnView>
+              <div className="mt-3">
+                <StartBountyForm
+                  problemSlug={problem.slug}
+                  proposals={problem.proposals.map((p) => ({
+                    id: p.id,
+                    summary: p.summary,
+                  }))}
+                />
+              </div>
+            </FadeInOnView>
+          )}
+
           {problem.documentation && (
             <FadeInOnView>
               <Section title="Documentation. What shipped.">
-                {(() => {
-                  const author = lookupCitizen(problem.documentation!.authorId);
-                  const doc = problem.documentation!;
-                  return (
-                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          {author && (
-                            <>
-                              <Avatar initials={author.avatar} seed={author.id} size={32} />
-                              <div>
-                                <div className="text-[14px] font-medium text-ink-950">
-                                  {author.name}
-                                </div>
-                                <div className="font-mono text-[11px] text-ink-500">
-                                  @{author.handle} · solver
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-2.5 py-1 text-[11px] font-medium text-emerald-900">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-700" />
-                          Shipped{" "}
-                          {new Date(doc.shippedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
-                      <p className="mt-4 text-[15px] leading-[1.7] text-ink-800">
-                        {doc.body}
-                      </p>
-                      {doc.cost !== undefined && (
-                        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-3 py-1 font-mono text-[11px] text-ink-700">
-                          Spent ${doc.cost}
-                        </div>
-                      )}
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
+                  <p className="text-[14px] font-medium text-ink-950">
+                    Solver: {problem.documentation.authorId}
+                  </p>
+                  <p className="mt-3 text-[15px] leading-[1.7] text-ink-800">
+                    {problem.documentation.body}
+                  </p>
+                  {problem.documentation.cost !== undefined && (
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-3 py-1 font-mono text-[11px] text-ink-700">
+                      Spent ${problem.documentation.cost}
                     </div>
-                  );
-                })()}
+                  )}
+                </div>
               </Section>
             </FadeInOnView>
           )}
+
+          {/* Live action: ship documentation (when funded or claimed) */}
+          {!isSample &&
+            problem.bounty &&
+            (problem.bounty.state === "funded" ||
+              problem.bounty.state === "claimed") &&
+            !problem.documentation && (
+              <FadeInOnView>
+                <div className="mt-6">
+                  <DocumentForm problemSlug={problem.slug} />
+                </div>
+              </FadeInOnView>
+            )}
         </article>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <FadeIn delay={0.2}>
             <BountyPanel problem={problem} sampleMode={isSample} />
           </FadeIn>
+          {/* Live action: pledge */}
+          {!isSample &&
+            problem.bounty &&
+            problem.bounty.state !== "paid" &&
+            dbRow?.bounty?.id && (
+              <FadeIn delay={0.26}>
+                <div className="mt-3 rounded-2xl border border-ink-200 bg-paper p-5">
+                  <PledgeForm bountyId={dbRow.bounty.id} />
+                </div>
+              </FadeIn>
+            )}
         </aside>
       </div>
     </main>
@@ -268,7 +303,9 @@ function Section({
   pull?: boolean;
 }) {
   return (
-    <section className={`mt-10 ${pull ? "rounded-2xl bg-paper-tint p-6 sm:p-8" : ""}`}>
+    <section
+      className={`mt-10 ${pull ? "rounded-2xl bg-paper-tint p-6 sm:p-8" : ""}`}
+    >
       <h2 className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
         {title}
       </h2>
