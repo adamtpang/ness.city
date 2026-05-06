@@ -14,7 +14,7 @@ export default function FeedbackPage() {
         <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
           The widget on every page (bottom right) takes a 1-5 rating and a
           comment if you&apos;re below a 5. Submissions land directly in
-          Adam&apos;s lap and get triaged weekly. Public feedback also lives
+          the maintainer&apos;s queue and get triaged weekly. Public feedback also lives
           on GitHub once the integration is wired up.
         </p>
       </FadeIn>
@@ -48,7 +48,7 @@ export default function FeedbackPage() {
             Where it goes
           </p>
           <p className="mt-2 text-[14px] leading-[1.65] text-ink-700">
-            v0.7 routes the widget to a Discord webhook (Adam&apos;s private
+            v0.7 routes the widget to a Discord webhook (a private
             triage channel). Each rating is logged to Vercel server logs in
             the meantime. v0.8 will also write the feedback to a public
             GitHub issue so the community can see what&apos;s been raised.

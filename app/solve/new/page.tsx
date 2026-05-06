@@ -385,7 +385,7 @@ export default function SubmitPage() {
                 type="text"
                 value={draft.reporterDisplayName}
                 onChange={(e) => update("reporterDisplayName", e.target.value)}
-                placeholder="Adam Pang"
+                placeholder="Your name"
                 className="w-full rounded-xl border border-ink-200 bg-paper px-4 py-3 text-[15px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
               />
             </Field>

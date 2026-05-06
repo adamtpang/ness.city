@@ -42,6 +42,12 @@ const PLACES: Record<string, Place> = {
     desc: "Open bounties, funded fixes.",
     href: "/bounties",
   },
+  vault: {
+    id: "vault",
+    name: "Points Vault",
+    desc: "NS points calculator + explainer.",
+    href: "/points",
+  },
   loch: {
     id: "loch",
     name: "The Loch",
@@ -52,13 +58,10 @@ const PLACES: Record<string, Place> = {
 
 /**
  * Interactive Ness city map. Each landmark is a clickable destination.
- * Clean line-art over a soft sky/loch gradient. Hover shows a label
- * pill under the building. Click does an SPA navigation. Inspired by
- * Late Checkout / latecheckout.studio's illustrated nav.
+ * Inspired by Late Checkout / latecheckout.studio's illustrated nav.
  *
- * Mobile: the map still scales (SVG is fluid). For accessibility, every
- * place is reachable from the textual list below the map AND from the
- * regular header nav.
+ * Layout: 800x540 canvas. Sky 0-280, hills/grass 240-430, loch 430-540.
+ * Building labels fit cleanly in the grass band (y ~395) above the water.
  */
 export function NessCityMap({ className = "" }: { className?: string }) {
   const router = useRouter();
@@ -98,7 +101,7 @@ export function NessCityMap({ className = "" }: { className?: string }) {
       className={`relative overflow-hidden rounded-3xl border border-ink-200 bg-paper shadow-[0_8px_30px_-12px_rgba(15,40,80,0.18)] ${className}`}
     >
       <svg
-        viewBox="0 0 800 500"
+        viewBox="0 0 800 540"
         xmlns="http://www.w3.org/2000/svg"
         className="block h-auto w-full"
         role="img"
@@ -121,8 +124,8 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           </radialGradient>
         </defs>
 
-        {/* Sky */}
-        <rect width="800" height="380" fill="url(#map-sky)" />
+        {/* Sky / grass background */}
+        <rect width="800" height="430" fill="url(#map-sky)" />
 
         {/* Sun + glow */}
         <circle cx="650" cy="80" r="100" fill="url(#map-sun)" />
@@ -135,19 +138,22 @@ export function NessCityMap({ className = "" }: { className?: string }) {
 
         {/* Distant hills */}
         <path
-          d="M0 280 Q 120 240 240 260 T 480 250 T 720 245 L 800 250 L 800 320 L 0 320 Z"
+          d="M0 290 Q 120 250 240 270 T 480 260 T 720 255 L 800 260 L 800 330 L 0 330 Z"
           fill="#86efac"
           opacity="0.45"
         />
         <path
-          d="M0 305 Q 140 270 280 285 T 560 280 T 800 285 L 800 330 L 0 330 Z"
+          d="M0 315 Q 140 280 280 295 T 560 290 T 800 295 L 800 340 L 0 340 Z"
           fill="#22c55e"
           opacity="0.4"
         />
 
+        {/* Grass band where labels live */}
+        <rect x="0" y="370" width="800" height="60" fill="#dcfce7" opacity="0.55" />
+
         {/* Path that connects the buildings */}
         <path
-          d="M40 380 Q 120 360 200 365 T 360 370 T 540 365 T 720 370"
+          d="M40 408 Q 120 396 200 400 T 360 402 T 540 400 T 720 402"
           stroke="#a3a3a3"
           strokeWidth="3"
           strokeDasharray="2 6"
@@ -179,23 +185,9 @@ export function NessCityMap({ className = "" }: { className?: string }) {
             strokeWidth="2"
           />
           {/* door */}
-          <rect
-            x="92"
-            y="310"
-            width="16"
-            height="40"
-            fill="#0a0a0a"
-            opacity="0.85"
-          />
+          <rect x="92" y="310" width="16" height="40" fill="#0a0a0a" opacity="0.85" />
           {/* "i" sign window */}
-          <rect
-            x="72"
-            y="288"
-            width="20"
-            height="14"
-            fill="#0a0a0a"
-            opacity="0.85"
-          />
+          <rect x="72" y="288" width="20" height="14" fill="#0a0a0a" opacity="0.85" />
           <text
             x="82"
             y="299"
@@ -207,19 +199,15 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           >
             i
           </text>
-          {/* small windows */}
           <rect x="116" y="288" width="14" height="10" fill="#fde68a" opacity="0.95" />
-          {/* vine */}
           <path
             d="M60 290 Q 52 305 58 320 Q 50 335 56 348"
             stroke="#16a34a"
             strokeWidth="1.6"
             fill="none"
           />
-          {/* Hit area */}
           <rect x="40" y="235" width="120" height="120" fill="transparent" />
-          {/* Label */}
-          <PlaceLabel x={100} y={380} active={isActive("welcome")} place={PLACES.welcome} />
+          <PlaceLabel x={100} y={395} active={isActive("welcome")} place={PLACES.welcome} />
         </motion.g>
 
         {/* ---------- TOWNHALL (Solve) ---------- */}
@@ -228,47 +216,16 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           animate={{ y: isActive("townhall") ? -4 : 0 }}
           transition={{ type: "spring", stiffness: 280, damping: 18 }}
         >
-          {/* Bell tower */}
-          <rect
-            x="270"
-            y="170"
-            width="40"
-            height="70"
-            fill="#ffffff"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          <path
-            d="M270 170 L 290 145 L 310 170 Z"
-            fill="#facc15"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          {/* Bell */}
+          <rect x="270" y="170" width="40" height="70" fill="#ffffff" stroke="#0a0a0a" strokeWidth="2" />
+          <path d="M270 170 L 290 145 L 310 170 Z" fill="#facc15" stroke="#0a0a0a" strokeWidth="2" />
           <path
             d="M283 195 Q 283 210 297 210 Q 297 195 297 195 Z"
             fill="#facc15"
             stroke="#0a0a0a"
             strokeWidth="1.5"
           />
-          {/* Pediment / front roof */}
-          <path
-            d="M210 240 L 290 200 L 370 240 Z"
-            fill="#fde68a"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          {/* Body */}
-          <rect
-            x="210"
-            y="240"
-            width="160"
-            height="120"
-            fill="#ffffff"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          {/* Columns */}
+          <path d="M210 240 L 290 200 L 370 240 Z" fill="#fde68a" stroke="#0a0a0a" strokeWidth="2" />
+          <rect x="210" y="240" width="160" height="120" fill="#ffffff" stroke="#0a0a0a" strokeWidth="2" />
           {[225, 255, 285, 315, 345].map((x) => (
             <rect
               key={`col-${x}`}
@@ -281,19 +238,9 @@ export function NessCityMap({ className = "" }: { className?: string }) {
               strokeWidth="1.5"
             />
           ))}
-          {/* Door */}
-          <rect
-            x="278"
-            y="320"
-            width="24"
-            height="40"
-            fill="#0a0a0a"
-            opacity="0.85"
-          />
-          {/* Steps */}
+          <rect x="278" y="320" width="24" height="40" fill="#0a0a0a" opacity="0.85" />
           <rect x="212" y="360" width="156" height="6" fill="#a3a3a3" />
           <rect x="200" y="366" width="180" height="8" fill="#737373" />
-          {/* Banner */}
           <rect x="245" y="218" width="90" height="14" fill="#0a0a0a" opacity="0.92" />
           <text
             x="290"
@@ -306,7 +253,6 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           >
             TOWNHALL
           </text>
-          {/* Vines on far columns */}
           <path
             d="M225 270 Q 218 285 222 300 Q 216 320 224 340"
             stroke="#16a34a"
@@ -330,16 +276,8 @@ export function NessCityMap({ className = "" }: { className?: string }) {
               transform={`rotate(${i * 25} ${i % 2 === 0 ? 220 : 350} ${y})`}
             />
           ))}
-          {/* Hit area */}
-          <rect x="200" y="140" width="180" height="230" fill="transparent" />
-          {/* Label */}
-          <PlaceLabel
-            x={290}
-            y={398}
-            active={isActive("townhall")}
-            place={PLACES.townhall}
-            wide
-          />
+          <rect x="200" y="140" width="180" height="240" fill="transparent" />
+          <PlaceLabel x={290} y={405} active={isActive("townhall")} place={PLACES.townhall} wide />
         </motion.g>
 
         {/* ---------- CITIZENS HALL (rotunda) ---------- */}
@@ -348,40 +286,20 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           animate={{ y: isActive("citizens") ? -3 : 0 }}
           transition={{ type: "spring", stiffness: 280, damping: 18 }}
         >
-          {/* Dome */}
           <path
             d="M410 290 Q 410 235 470 235 Q 530 235 530 290 Z"
             fill="#86efac"
             stroke="#0a0a0a"
             strokeWidth="2"
           />
-          {/* Dome inner highlight */}
           <path
             d="M420 285 Q 420 245 470 245 Q 520 245 520 285 Z"
             fill="#22c55e"
             opacity="0.55"
           />
-          {/* Spire on dome */}
-          <line
-            x1="470"
-            y1="235"
-            x2="470"
-            y2="218"
-            stroke="#0a0a0a"
-            strokeWidth="1.5"
-          />
+          <line x1="470" y1="235" x2="470" y2="218" stroke="#0a0a0a" strokeWidth="1.5" />
           <circle cx="470" cy="216" r="3" fill="#facc15" />
-          {/* Body */}
-          <rect
-            x="410"
-            y="290"
-            width="120"
-            height="70"
-            fill="#ffffff"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          {/* Columns suggestion (small) */}
+          <rect x="410" y="290" width="120" height="70" fill="#ffffff" stroke="#0a0a0a" strokeWidth="2" />
           {[420, 450, 490, 520].map((x) => (
             <rect
               key={`cit-c-${x}`}
@@ -394,16 +312,7 @@ export function NessCityMap({ className = "" }: { className?: string }) {
               strokeWidth="1"
             />
           ))}
-          {/* Door */}
-          <rect
-            x="460"
-            y="320"
-            width="20"
-            height="40"
-            fill="#0a0a0a"
-            opacity="0.85"
-          />
-          {/* Laurel wreath above the door */}
+          <rect x="460" y="320" width="20" height="40" fill="#0a0a0a" opacity="0.85" />
           <path
             d="M455 305 Q 470 295 485 305"
             stroke="#16a34a"
@@ -421,10 +330,8 @@ export function NessCityMap({ className = "" }: { className?: string }) {
               transform={`rotate(${i * 20 - 20} ${x} 302)`}
             />
           ))}
-          {/* Hit area */}
           <rect x="400" y="210" width="140" height="160" fill="transparent" />
-          {/* Label */}
-          <PlaceLabel x={470} y={388} active={isActive("citizens")} place={PLACES.citizens} />
+          <PlaceLabel x={470} y={395} active={isActive("citizens")} place={PLACES.citizens} wide />
         </motion.g>
 
         {/* ---------- OBSERVATORY (PageRank) ---------- */}
@@ -433,21 +340,11 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           animate={{ y: isActive("observatory") ? -4 : 0 }}
           transition={{ type: "spring", stiffness: 280, damping: 18 }}
         >
-          {/* Tall tower */}
-          <rect
-            x="575"
-            y="220"
-            width="40"
-            height="140"
-            fill="#ffffff"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          {/* Lit windows */}
+          <rect x="555" y="220" width="40" height="140" fill="#ffffff" stroke="#0a0a0a" strokeWidth="2" />
           {[245, 270, 295, 320, 345].map((y) => (
             <rect
               key={`obs-w-${y}`}
-              x="588"
+              x="568"
               y={y}
               width="14"
               height="10"
@@ -455,75 +352,20 @@ export function NessCityMap({ className = "" }: { className?: string }) {
               opacity={0.95 - (y - 245) / 200}
             />
           ))}
-          {/* Observatory dome on top */}
-          <ellipse
-            cx="595"
-            cy="220"
-            rx="30"
-            ry="20"
-            fill="#bfdbfe"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          <ellipse
-            cx="595"
-            cy="216"
-            rx="22"
-            ry="14"
-            fill="#dbeafe"
-            opacity="0.7"
-          />
-          {/* Telescope sticking out */}
-          <line
-            x1="600"
-            y1="208"
-            x2="630"
-            y2="190"
-            stroke="#0a0a0a"
-            strokeWidth="3.5"
-          />
-          <circle cx="630" cy="190" r="3" fill="#fde68a" />
-          {/* Door */}
-          <rect
-            x="585"
-            y="335"
-            width="20"
-            height="25"
-            fill="#0a0a0a"
-            opacity="0.85"
-          />
-          {/* Ground floor */}
-          <rect
-            x="555"
-            y="345"
-            width="80"
-            height="20"
-            fill="#f5f5f5"
-            stroke="#0a0a0a"
-            strokeWidth="1.5"
-          />
-          {/* Vine */}
+          <ellipse cx="575" cy="220" rx="30" ry="20" fill="#bfdbfe" stroke="#0a0a0a" strokeWidth="2" />
+          <ellipse cx="575" cy="216" rx="22" ry="14" fill="#dbeafe" opacity="0.7" />
+          <line x1="580" y1="208" x2="610" y2="190" stroke="#0a0a0a" strokeWidth="3.5" />
+          <circle cx="610" cy="190" r="3" fill="#fde68a" />
+          <rect x="565" y="335" width="20" height="25" fill="#0a0a0a" opacity="0.85" />
+          <rect x="535" y="345" width="80" height="20" fill="#f5f5f5" stroke="#0a0a0a" strokeWidth="1.5" />
           <path
-            d="M615 240 Q 622 270 614 295 Q 622 325 614 350"
+            d="M595 240 Q 602 270 594 295 Q 602 325 594 350"
             stroke="#16a34a"
             strokeWidth="1.5"
             fill="none"
           />
-          {[260, 285, 320].map((y, i) => (
-            <ellipse
-              key={`obv-l-${i}`}
-              cx={i % 2 === 0 ? 622 : 614}
-              cy={y}
-              rx="3.5"
-              ry="2"
-              fill="#16a34a"
-              transform={`rotate(${i * 25} ${i % 2 === 0 ? 622 : 614} ${y})`}
-            />
-          ))}
-          {/* Hit area */}
-          <rect x="555" y="180" width="80" height="190" fill="transparent" />
-          {/* Label */}
-          <PlaceLabel x={595} y={388} active={isActive("observatory")} place={PLACES.observatory} wide />
+          <rect x="535" y="180" width="80" height="190" fill="transparent" />
+          <PlaceLabel x={575} y={395} active={isActive("observatory")} place={PLACES.observatory} wide />
         </motion.g>
 
         {/* ---------- BOUNTY BUREAU ---------- */}
@@ -532,27 +374,16 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           animate={{ y: isActive("bounties") ? -3 : 0 }}
           transition={{ type: "spring", stiffness: 280, damping: 18 }}
         >
-          {/* Roof */}
           <path
-            d="M675 305 L 715 285 L 755 305 Z"
+            d="M650 305 L 690 285 L 730 305 Z"
             fill="#facc15"
             stroke="#0a0a0a"
             strokeWidth="2"
           />
-          {/* Body */}
-          <rect
-            x="680"
-            y="305"
-            width="70"
-            height="55"
-            fill="#ffffff"
-            stroke="#0a0a0a"
-            strokeWidth="2"
-          />
-          {/* "$" sign */}
-          <circle cx="715" cy="328" r="9" fill="#16a34a" />
+          <rect x="655" y="305" width="70" height="55" fill="#ffffff" stroke="#0a0a0a" strokeWidth="2" />
+          <circle cx="690" cy="328" r="9" fill="#16a34a" />
           <text
-            x="715"
+            x="690"
             y="332"
             textAnchor="middle"
             fontSize="11"
@@ -562,41 +393,59 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           >
             $
           </text>
-          {/* Door */}
-          <rect
-            x="703"
-            y="340"
-            width="14"
-            height="20"
+          <rect x="678" y="340" width="14" height="20" fill="#0a0a0a" opacity="0.85" />
+          <rect x="645" y="280" width="90" height="90" fill="transparent" />
+          <PlaceLabel x={690} y={395} active={isActive("bounties")} place={PLACES.bounties} />
+        </motion.g>
+
+        {/* ---------- POINTS VAULT ---------- */}
+        <motion.g
+          {...handlers("vault")}
+          animate={{ y: isActive("vault") ? -3 : 0 }}
+          transition={{ type: "spring", stiffness: 280, damping: 18 }}
+        >
+          {/* Wide low building with arch */}
+          <rect x="745" y="320" width="48" height="40" fill="#ffffff" stroke="#0a0a0a" strokeWidth="2" />
+          <path
+            d="M745 320 L 769 295 L 793 320 Z"
+            fill="#fde68a"
+            stroke="#0a0a0a"
+            strokeWidth="2"
+          />
+          {/* Arched door (vault) */}
+          <path
+            d="M760 360 L 760 340 Q 760 330 769 330 Q 778 330 778 340 L 778 360 Z"
             fill="#0a0a0a"
             opacity="0.85"
           />
-          {/* Hit area */}
-          <rect x="670" y="280" width="90" height="90" fill="transparent" />
-          {/* Label */}
-          <PlaceLabel x={715} y={388} active={isActive("bounties")} place={PLACES.bounties} />
+          {/* Coin stack motif */}
+          <circle cx="755" cy="312" r="2.5" fill="#facc15" stroke="#0a0a0a" strokeWidth="0.8" />
+          <circle cx="769" cy="308" r="2.5" fill="#facc15" stroke="#0a0a0a" strokeWidth="0.8" />
+          <circle cx="783" cy="312" r="2.5" fill="#facc15" stroke="#0a0a0a" strokeWidth="0.8" />
+          <rect x="740" y="295" width="60" height="80" fill="transparent" />
+          <PlaceLabel x={769} y={395} active={isActive("vault")} place={PLACES.vault} />
         </motion.g>
 
         {/* ---------- LOCH ---------- */}
-        <rect x="0" y="380" width="800" height="120" fill="url(#map-loch)" />
+        <rect x="0" y="430" width="800" height="110" fill="url(#map-loch)" />
 
         {/* Ripples */}
         <path
-          d="M40 410 Q 120 405 200 410 T 360 410 T 540 410 T 720 410"
+          d="M40 460 Q 120 455 200 460 T 360 460 T 540 460 T 720 460"
           stroke="#bfdbfe"
           strokeWidth="1.4"
           fill="none"
           opacity="0.45"
         />
         <path
-          d="M0 432 Q 80 426 160 432 T 320 432 T 480 432 T 640 432 T 800 432"
+          d="M0 482 Q 80 476 160 482 T 320 482 T 480 482 T 640 482 T 800 482"
           stroke="#bfdbfe"
           strokeWidth="1.1"
           fill="none"
           opacity="0.32"
         />
         <path
-          d="M40 460 Q 120 454 200 460 T 360 460 T 540 460 T 720 460"
+          d="M40 510 Q 120 504 200 510 T 360 510 T 540 510 T 720 510"
           stroke="#bfdbfe"
           strokeWidth="0.9"
           fill="none"
@@ -609,8 +458,7 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           animate={{ y: isActive("loch") ? -2 : 0 }}
           transition={{ type: "spring", stiffness: 280, damping: 18 }}
         >
-          <g transform="translate(150, 408)">
-            {/* humps + neck + head */}
+          <g transform="translate(150, 458)">
             <path
               d="M0 16 Q 8 6 16 16 Q 22 10 28 16 Q 32 11 38 14 L 50 22"
               stroke="#172554"
@@ -620,7 +468,6 @@ export function NessCityMap({ className = "" }: { className?: string }) {
               strokeLinejoin="round"
             />
             <circle cx="48" cy="16" r="1.6" fill="#fde68a" />
-            {/* splash */}
             <path
               d="M-4 22 Q 8 18 22 22 T 50 22"
               stroke="#bfdbfe"
@@ -629,24 +476,23 @@ export function NessCityMap({ className = "" }: { className?: string }) {
               opacity="0.6"
             />
           </g>
-          {/* hit area for the loch CTA */}
-          <rect x="100" y="395" width="180" height="50" fill="transparent" />
-          {/* Label */}
-          <PlaceLabel x={195} y={462} active={isActive("loch")} place={PLACES.loch} wide light />
+          <rect x="100" y="445" width="180" height="50" fill="transparent" />
+          <PlaceLabel x={195} y={510} active={isActive("loch")} place={PLACES.loch} wide light />
         </motion.g>
 
         {/* Tiny boat for charm */}
-        <g transform="translate(560, 416)">
+        <g transform="translate(560, 466)">
           <path d="M0 0 L 24 0 L 20 6 L 4 6 Z" fill="#0a0a0a" opacity="0.9" />
           <line x1="12" y1="0" x2="12" y2="-14" stroke="#0a0a0a" strokeWidth="1" />
           <path d="M12 -14 L 22 -2 L 12 -2 Z" fill="#bfdbfe" />
         </g>
 
-        {/* Trees between buildings */}
-        <Tree x={185} y={355} />
-        <Tree x={395} y={358} />
-        <Tree x={550} y={355} />
-        <Tree x={665} y={358} />
+        {/* Trees in the grass band */}
+        <Tree x={185} y={385} />
+        <Tree x={395} y={388} />
+        <Tree x={530} y={385} />
+        <Tree x={635} y={388} />
+        <Tree x={730} y={388} />
       </svg>
     </div>
   );

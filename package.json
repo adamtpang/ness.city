@@ -19,7 +19,8 @@
     "next": "^16.2.4",
     "postgres": "^3.4.9",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "replicate": "^0.25.2"
   },
   "devDependencies": {
     "@types/node": "22.10.5",

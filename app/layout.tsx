@@ -5,6 +5,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { LiveBackground } from "@/components/LiveBackground";
+import { NewsBanner } from "@/components/NewsBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,18 +44,25 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-dvh bg-paper font-sans text-ink-950 antialiased">
         <LiveBackground />
+        <NewsBanner />
         <Header />
         {children}
         <footer className="mt-32 border-t border-ink-200 py-10">
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.12</span>
+                <span>ness.city · v0.13</span>
                 <span className="text-ink-300">·</span>
                 <span>
                   a node in{" "}
-                  <span className="text-ink-700">interneta.world</span>{" "}
-                  <span className="text-ink-400">(soon)</span>
+                  <a
+                    href="https://interneta.world"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-ink-700 underline-offset-2 hover:underline"
+                  >
+                    interneta.world
+                  </a>
                 </span>
               </div>
               <span>Built bottom-up by citizens, for citizens.</span>

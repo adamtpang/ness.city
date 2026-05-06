@@ -45,9 +45,19 @@ export default function AboutPage() {
 
       <FadeInOnView>
         <p className="mt-10 text-[18px] leading-[1.7] text-ink-800">
-          Every community has a core team. Call them the government. They keep
-          the lights on. They keep the visas working. They keep the roof
-          intact. They are good at their jobs. They are also outnumbered.
+          Every community has a core team. Call them the public sector. They
+          keep the lights on, the visas working, the roof intact. They are
+          good at their jobs. They are also outnumbered.
+        </p>
+      </FadeInOnView>
+
+      <FadeInOnView>
+        <p className="mt-6 text-[18px] leading-[1.7] text-ink-800">
+          Ness is the private sector. Permissionless. Bottom-up. The
+          populace solving its own problems without asking the government
+          for help. The two are complementary, not opposed: the public
+          sector keeps the city legal and standing; the private sector
+          makes it interesting and rich.
         </p>
       </FadeInOnView>
 
@@ -265,18 +275,25 @@ export default function AboutPage() {
             Ness is one node in <span className="italic">interneta</span>.
           </h2>
           <p className="mt-4 text-[16px] leading-[1.7] text-ink-700">
-            Ness is one tool in a larger umbrella Adam Pang is building called{" "}
-            <span className="text-ink-950">interneta</span>: civic
-            infrastructure for the kind of community that lives partly online,
-            partly off, and answers to its citizens. The thinking comes from
-            Balaji&apos;s The Network State. The shape comes from how
-            open-source repos work: issues, pull requests, attribution that
-            sticks. The first community Ness was built at gave us the
-            constraints. The platform is general.
+            Ness is one tool in a larger umbrella called{" "}
+            <a
+              href="https://interneta.world"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ink-950 underline-offset-4 hover:underline"
+            >
+              interneta.world
+            </a>
+            : civic infrastructure for the kind of community that lives
+            partly online, partly off, and answers to its citizens. The
+            thinking comes from Balaji&apos;s The Network State. The shape
+            comes from how open-source repos work: issues, pull requests,
+            attribution that sticks. The first community Ness was built at
+            gave us the constraints. The platform is general.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Pill href="https://thenetworkstate.com">thenetworkstate.com</Pill>
-            <Pill>interneta.world (soon)</Pill>
+            <Pill href="https://interneta.world">interneta.world</Pill>
           </div>
         </div>
       </FadeInOnView>
@@ -298,7 +315,7 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Now"
             title="Townhall UI + draft form + open-source repo"
-            body="The civic-layer UI is live. Drafts persist locally. Repo is public on GitHub under MIT, with branch protection so Adam controls the merge button."
+            body="The civic-layer UI is live. Repo is public on GitHub under MIT, with branch protection so the maintainer controls the merge button."
             status="shipped"
           />
         </FadeInOnView>

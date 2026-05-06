@@ -113,7 +113,7 @@ export default function Home() {
               Read the code. Fork the city.
             </h2>
             <p className="mt-3 max-w-2xl text-[15px] leading-[1.65] text-ink-200">
-              Public on GitHub under MIT. The merge button is Adam&apos;s.
+              Public on GitHub under MIT. PRs reviewed weekly by the maintainer.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a

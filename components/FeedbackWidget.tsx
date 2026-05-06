@@ -128,7 +128,7 @@ export function FeedbackWidget() {
                       How&apos;s Ness right now?
                     </h3>
                     <p className="mt-1 text-[12px] text-ink-500">
-                      One tap. Adam reads every one.
+                      One tap. We read every one.
                     </p>
                     <div className="mt-4 grid grid-cols-5 gap-1.5">
                       {RATINGS.map((n) => (
@@ -208,7 +208,7 @@ export function FeedbackWidget() {
                       Thanks for the signal.
                     </h3>
                     <p className="mt-2 text-[13px] leading-[1.6] text-ink-600">
-                      Adam triages feedback weekly. The list at{" "}
+                      Triaged weekly. More on{" "}
                       <a
                         href="/feedback"
                         className="text-ink-950 underline-offset-4 hover:underline"

@@ -23,7 +23,7 @@ export default function MarketPage() {
         <p className="mt-5 text-[17px] leading-[1.7] text-ink-700">
           The third tool in Ness. Citizens list what they make, what they sell,
           what they need. Products. Services. Assets. A consolidation of
-          nsmarket.app and redmart.xyz, two of Adam&apos;s earlier prototypes,
+          nsmarket.app and redmart.xyz, two earlier prototypes,
           into one canonical surface.
         </p>
       </FadeIn>

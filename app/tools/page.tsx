@@ -10,6 +10,13 @@ type Util = {
 
 const utilities: Util[] = [
   {
+    name: "Routermill",
+    blurb:
+      "Snap a photo of a CelcomDigi router label, get the serial number, default SSID, and default password extracted by Gemini. Build a queue, name each target, download a CSV. Pairs with a desktop bot that runs the setup wizard for you.",
+    state: "live",
+    href: "/tools/routermill",
+  },
+  {
     name: "NS points calculator",
     blurb:
       "Drop your activity (events attended, bounties shipped, days on campus) and get an estimated points score with a breakdown of how it was scored.",

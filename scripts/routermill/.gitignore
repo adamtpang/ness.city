@@ -1,0 +1,8 @@
+debug/
+debug_*
+router_queue.csv
+temp_wifi_*.xml
+__pycache__/
+*.pyc
+.venv/
+venv/
