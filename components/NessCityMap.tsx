@@ -48,6 +48,12 @@ const PLACES: Record<string, Place> = {
     desc: "NS points calculator + explainer.",
     href: "/points",
   },
+  forge: {
+    id: "forge",
+    name: "The Forge",
+    desc: "Open-source NS — issues + PRs.",
+    href: "/os",
+  },
   loch: {
     id: "loch",
     name: "The Loch",
@@ -396,6 +402,52 @@ export function NessCityMap({ className = "" }: { className?: string }) {
           <rect x="678" y="340" width="14" height="20" fill="#0a0a0a" opacity="0.85" />
           <rect x="645" y="280" width="90" height="90" fill="transparent" />
           <PlaceLabel x={690} y={395} active={isActive("bounties")} place={PLACES.bounties} />
+        </motion.g>
+
+        {/* ---------- THE FORGE (Open Source NS) ---------- */}
+        <motion.g
+          {...handlers("forge")}
+          animate={{ y: isActive("forge") ? -3 : 0 }}
+          transition={{ type: "spring", stiffness: 280, damping: 18 }}
+        >
+          {/* Roof triangle, dark */}
+          <path
+            d="M154 325 L 178 308 L 202 325 Z"
+            fill="#0a0a0a"
+            opacity="0.9"
+            stroke="#0a0a0a"
+            strokeWidth="1.5"
+          />
+          {/* Body */}
+          <rect x="158" y="325" width="42" height="45" fill="#ffffff" stroke="#0a0a0a" strokeWidth="1.5" />
+          {/* Open archway with fire glow */}
+          <path
+            d="M170 370 L 170 348 Q 170 342 179 342 Q 188 342 188 348 L 188 370 Z"
+            fill="#fde68a"
+          />
+          <path
+            d="M170 370 L 170 348 Q 170 342 179 342 Q 188 342 188 348 L 188 370"
+            stroke="#0a0a0a"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          {/* Fire flames */}
+          <path
+            d="M174 366 Q 177 360 179 364 Q 181 359 184 366"
+            fill="#f97316"
+            opacity="0.9"
+          />
+          {/* Chimney */}
+          <rect x="192" y="312" width="7" height="15" fill="#737373" stroke="#0a0a0a" strokeWidth="1" />
+          {/* Smoke puffs */}
+          <circle cx="196" cy="307" r="3" fill="#e5e5e5" opacity="0.75" />
+          <circle cx="200" cy="301" r="2.4" fill="#e5e5e5" opacity="0.6" />
+          {/* Anvil out front */}
+          <rect x="160" y="372" width="9" height="2" fill="#525252" />
+          <rect x="162" y="370" width="5" height="2" fill="#525252" />
+          {/* Hit area */}
+          <rect x="148" y="298" width="58" height="80" fill="transparent" />
+          <PlaceLabel x={178} y={405} active={isActive("forge")} place={PLACES.forge} />
         </motion.g>
 
         {/* ---------- POINTS VAULT ---------- */}
