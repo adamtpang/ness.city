@@ -51,7 +51,7 @@ export default function RootLayout({
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.13</span>
+                <span>ness.city · v0.14</span>
                 <span className="text-ink-300">·</span>
                 <span>
                   a node in{" "}
@@ -65,7 +65,18 @@ export default function RootLayout({
                   </a>
                 </span>
               </div>
-              <span>Built bottom-up by citizens, for citizens.</span>
+              <span>
+                Built bottom-up by citizens, for citizens. By{" "}
+                <a
+                  href="https://adampang.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-ink-700 underline-offset-2 hover:underline"
+                >
+                  Adam Pangelinan
+                </a>
+                .
+              </span>
             </div>
             <div className="mt-5 border-t border-ink-100 pt-4 text-[11px] text-ink-400">
               <span className="font-mono uppercase tracking-[0.18em] text-ink-500">
