@@ -1,17 +1,16 @@
 import Link from "next/link";
 import { NessCityMap } from "@/components/NessCityMap";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
-
-const QUICK_LINKS = [
-  { href: "/about", label: "Welcome Center", note: "How Ness works" },
-  { href: "/solve", label: "Townhall", note: "Surface, fund, ship" },
-  { href: "/citizens", label: "Citizens Hall", note: "Leaderboards" },
-  { href: "/pagerank", label: "Observatory", note: "Map who knows whom" },
-  { href: "/bounties", label: "Bounty Bureau", note: "Open bounties" },
-  { href: "/solve/new", label: "The Loch", note: "Surface a problem" },
-];
+import {
+  placesBySection,
+  sectionLabels,
+  sectionOrder,
+  type Place,
+} from "@/lib/places";
 
 export default function Home() {
+  const grouped = placesBySection();
+
   return (
     <main className="mx-auto max-w-5xl px-5">
       {/* Hero with city map */}
@@ -34,7 +33,8 @@ export default function Home() {
 
         <FadeIn delay={0.1}>
           <p className="mt-4 max-w-xl text-[15.5px] leading-[1.55] text-ink-600 sm:text-[17px]">
-            A small city of tools for builders. Click any landmark to enter.
+            A small city of tools for builders. Click any landmark on the
+            map, or browse the full feature index below.
           </p>
         </FadeIn>
 
@@ -43,26 +43,54 @@ export default function Home() {
             <NessCityMap />
           </div>
         </FadeIn>
+      </section>
 
-        {/* Text fallback / accessibility */}
-        <FadeIn delay={0.24}>
-          <ul className="mt-6 grid grid-cols-2 gap-2 text-[13px] sm:grid-cols-3">
-            {QUICK_LINKS.map((q) => (
-              <li key={q.href}>
-                <Link
-                  href={q.href}
-                  className="group flex items-baseline gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-paper-tint"
-                >
-                  <span className="font-medium text-ink-950 group-hover:text-nessie-700">
-                    {q.label}
-                  </span>
-                  <span className="text-ink-500">·</span>
-                  <span className="text-ink-500">{q.note}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </FadeIn>
+      <div className="divider" />
+
+      {/* Every place in Ness — newcomer-friendly directory */}
+      <section className="py-14">
+        <FadeInOnView>
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+              For newcomers
+            </p>
+            <h2 className="serif mt-2 text-[34px] leading-tight text-ink-950">
+              Every place in Ness.
+            </h2>
+            <p className="mt-2 max-w-xl text-[14.5px] leading-[1.6] text-ink-600">
+              The full index. Each place is a different tool with its own
+              use. Live now means it works today. In design and planned
+              are honestly labeled so you know what to expect.
+            </p>
+          </div>
+        </FadeInOnView>
+
+        <div className="mt-8 space-y-10">
+          {sectionOrder.map((s) => {
+            const items = grouped[s].filter((p) => p.inHeader !== false);
+            if (items.length === 0) return null;
+            return (
+              <FadeInOnView key={s}>
+                <div>
+                  <div className="mb-4 flex items-baseline gap-3 border-b border-ink-100 pb-2">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                      {sectionLabels[s].eyebrow}
+                    </span>
+                    <span className="text-ink-300">·</span>
+                    <h3 className="serif text-[22px] leading-tight text-ink-950">
+                      {sectionLabels[s].label}
+                    </h3>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((p) => (
+                      <PlaceCard key={p.id} place={p} />
+                    ))}
+                  </div>
+                </div>
+              </FadeInOnView>
+            );
+          })}
+        </div>
       </section>
 
       <div className="divider" />
@@ -138,5 +166,65 @@ export default function Home() {
         </FadeInOnView>
       </section>
     </main>
+  );
+}
+
+function PlaceCard({ place }: { place: Place }) {
+  const isLive = place.status === "live";
+  const statusLabel =
+    place.status === "live"
+      ? "Live"
+      : place.status === "in-design"
+        ? "In design"
+        : "Planned";
+  const statusDot =
+    place.status === "live"
+      ? "bg-emerald-500"
+      : place.status === "in-design"
+        ? "bg-amber-500"
+        : "bg-ink-400";
+
+  return (
+    <Link
+      href={place.href}
+      className="group flex h-full flex-col rounded-2xl border border-ink-200 bg-paper p-5 transition-colors hover:border-ink-950"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="serif text-[20px] leading-tight text-ink-950 transition-opacity group-hover:opacity-70">
+            {place.name}
+          </h3>
+          {place.building && place.building !== place.name && (
+            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
+              {place.building}
+            </p>
+          )}
+        </div>
+        <span
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+            isLive
+              ? "bg-emerald-50 text-emerald-900"
+              : place.status === "in-design"
+                ? "bg-amber-50 text-amber-900"
+                : "bg-paper-tint text-ink-700"
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${statusDot}`} />
+          {statusLabel}
+        </span>
+      </div>
+      <p className="mt-2 flex-1 text-[13px] leading-[1.55] text-ink-600">
+        {place.desc}
+      </p>
+      <span className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] text-ink-400 transition-colors group-hover:text-ink-700">
+        {place.href}
+        <span
+          aria-hidden
+          className="transition-transform group-hover:translate-x-0.5"
+        >
+          →
+        </span>
+      </span>
+    </Link>
   );
 }

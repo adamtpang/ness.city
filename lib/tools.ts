@@ -40,10 +40,10 @@ export const tools: Tool[] = [
   {
     id: "market",
     name: "Market",
-    tagline: "Products, services, assets.",
+    tagline: "Buy, sell, swap, share.",
     description:
-      "Citizens list what they make, what they sell, what they need. Local economy for a community that travels.",
-    status: "planned",
+      "Local craigslist for the city. For sale, free, wanted, housing, services, rides, community. Real names. Reply direct.",
+    status: "live",
     href: "/market",
   },
 ];

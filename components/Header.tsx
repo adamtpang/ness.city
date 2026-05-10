@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { NessieMark } from "./NessieLogo";
+import { HeaderAllMenu } from "./HeaderAllMenu";
 
 // Header nav mirrors the city map. Five places, in the order a visitor
 // usually wants to walk: orient, see what's open, see who's funded,
@@ -62,6 +63,7 @@ export function Header() {
               </Link>
             );
           })}
+          <HeaderAllMenu />
         </nav>
 
         <Link
