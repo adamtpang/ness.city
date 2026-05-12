@@ -407,10 +407,10 @@ export default function RoutermillPage() {
                           {i.data?.default_pass}
                         </td>
                         <td className="px-4 py-2.5 font-medium text-ink-950">
-                          {i.data?.target_ssid || "—"}
+                          {i.data?.target_ssid || "·"}
                         </td>
                         <td className="px-4 py-2.5 font-mono text-garden-700">
-                          {i.data?.new_pass || "—"}
+                          {i.data?.new_pass || "·"}
                         </td>
                       </tr>
                     ))}

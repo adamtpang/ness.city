@@ -7,10 +7,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/pagerank — submit a citizen's ring (one or more named edges).
+ * POST /api/pagerank. Submit a citizen's ring (one or more named edges).
  * { citizenHandle, citizenDisplayName, names: [{ name, round }] }
  *
- * GET /api/pagerank — return the most-named citizens, ordered by inbound count.
+ * GET /api/pagerank. Return the most-named citizens, ordered by inbound count.
  *   Real PageRank iteration runs once we have enough rings to be worth it
  *   (>= 5 citizens). Until then the leaderboard ranks by raw inbound mentions
  *   weighted by ring round (Round 1 = 6, ... Round 6 = 1).

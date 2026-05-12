@@ -1,8 +1,8 @@
 /**
  * NS Points math, captured for the calculator on /points.
  *
- * Source: ns.com/longterm (rendered Apr 2026). The formula is documented
- * publicly there; we just code it up.
+ * Source: community member-points documentation. The formula is documented
+ * publicly upstream; we just code it up.
  *
  *   Epoch 1 (NS ID ≤ 64):  points(n) = 2^24             = 16,777,216
  *   After NS ID #64:       points(n) = floor(2^30 / n)
@@ -73,7 +73,7 @@ export function vestedFractionFromYears(years: number): number {
 
 /**
  * Implied USD value of a citizen's points at a given valuation,
- * vesting state, and total longtermer count.
+ * vesting state, and total member count.
  *
  *   share          = pointsForId(id) / totalPointsOutstanding(total)
  *   nominalValue   = share * nsValuationUsd
@@ -107,7 +107,7 @@ export function impliedUsdValue(opts: {
 }
 
 export function formatUsd(usd: number): string {
-  if (!Number.isFinite(usd)) return "$—";
+  if (!Number.isFinite(usd)) return "$·";
   if (usd >= 1_000_000_000)
     return `$${(usd / 1_000_000_000).toFixed(2)}B`;
   if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(2)}M`;

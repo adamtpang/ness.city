@@ -70,7 +70,7 @@ export default function MarketPage() {
           </h1>
           <p className="mt-3 max-w-xl text-[15px] leading-[1.55] text-ink-600 sm:text-[16px]">
             Local craigslist for the city. Things people are selling, giving
-            away, looking for, or driving to. Reply directly — every author
+            away, looking for, or driving to. Reply directly. Every author
             here is a citizen you can find on the map.
           </p>
         </div>

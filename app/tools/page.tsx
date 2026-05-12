@@ -16,13 +16,15 @@ const utilities: Util[] = [
     state: "live",
     href: "/tools/routermill",
   },
-  {
-    name: "NS points calculator",
-    blurb:
-      "Drop your activity (events attended, bounties shipped, days on campus) and get an estimated points score with a breakdown of how it was scored.",
-    state: "in-design",
-    href: "/tools",
-  },
+  // Points calculator commented out for pre-public review. Restore by
+  // un-commenting and pointing href to /points once the page is back.
+  // {
+  //   name: "Points calculator",
+  //   blurb:
+  //     "Estimate your vested value across different valuations and membership sizes.",
+  //   state: "in-design",
+  //   href: "/points",
+  // },
   {
     name: "Visa-run planner",
     blurb:

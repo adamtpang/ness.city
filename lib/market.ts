@@ -30,7 +30,7 @@ export type Listing = {
 /**
  * Seeded NS-flavored listings. Real submissions land here as a CSV /
  * Townhall problem until we add a `listings` table. Keep authorName /
- * contactValue plausible — they're displayed publicly.
+ * contactValue plausible since they're displayed publicly.
  */
 export const listings: Listing[] = [
   {
@@ -180,7 +180,7 @@ export const listings: Listing[] = [
   {
     id: "l_012",
     kind: "service",
-    title: "Vibecoding partner — AI agents, Next.js, Vercel",
+    title: "Vibecoding partner. AI agents, Next.js, Vercel.",
     body: "Pair with you on shipping a v1 in a weekend. Best at agent loops, prompt eval, payments. Sample work: ness.city itself.",
     priceUsd: null,
     rate: "$60/hr",
@@ -247,7 +247,7 @@ export const listings: Listing[] = [
   {
     id: "l_017",
     kind: "community",
-    title: "Costco group order — Sunday delivery",
+    title: "Costco group order. Sunday delivery.",
     body: "Driving to Tuas Costco Sunday morning. Comment what you want, I'll come back with the receipt and you Venmo. No bulk peanut butter limits.",
     priceUsd: null,
     authorName: "Naomi Park",
@@ -287,11 +287,11 @@ export function formatListingPrice(l: Listing): string {
   if (l.kind === "free") return "FREE";
   if (l.kind === "wanted") return "WANTED";
   if (l.kind === "service" && l.rate) return l.rate;
-  if (l.kind === "community") return "—";
+  if (l.kind === "community") return "·";
   if (l.kind === "ride" && l.priceUsd) return `$${l.priceUsd} split`;
   if (l.kind === "housing" && l.priceUsd) return `$${l.priceUsd}/mo`;
   if (l.priceUsd != null) return `$${l.priceUsd}`;
-  return "—";
+  return "·";
 }
 
 export function daysAgo(iso: string): string {

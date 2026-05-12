@@ -62,12 +62,12 @@ export const places: Place[] = [
   },
   {
     id: "os",
-    name: "Open Source NS",
+    name: "Open-source mirror",
     building: "The Forge",
     href: "/os",
-    desc: "GitHub-style issues + PRs against ns.com itself.",
+    desc: "GitHub-style issues and pull requests for the community.",
     section: "civic",
-    status: "live",
+    status: "in-design",
     inHeader: true,
   },
 
@@ -82,16 +82,19 @@ export const places: Place[] = [
     status: "live",
     inHeader: true,
   },
-  {
-    id: "points",
-    name: "Points Vault",
-    building: "Points Vault",
-    href: "/points",
-    desc: "NS Points calculator with vesting timeline.",
-    section: "knowledge",
-    status: "live",
-    inHeader: true,
-  },
+  // Points Vault commented out for the pre-public review. Restore by
+  // unblocking this entry, reinstating the full app/points/page.tsx, and
+  // adding the news banner item back.
+  // {
+  //   id: "points",
+  //   name: "Points Vault",
+  //   building: "Points Vault",
+  //   href: "/points",
+  //   desc: "Member points calculator with vesting timeline.",
+  //   section: "knowledge",
+  //   status: "live",
+  //   inHeader: true,
+  // },
   {
     id: "about",
     name: "Welcome Center",

@@ -299,7 +299,7 @@ function RoleRow({ role }: { role: Role }) {
             {role.comp}
           </span>
         ) : (
-          <span className="font-mono text-[11px] text-ink-400">—</span>
+          <span className="font-mono text-[11px] text-ink-400">·</span>
         )}
       </div>
 

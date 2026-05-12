@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 /**
- * Dismissible top banner for changelog / news / Ness Weekly.
+ * Dismissible top banner for changelog or community news.
  * Bumped by changing CURRENT_NEWS.id; users who dismissed an older id
  * see the new one. Stored in localStorage by id, not by message text.
  */
@@ -19,12 +19,11 @@ type NewsItem = {
 };
 
 const CURRENT_NEWS: NewsItem = {
-  id: "v0.13-points",
-  label: "v0.13",
-  message:
-    "The Points Vault is open. Free NS points calculator with vesting timeline.",
-  href: "/points",
-  cta: "Open the calculator",
+  id: "v0.16-public-ready",
+  label: "v0.16",
+  message: "The Market is open. Buy, sell, swap, share with the city.",
+  href: "/market",
+  cta: "Browse listings",
 };
 
 const STORAGE_KEY = "ness:news-dismissed:v1";

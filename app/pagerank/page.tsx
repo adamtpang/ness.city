@@ -17,7 +17,7 @@ const ROUNDS: { round: number; count: number; label: string; prompt: string }[] 
     round: 1,
     count: 1,
     label: "Closest",
-    prompt: "Name the one person you'd take a bullet for at NS.",
+    prompt: "Name the one person you'd take a bullet for.",
   },
   {
     round: 2,
@@ -52,23 +52,30 @@ const ROUNDS: { round: number; count: number; label: string; prompt: string }[] 
 ];
 
 const STORAGE_KEY = "ness.pagerank.v1";
+const IDENTITY_KEY = "ness:identity:v1";
 
-// Mock leaderboard. Replaces with real data once backend is wired.
-const STUB_LEADERBOARD = [
-  { id: "u_priya", name: "Priya Krishnan", handle: "priya.k", named: 23 },
-  { id: "u_marcus", name: "Marcus Lee", handle: "marcus", named: 19 },
-  { id: "u_aisha", name: "Aisha Bello", handle: "aisha", named: 17 },
-  { id: "u_balaji", name: "Balaji S.", handle: "balaji", named: 15 },
-  { id: "u_jonas", name: "Jonas Weber", handle: "jonas", named: 12 },
-  { id: "u_naomi", name: "Naomi Park", handle: "naomi", named: 11 },
-  { id: "u_emiko", name: "Emiko Tanaka", handle: "emiko", named: 9 },
-  { id: "u_devraj", name: "Devraj Iyer", handle: "devraj", named: 7 },
-];
+type LeaderboardRow = {
+  named_handle: string;
+  score: number;
+  mentions: number;
+  namers: number;
+};
 
 export default function PageRankPage() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [draft, setDraft] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [identity, setIdentity] = useState<{ name: string; handle: string }>({
+    name: "",
+    handle: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMsg, setSubmitMsg] = useState<{
+    kind: "ok" | "err";
+    text: string;
+  } | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -78,11 +85,97 @@ export default function PageRankPage() {
         const parsed = JSON.parse(raw) as Connection[];
         if (Array.isArray(parsed)) setConnections(parsed);
       }
+      const id = localStorage.getItem(IDENTITY_KEY);
+      if (id) {
+        const parsed = JSON.parse(id) as { name: string; handle: string };
+        setIdentity({ name: parsed.name ?? "", handle: parsed.handle ?? "" });
+      }
     } catch {
       /* noop */
     }
     setHydrated(true);
   }, []);
+
+  // Fetch leaderboard once on mount, refetch after submit
+  async function refreshLeaderboard() {
+    setLeaderboardLoading(true);
+    try {
+      const res = await fetch("/api/pagerank", { cache: "no-store" });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        leaderboard?: LeaderboardRow[];
+      };
+      if (data.ok && Array.isArray(data.leaderboard)) {
+        setLeaderboard(data.leaderboard);
+      }
+    } catch {
+      /* offline ok */
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refreshLeaderboard();
+  }, []);
+
+  async function submitRing() {
+    if (!identity.name.trim() || !identity.handle.trim()) {
+      setSubmitMsg({ kind: "err", text: "Add a name and handle to submit." });
+      return;
+    }
+    if (connections.length === 0) {
+      setSubmitMsg({ kind: "err", text: "Add at least one connection first." });
+      return;
+    }
+    setSubmitting(true);
+    setSubmitMsg(null);
+    try {
+      const res = await fetch("/api/pagerank", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          citizenHandle: identity.handle.trim().replace(/^@/, "").toLowerCase(),
+          citizenDisplayName: identity.name.trim(),
+          names: connections.map((c) => ({
+            name: c.name.trim().replace(/^@/, "").toLowerCase(),
+            round: c.round,
+          })),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        submitted?: number;
+        error?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? `HTTP ${res.status}`);
+      }
+      try {
+        localStorage.setItem(
+          IDENTITY_KEY,
+          JSON.stringify({
+            name: identity.name.trim(),
+            handle: identity.handle.trim().replace(/^@/, "").toLowerCase(),
+          }),
+        );
+      } catch {
+        /* ignore */
+      }
+      setSubmitMsg({
+        kind: "ok",
+        text: `Ring submitted. ${data.submitted ?? 0} names recorded.`,
+      });
+      refreshLeaderboard();
+    } catch (e) {
+      setSubmitMsg({
+        kind: "err",
+        text: e instanceof Error ? e.message : "Network error",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   // Persist on change
   useEffect(() => {
@@ -151,10 +244,9 @@ export default function PageRankPage() {
           Map your ring.
         </h1>
         <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
-          Name the people closest to you at NS in doubling rings. One. Two
-          more. Four more. Eight more. Sixteen more. Thirty-two more. Each
-          ring is half your last one in importance and twice the size. Stays
-          on your device until backend is live.
+          Name the people closest to you in doubling rings. One. Two more.
+          Four more. Eight more. Sixteen more. Thirty-two more. Each ring
+          is half your last one in importance and twice the size.
         </p>
       </FadeIn>
 
@@ -238,10 +330,9 @@ export default function PageRankPage() {
                   Sixty-three names. That&apos;s the city you live in.
                 </h2>
                 <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
-                  When PageRank goes live with the backend, your ring becomes
-                  the seed for a community-wide social graph. The most-named
-                  citizens rise. The connectors get visible. The quiet ones
-                  too.
+                  Submit your ring to feed it into the live graph. Your
+                  individual list stays private. The aggregate ranking
+                  shows who the city has named most.
                 </p>
                 <button
                   onClick={reset}
@@ -338,7 +429,61 @@ export default function PageRankPage() {
         </FadeIn>
       </div>
 
-      {/* Stub leaderboard */}
+      {/* Submit your ring */}
+      <FadeInOnView>
+        <div className="mt-12 rounded-2xl border border-ink-950 bg-ink-950 p-6 text-paper sm:p-7">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-300">
+            Step 2 · Submit your ring
+          </p>
+          <h2 className="serif mt-2 text-[24px] leading-tight">
+            Add your ring to the live graph.
+          </h2>
+          <p className="mt-2 max-w-xl text-[14px] leading-[1.65] text-ink-200">
+            Your individual list stays private. Only the aggregate
+            leaderboard is public. Submitting replaces any previous ring
+            you sent under the same handle.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <input
+              type="text"
+              placeholder="Your name"
+              value={identity.name}
+              onChange={(e) => setIdentity({ ...identity, name: e.target.value })}
+              className="rounded-xl border border-ink-700 bg-ink-900 px-3 py-2.5 text-[14px] text-paper placeholder:text-ink-500 focus:border-paper focus:outline-none"
+            />
+            <input
+              type="text"
+              placeholder="handle"
+              value={identity.handle}
+              onChange={(e) =>
+                setIdentity({ ...identity, handle: e.target.value.replace(/^@/, "") })
+              }
+              className="rounded-xl border border-ink-700 bg-ink-900 px-3 py-2.5 text-[14px] text-paper placeholder:text-ink-500 focus:border-paper focus:outline-none"
+            />
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={submitRing}
+              disabled={submitting || totalAdded === 0}
+              className="inline-flex items-center gap-2 rounded-full bg-paper px-5 py-2.5 text-[13px] font-medium text-ink-950 transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              {submitting ? "Sending..." : `Submit ${totalAdded} ${totalAdded === 1 ? "name" : "names"}`}
+              {!submitting && <span aria-hidden>→</span>}
+            </button>
+            {submitMsg && (
+              <span
+                className={`text-[12.5px] ${
+                  submitMsg.kind === "ok" ? "text-emerald-200" : "text-amber-200"
+                }`}
+              >
+                {submitMsg.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </FadeInOnView>
+
+      {/* Live leaderboard */}
       <FadeInOnView>
         <div className="mt-16">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
@@ -348,60 +493,72 @@ export default function PageRankPage() {
             Who the city named.
           </h2>
           <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
-            Once enough citizens map their rings, PageRank ranks who the
-            community has named most, weighted by who named them. Below is a
-            preview of the format with stub data. Real numbers go live once
-            the backend ships.
+            Live ranking from citizens who have submitted their rings.
+            Names weighted by ring depth: R1 counts 6, R2 counts 5, down
+            to R6 counts 1. Recomputed on every submit.
           </p>
         </div>
       </FadeInOnView>
 
       <FadeInOnView>
-        <div className="mt-6 overflow-hidden rounded-2xl border border-ink-200 opacity-90">
-          <div className="grid grid-cols-12 gap-4 border-b border-ink-200 bg-paper-tint px-5 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-            <div className="col-span-1">#</div>
-            <div className="col-span-7">Citizen</div>
-            <div className="col-span-4 text-right">Times named</div>
+        {leaderboardLoading ? (
+          <div className="mt-6 rounded-2xl border border-ink-200 bg-paper px-5 py-12 text-center text-[13px] text-ink-500">
+            Loading the live graph...
           </div>
-          {STUB_LEADERBOARD.map((c, idx) => {
-            const pct = (c.named / STUB_LEADERBOARD[0].named) * 100;
-            return (
-              <div
-                key={c.id}
-                className="grid grid-cols-12 gap-4 border-b border-ink-100 bg-paper px-5 py-3 last:border-0"
-              >
-                <div className="col-span-1 flex items-center font-mono text-[12px] tabular-nums text-ink-400">
-                  {String(idx + 1).padStart(2, "0")}
-                </div>
-                <div className="col-span-7 flex items-center gap-3">
-                  <div className="text-[14px] font-medium text-ink-950">
-                    {c.name}
+        ) : leaderboard.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-ink-300 bg-paper-tint px-5 py-10 text-center">
+            <p className="serif text-[22px] leading-tight text-ink-950">
+              The graph is empty.
+            </p>
+            <p className="mt-2 text-[13px] text-ink-500">
+              Be the first to submit your ring above.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 overflow-hidden rounded-2xl border border-ink-200">
+            <div className="grid grid-cols-12 gap-4 border-b border-ink-200 bg-paper-tint px-5 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+              <div className="col-span-1">#</div>
+              <div className="col-span-5">Citizen</div>
+              <div className="col-span-2 text-right">Namers</div>
+              <div className="col-span-4 text-right">Weight</div>
+            </div>
+            {leaderboard.map((c, idx) => {
+              const max = leaderboard[0]?.score ?? 1;
+              const pct = (c.score / max) * 100;
+              return (
+                <div
+                  key={c.named_handle}
+                  className="grid grid-cols-12 gap-4 border-b border-ink-100 bg-paper px-5 py-3 last:border-0"
+                >
+                  <div className="col-span-1 flex items-center font-mono text-[12px] tabular-nums text-ink-400">
+                    {String(idx + 1).padStart(2, "0")}
                   </div>
-                  <div className="font-mono text-[11px] text-ink-500">
-                    @{c.handle}
-                  </div>
-                </div>
-                <div className="col-span-4 flex items-center justify-end gap-3">
-                  <div className="hidden max-w-[140px] flex-1 sm:block">
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
-                      <div
-                        className="h-full rounded-full bg-ink-950"
-                        style={{ width: `${pct}%` }}
-                      />
+                  <div className="col-span-5 flex items-center gap-3">
+                    <div className="font-mono text-[13px] text-ink-950">
+                      @{c.named_handle}
                     </div>
                   </div>
-                  <div className="min-w-[40px] text-right font-mono text-[13px] tabular-nums text-ink-950">
-                    {c.named}
+                  <div className="col-span-2 flex items-center justify-end font-mono text-[12px] tabular-nums text-ink-700">
+                    {c.namers}
+                  </div>
+                  <div className="col-span-4 flex items-center justify-end gap-3">
+                    <div className="hidden max-w-[140px] flex-1 sm:block">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
+                        <div
+                          className="h-full rounded-full bg-ink-950"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="min-w-[40px] text-right font-mono text-[13px] tabular-nums text-ink-950">
+                      {c.score}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-        <p className="mt-2 text-[11px] text-ink-400">
-          Stub data. Real PageRank computes once enough citizens have mapped
-          their rings.
-        </p>
+              );
+            })}
+          </div>
+        )}
       </FadeInOnView>
 
       {/* Algorithm deep-dive */}
@@ -564,7 +721,7 @@ export default function PageRankPage() {
             threshold passes.
           </p>
           <p className="mt-3 text-[14.5px] leading-[1.7] text-ink-700">
-            For NS specifically: a single Forest City cohort is ~100 people.
+            For a city of ~100 people:
             If 30 submit rings, you have a tractable graph. If 60 submit, the
             ranking starts looking like Pals on intent steroids. If everyone
             submits, you have something genuinely new: a quantitative
@@ -649,26 +806,18 @@ export default function PageRankPage() {
       <FadeInOnView>
         <div className="mt-10 rounded-2xl border border-nessie-200 bg-nessie-50/60 p-6 sm:p-7">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-nessie-700">
-            Compared to ns.com/pals
+            Recommendation vs. rank
           </p>
           <h3 className="serif mt-2 text-[24px] leading-tight text-ink-950">
-            Pals connects. PageRank ranks.
+            Other tools connect. PageRank ranks.
           </h3>
           <p className="mt-2 text-[14.5px] leading-[1.7] text-ink-700">
-            <a
-              href="https://ns.com/pals"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-nessie-700 underline-offset-4 hover:underline"
-            >
-              ns.com/pals
-            </a>{" "}
-            is a Network School feature for finding and connecting to other
-            members. It surfaces who you might want to meet. PageRank works
-            on a different layer: it takes the connections people make and
-            quantifies who matters across the whole graph. Pals is
-            recommendation. PageRank is rank. They&apos;re complementary.
-            Pals helps a citizen, PageRank tells the city about itself.
+            Most community directories surface who you might want to meet.
+            PageRank works on a different layer: it takes the connections
+            people make and quantifies who matters across the whole
+            graph. Directories recommend. PageRank ranks. They are
+            complementary. Directories help a citizen; PageRank tells the
+            city about itself.
           </p>
         </div>
       </FadeInOnView>

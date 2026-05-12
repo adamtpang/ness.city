@@ -51,7 +51,7 @@ const PLACES: Record<string, Place> = {
   forge: {
     id: "forge",
     name: "The Forge",
-    desc: "Open-source NS — issues + PRs.",
+    desc: "Open-source mirror. Issues and pull requests.",
     href: "/os",
   },
   loch: {
@@ -93,7 +93,7 @@ export function NessCityMap({ className = "" }: { className?: string }) {
       },
       role: "link" as const,
       tabIndex: 0,
-      "aria-label": `${place.name} — ${place.desc}`,
+      "aria-label": `${place.name}: ${place.desc}`,
       style: { cursor: "pointer" as const, outline: "none" },
     };
   }

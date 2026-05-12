@@ -19,13 +19,14 @@ export type WhatsappGroup = {
 };
 
 /**
- * Curated NS interest groups. Seeded with the categories that come up
- * the most in any cohort. Invites stay empty until a group steward
- * shares a public link — then this file is the single place to update.
+ * Curated interest groups for the community. Seeded with the
+ * categories that come up most often. Invites stay empty until a
+ * group steward shares a public link; then this file is the single
+ * place to update.
  *
- * Inspired by nspulse.xyz (Discord-derived NS stats) and the patterns
- * Adam has seen in #reception and #discussion. Ness doesn't republish
- * private data — every entry here is opt-in by a steward.
+ * Inspired by patterns seen in community Discord servers. Ness
+ * doesn't republish private data. Every entry here is opt-in by a
+ * steward.
  */
 export const groups: WhatsappGroup[] = [
   // BUILD
@@ -69,7 +70,7 @@ export const groups: WhatsappGroup[] = [
   {
     id: "g_patrons",
     name: "Patrons & Backers",
-    blurb: "Citizens who fund bounties on Ness or back NS member projects directly.",
+    blurb: "Citizens who fund bounties on Ness or back the community member projects directly.",
     category: "money",
     invite: "",
   },
@@ -83,9 +84,9 @@ export const groups: WhatsappGroup[] = [
 
   // BODY
   {
-    id: "g_burn",
-    name: "Burn",
-    blurb: "Lifters, cutters, runners. Daily check-ins. Pairs with the NS Burn programme.",
+    id: "g_fitness",
+    name: "Fitness",
+    blurb: "Lifters, cutters, runners. Daily check-ins. Body composition transformations.",
     category: "body",
     invite: "",
   },
@@ -137,7 +138,7 @@ export const groups: WhatsappGroup[] = [
   },
   {
     id: "g_kids",
-    name: "Kids at NS",
+    name: "Kids at the community",
     blurb: "Parents coordinating playdates, schools, childcare.",
     category: "social",
     invite: "",
@@ -153,7 +154,7 @@ export const groups: WhatsappGroup[] = [
   },
   {
     id: "g_food",
-    name: "Forest City Food",
+    name: "Local food",
     blurb: "Where to eat, delivery codes, tested places.",
     category: "ops",
     invite: "",

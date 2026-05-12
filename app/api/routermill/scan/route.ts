@@ -7,7 +7,7 @@ export const maxDuration = 60;
 /**
  * POST /api/routermill/scan
  *
- * Body: { image: string } — a base64 data URI of a router label.
+ * Body: { image: string }, a base64 data URI of a router label.
  *
  * Returns the extracted router credentials as JSON:
  *   { serial_number, default_ssid, default_pass, target_ssid, new_pass }

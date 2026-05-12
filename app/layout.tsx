@@ -21,17 +21,23 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Ness · The civic layer for builders",
-  description:
-    "Surface problems. Diagnose root causes. Fund the fixes in USDC. Solvers earn karma. Patrons earn attribution. Open-source community tooling.",
+  title: {
+    default: "Ness",
+    template: "%s · Ness",
+  },
+  description: "A community coordination platform.",
   metadataBase: new URL("https://ness.city"),
   openGraph: {
-    title: "Ness · The civic layer for builders",
-    description:
-      "Surface problems. Diagnose root causes. Fund the fixes. Open-source community tooling.",
+    title: "Ness",
+    description: "A community coordination platform.",
     url: "https://ness.city",
     siteName: "Ness",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ness",
+    description: "A community coordination platform.",
   },
 };
 
@@ -51,39 +57,43 @@ export default function RootLayout({
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.15</span>
+                <span>ness.city · v0.16</span>
                 <span className="text-ink-300">·</span>
-                <span>
-                  a node in{" "}
-                  <a
-                    href="https://interneta.world"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-ink-700 underline-offset-2 hover:underline"
-                  >
-                    interneta.world
-                  </a>
-                </span>
-              </div>
-              <span>
-                Built bottom-up by citizens, for citizens. By{" "}
                 <a
-                  href="https://adampang.com"
+                  href="https://github.com/adamtpang/ness"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-ink-700 underline-offset-2 hover:underline"
+                  className="inline-flex items-center gap-1 text-ink-700 underline-offset-2 hover:underline"
                 >
-                  Adam Pangelinan
+                  GitHub
+                  <span aria-hidden className="text-ink-400">↗</span>
                 </a>
-                .
-              </span>
+                <span className="text-ink-300">·</span>
+                <a
+                  href="https://discord.gg/fNmdFWcMU"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-ink-700 underline-offset-2 hover:underline"
+                >
+                  Discord
+                  <span aria-hidden className="text-ink-400">↗</span>
+                </a>
+                <span className="text-ink-300">·</span>
+                <a
+                  href="https://interneta.world"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-ink-700 underline-offset-2 hover:underline"
+                >
+                  interneta.world
+                  <span aria-hidden className="text-ink-400">↗</span>
+                </a>
+              </div>
+              <span>MIT licensed. Built bottom-up.</span>
             </div>
             <div className="mt-5 border-t border-ink-100 pt-4 text-[11px] text-ink-400">
-              <span className="font-mono uppercase tracking-[0.18em] text-ink-500">
-                Independent project
-              </span>{" "}
-              · Not affiliated with Network School (ns.com). Ness is its own
-              brand and operates separately.
+              Independent project. Not affiliated with any specific community.
+              Ness is its own brand and operates separately.
             </div>
           </div>
         </footer>
