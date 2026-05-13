@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
+import { DirectoryPicker } from "@/components/DirectoryPicker";
 
 type Connection = {
   id: string;
-  name: string;
+  /** Handle stored lower-case, no @-prefix. Stable key for the graph. */
+  handle: string;
+  /** Display name shown in the chip. Falls back to handle when free-text. */
+  displayName: string;
   round: number;
   addedAt: number;
 };
@@ -51,7 +55,8 @@ const ROUNDS: { round: number; count: number; label: string; prompt: string }[] 
   },
 ];
 
-const STORAGE_KEY = "ness.pagerank.v1";
+// v2: Connection now carries {handle, displayName} instead of single `name`.
+const STORAGE_KEY = "ness.pagerank.v2";
 const IDENTITY_KEY = "ness:identity:v1";
 
 type LeaderboardRow = {
@@ -63,7 +68,6 @@ type LeaderboardRow = {
 
 export default function PageRankPage() {
   const [connections, setConnections] = useState<Connection[]>([]);
-  const [draft, setDraft] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [identity, setIdentity] = useState<{ name: string; handle: string }>({
     name: "",
@@ -138,7 +142,7 @@ export default function PageRankPage() {
           citizenHandle: identity.handle.trim().replace(/^@/, "").toLowerCase(),
           citizenDisplayName: identity.name.trim(),
           names: connections.map((c) => ({
-            name: c.name.trim().replace(/^@/, "").toLowerCase(),
+            name: c.handle,
             round: c.round,
           })),
         }),
@@ -209,19 +213,21 @@ export default function PageRankPage() {
   const totalAdded = connections.length;
   const totalGoal = ROUNDS.reduce((s, r) => s + r.count, 0);
 
-  function addConnection() {
-    const name = draft.trim();
-    if (!name || !currentRound) return;
+  function pickConnection(value: { handle: string; displayName: string }) {
+    if (!currentRound) return;
+    const handle = value.handle.toLowerCase();
+    // Dedupe: can't name the same person twice across the ring.
+    if (connections.some((c) => c.handle === handle)) return;
     setConnections((prev) => [
       ...prev,
       {
         id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        name,
+        handle,
+        displayName: value.displayName,
         round: currentRound.round,
         addedAt: Date.now(),
       },
     ]);
-    setDraft("");
   }
 
   function removeConnection(id: string) {
@@ -299,26 +305,19 @@ export default function PageRankPage() {
                   {currentRound.count} added in this ring.
                 </p>
 
-                <div className="mt-5 flex gap-2">
-                  <input
-                    type="text"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") addConnection();
-                    }}
-                    placeholder="Name or handle"
+                <div className="mt-5">
+                  <DirectoryPicker
+                    onPick={pickConnection}
+                    excludeHandles={
+                      new Set(connections.map((c) => c.handle))
+                    }
                     autoFocus
-                    className="flex-1 rounded-xl border border-ink-200 bg-paper px-4 py-2.5 text-[14px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+                    placeholder="Search the directory or type a name"
                   />
-                  <button
-                    onClick={addConnection}
-                    disabled={!draft.trim()}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800 disabled:opacity-40 disabled:hover:bg-ink-950"
-                  >
-                    Add
-                    <span aria-hidden>↵</span>
-                  </button>
+                  <p className="mt-2 text-[11px] text-ink-400">
+                    Pick from the directory or type any name. Free-text
+                    still works; the directory just makes it faster.
+                  </p>
                 </div>
               </>
             ) : (
@@ -378,10 +377,15 @@ export default function PageRankPage() {
                                 transition={{ duration: 0.18 }}
                                 className="group inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-paper-tint px-2.5 py-1 text-[12px] text-ink-800"
                               >
-                                {c.name}
+                                <span>{c.displayName}</span>
+                                {c.displayName.toLowerCase() !== c.handle && (
+                                  <span className="font-mono text-[10px] text-ink-400">
+                                    @{c.handle}
+                                  </span>
+                                )}
                                 <button
                                   onClick={() => removeConnection(c.id)}
-                                  aria-label={`Remove ${c.name}`}
+                                  aria-label={`Remove ${c.displayName}`}
                                   className="text-ink-400 transition-colors group-hover:text-ink-950"
                                 >
                                   ×
@@ -902,7 +906,7 @@ function RingViz({ connections }: { connections: Connection[] }) {
           const angle = (i / r.count) * Math.PI * 2 + phase - Math.PI / 2;
           const x = CENTER + Math.cos(angle) * radius;
           const y = CENTER + Math.sin(angle) * radius;
-          const initials = c.name
+          const initials = c.displayName
             .split(/\s+/)
             .map((w) => w[0])
             .join("")

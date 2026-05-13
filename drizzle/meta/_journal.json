@@ -8,6 +8,13 @@
       "when": 1777717123048,
       "tag": "0000_wooden_killmonger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778634739179,
+      "tag": "0001_right_hannibal_king",
+      "breakpoints": true
     }
   ]
 }

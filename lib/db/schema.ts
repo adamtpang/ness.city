@@ -177,6 +177,34 @@ export const pagerankRings = pgTable(
 );
 
 /**
+ * Directory profiles. Seeded by scraping the community member directory
+ * (the "house facebook" / Facemash move). Lets the /pagerank ring builder
+ * autocomplete real people instead of relying on free-text handles.
+ *
+ * `source` lets us mix scraped rows with manually-added ones, and lets us
+ * re-scrape idempotently by ON CONFLICT (handle) DO UPDATE.
+ */
+export const directoryProfiles = pgTable(
+  "directory_profiles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    handle: text("handle").notNull().unique(),
+    displayName: text("display_name").notNull(),
+    avatarUrl: text("avatar_url"),
+    role: text("role"),
+    location: text("location"),
+    bio: text("bio"),
+    externalId: text("external_id"),
+    source: text("source").notNull().default("ns_directory"),
+    scrapedAt: timestamp("scraped_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    handleIdx: index("directory_profiles_handle_idx").on(t.handle),
+    displayNameIdx: index("directory_profiles_display_name_idx").on(t.displayName),
+  }),
+);
+
+/**
  * Feedback widget submissions. v0.9 writes here in addition to logging.
  */
 export const feedback = pgTable("feedback", {
