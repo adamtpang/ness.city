@@ -166,6 +166,15 @@ export const places: Place[] = [
 
   // --- Meta ---
   {
+    id: "design",
+    name: "Design system",
+    href: "/design",
+    desc: "Every color, type, and component used across Ness. Tinker zone.",
+    section: "meta",
+    status: "live",
+    inHeader: true,
+  },
+  {
     id: "feedback",
     name: "Feedback",
     href: "/feedback",
