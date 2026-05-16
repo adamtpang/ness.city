@@ -49,3 +49,6 @@ yarn-error.log*
 .claude/worktrees/
 .claude/settings.local.json
 .claude/settings.local.json*
+
+# Personal Obsidian-extracted notes (not for the public repo)
+.ness-data/
