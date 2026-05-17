@@ -30,6 +30,9 @@ export default function Home() {
             <br />
             <span className="italic">community coordination.</span>
           </h1>
+          <p className="mt-4 font-mono text-[12px] uppercase tracking-[0.22em] text-ink-500">
+            Loch in.
+          </p>
         </FadeIn>
 
         <FadeIn delay={0.1}>
@@ -85,6 +88,12 @@ export default function Home() {
             >
               <span className="font-mono">→</span> Part of interneta.world
             </a>
+            <Link
+              href="/guide"
+              className="inline-flex items-center gap-1.5 hover:text-ink-950"
+            >
+              <span className="font-mono">→</span> New to Network School? Read the guide
+            </Link>
           </div>
         </FadeIn>
       </section>

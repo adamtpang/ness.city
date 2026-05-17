@@ -60,6 +60,11 @@ const THROTTLE_MS = Number(process.env.NS_THROTTLE_MS ?? 600);
  */
 function mapProfile(raw) {
   // === EDIT THIS once you know the shape ===
+  // Text-only by design. Profile photos are deliberately NOT pulled: the
+  // /pagerank picker falls back to initials, so faces aren't needed to
+  // unblock the cold-start, and harvesting member photos from an
+  // authenticated directory is a line we don't cross here. If you want
+  // avatars later, that's your own decision to wire under your own login.
   const handle =
     raw.handle ?? raw.username ?? raw.slug ?? raw.user?.username ?? null;
   const displayName =
@@ -68,10 +73,10 @@ function mapProfile(raw) {
   return {
     handle: String(handle).toLowerCase().replace(/^@/, "").trim(),
     displayName: String(displayName).trim(),
-    avatarUrl: raw.avatarUrl ?? raw.avatar_url ?? raw.photoUrl ?? raw.user?.avatar ?? null,
+    avatarUrl: null,
     role: raw.role ?? raw.title ?? raw.headline ?? null,
     location: raw.location ?? raw.city ?? raw.country ?? null,
-    bio: raw.bio ?? raw.about ?? null,
+    bio: null,
     externalId: raw.id ? String(raw.id) : null,
   };
 }

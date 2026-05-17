@@ -166,6 +166,15 @@ export const places: Place[] = [
 
   // --- Meta ---
   {
+    id: "guide",
+    name: "The NS Guide",
+    href: "/guide",
+    desc: "Honest, independent guide to Network School. What it is, the cost, how to apply.",
+    section: "meta",
+    status: "live",
+    inHeader: true,
+  },
+  {
     id: "design",
     name: "Design system",
     href: "/design",
