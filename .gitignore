@@ -52,3 +52,8 @@ yarn-error.log*
 
 # Personal Obsidian-extracted notes (not for the public repo)
 .ness-data/
+
+# Personal one-off extraction scripts (hardcode a private vault path)
+scripts/compile-ns-shoulds.mjs
+scripts/extract-ns-shoulds.mjs
+scripts/probe-obsidian.mjs
