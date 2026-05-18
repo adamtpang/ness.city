@@ -40,6 +40,9 @@ async function main() {
       title: "E2E probe listing (auto-deleted)",
       body: "Automated verification listing. Removed immediately.",
       priceUsd: 1,
+      // 1x1 red JPEG so we exercise the photo path end-to-end.
+      photo:
+        "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==",
       sellerHandle: TEST_HANDLE,
       sellerDisplayName: "E2E Probe",
       contactKind: "email",
@@ -52,7 +55,10 @@ async function main() {
     process.exit(1);
   }
   const id = posted.listing?.id;
-  console.log(`POST ok -> id=${id} handle=@${posted.listing?.authorHandle}`);
+  const hasPhoto = posted.listing?.hasPhoto;
+  console.log(
+    `POST ok -> id=${id} handle=@${posted.listing?.authorHandle} hasPhoto=${hasPhoto}`,
+  );
 
   // 2. GET round-trip
   const getRes = await fetch(`${BASE}/api/market?kind=forsale`, {
@@ -62,6 +68,16 @@ async function main() {
   const found = (got.listings ?? []).some((l) => l.id === id);
   console.log(
     `GET ok -> ${got.listings?.length ?? 0} forsale listings; probe present: ${found}`,
+  );
+
+  // 2b. Photo route returns an image
+  const photoRes = await fetch(`${BASE}/api/market/photo?id=${id}`, {
+    cache: "no-store",
+  });
+  const photoOk =
+    photoRes.ok && (photoRes.headers.get("content-type") ?? "").startsWith("image/");
+  console.log(
+    `PHOTO ok -> ${photoRes.status} ${photoRes.headers.get("content-type")} (${photoOk ? "image served" : "FAIL"})`,
   );
 
   // 3. Cleanup
@@ -82,8 +98,13 @@ async function main() {
     );
   }
 
-  console.log(found ? "\nE2E PASS" : "\nE2E FAIL (probe not found in GET)");
-  process.exit(found ? 0 : 1);
+  const pass = found && photoOk;
+  console.log(
+    pass
+      ? "\nE2E PASS (post + get + photo + cleanup)"
+      : `\nE2E FAIL (found=${found} photoOk=${photoOk})`,
+  );
+  process.exit(pass ? 0 : 1);
 }
 
 main().catch((e) => {

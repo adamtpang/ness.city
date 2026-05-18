@@ -245,6 +245,8 @@ export const marketListings = pgTable(
     body: text("body").notNull(),
     priceCents: integer("price_cents"),
     rate: text("rate"),
+    /** Optional single photo, stored as a small client-resized data URL. */
+    photoData: text("photo_data"),
     sellerId: uuid("seller_id").references(() => citizens.id, {
       onDelete: "set null",
     }),

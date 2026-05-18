@@ -1,30 +1,23 @@
 import { NextResponse } from "next/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { getDb, isDbConfigured, schema } from "@/lib/db";
 import { clean, ensureCitizen } from "@/lib/api-helpers";
-import type {
-  ContactKind,
-  Listing,
-  ListingKind,
-} from "@/lib/market";
+import { ACTIVE_KINDS, type ContactKind, type Listing, type ListingKind } from "@/lib/market";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const KINDS: ListingKind[] = [
-  "forsale",
-  "free",
-  "wanted",
-  "housing",
-  "service",
-  "ride",
-  "community",
-];
 const CONTACTS: ContactKind[] = ["whatsapp", "email", "discord", "telegram"];
+
+// Photo is a client-resized data URL. Cap the stored string so the DB and
+// the photo route stay light. ~600KB string ≈ a ~430KB image, plenty for
+// a resized listing photo.
+const MAX_PHOTO_CHARS = 600_000;
 
 type Row = typeof schema.marketListings.$inferSelect;
 
-/** DB row -> the Listing shape the /market page already renders. */
+/** DB row -> the Listing shape the /market page renders. Photo is NOT
+ *  inlined here; the card lazy-loads it from /api/market/photo. */
 function toListing(r: Row): Listing {
   return {
     id: r.id,
@@ -32,26 +25,22 @@ function toListing(r: Row): Listing {
     title: r.title,
     body: r.body,
     priceUsd: r.priceCents == null ? null : Math.round(r.priceCents) / 100,
-    rate: r.rate ?? undefined,
     authorName: r.sellerDisplayName,
     authorHandle: r.sellerHandle,
     contactKind: r.contactKind as ContactKind,
     contactValue: r.contactValue,
-    postedAt: (r.createdAt instanceof Date
-      ? r.createdAt
-      : new Date(r.createdAt)
-    )
+    postedAt: (r.createdAt instanceof Date ? r.createdAt : new Date(r.createdAt))
       .toISOString()
       .slice(0, 10),
     status: r.status as Listing["status"],
+    hasPhoto: r.photoData != null && r.photoData.length > 0,
   };
 }
 
 /**
- * GET /api/market?kind=<kind>
- * Returns open listings, newest first. When the DB is empty or
- * unconfigured the client falls back to the static seed in lib/market.ts,
- * so this can safely return an empty array.
+ * GET /api/market?kind=<forsale|free|wanted>
+ * Open listings in the 3 active categories, newest first. Empty result is
+ * fine; the client falls back to the static seed.
  */
 export async function GET(req: Request) {
   if (!isDbConfigured) {
@@ -60,7 +49,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const kindParam = url.searchParams.get("kind");
   const kind =
-    kindParam && KINDS.includes(kindParam as ListingKind)
+    kindParam && ACTIVE_KINDS.includes(kindParam as ListingKind)
       ? (kindParam as ListingKind)
       : null;
 
@@ -70,7 +59,10 @@ export async function GET(req: Request) {
         eq(schema.marketListings.status, "open"),
         eq(schema.marketListings.kind, kind),
       )
-    : eq(schema.marketListings.status, "open");
+    : and(
+        eq(schema.marketListings.status, "open"),
+        inArray(schema.marketListings.kind, ACTIVE_KINDS),
+      );
 
   const rows = await db
     .select()
@@ -88,9 +80,10 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/market
- * Body: { kind, title, body, priceUsd?, rate?, sellerHandle,
+ * Body: { kind, title, body, priceUsd?, photo?, sellerHandle,
  *         sellerDisplayName, contactKind, contactValue }
- * Ties the listing to a citizen (identity layer). Expires in 30 days.
+ * `photo` is an optional client-resized data URL. Ties to a citizen
+ * (identity layer). Expires in 30 days.
  */
 export async function POST(req: Request) {
   if (!isDbConfigured) {
@@ -114,11 +107,10 @@ export async function POST(req: Request) {
   const displayName = clean(body.sellerDisplayName, 80);
   const contactKind = clean(body.contactKind, 20) as ContactKind | undefined;
   const contactValue = clean(body.contactValue, 160);
-  const rate = clean(body.rate, 40);
 
   if (
     !kind ||
-    !KINDS.includes(kind) ||
+    !ACTIVE_KINDS.includes(kind) ||
     !title ||
     !text ||
     !handleRaw ||
@@ -131,7 +123,7 @@ export async function POST(req: Request) {
       {
         ok: false,
         error:
-          "kind, title, body, sellerHandle, sellerDisplayName, contactKind, contactValue are required and must be valid",
+          "kind (forsale|free|wanted), title, body, sellerHandle, sellerDisplayName, contactKind, contactValue are required and must be valid",
       },
       { status: 400 },
     );
@@ -141,6 +133,18 @@ export async function POST(req: Request) {
   if (typeof body.priceUsd === "number" && Number.isFinite(body.priceUsd)) {
     const cents = Math.round(body.priceUsd * 100);
     if (cents >= 0 && cents <= 100_000_000) priceCents = cents;
+  }
+
+  // Optional photo: must be a reasonably-sized image data URL.
+  let photoData: string | null = null;
+  if (typeof body.photo === "string" && body.photo.startsWith("data:image/")) {
+    if (body.photo.length > MAX_PHOTO_CHARS) {
+      return NextResponse.json(
+        { ok: false, error: "Photo too large. It should be resized client-side." },
+        { status: 413 },
+      );
+    }
+    photoData = body.photo;
   }
 
   const handle = handleRaw.replace(/^@/, "").toLowerCase();
@@ -156,7 +160,7 @@ export async function POST(req: Request) {
       title,
       body: text,
       priceCents,
-      rate: rate ?? null,
+      photoData,
       sellerId: citizen.id,
       sellerHandle: handle,
       sellerDisplayName: displayName,
@@ -167,8 +171,5 @@ export async function POST(req: Request) {
     })
     .returning();
 
-  return NextResponse.json({
-    ok: true,
-    listing: toListing(inserted[0]),
-  });
+  return NextResponse.json({ ok: true, listing: toListing(inserted[0]) });
 }

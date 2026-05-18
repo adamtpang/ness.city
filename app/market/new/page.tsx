@@ -21,7 +21,30 @@ const CONTACT_OPTIONS: { id: ContactKind; label: string }[] = [
 ];
 
 /** Price is meaningless for these kinds. */
-const NO_PRICE: ListingKind[] = ["free", "wanted", "community"];
+const NO_PRICE: ListingKind[] = ["free", "wanted"];
+
+/**
+ * Resize an image file to a max edge and JPEG-encode it as a small data
+ * URL, entirely client-side. Keeps the upload tiny (no storage infra) and
+ * the DB/photo-route light. Returns a data:image/jpeg;base64 string.
+ */
+async function fileToResizedDataUrl(
+  file: File,
+  maxEdge = 1000,
+  quality = 0.72,
+): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas unsupported");
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", quality);
+}
 
 export default function NewListingPage() {
   const router = useRouter();
@@ -29,7 +52,8 @@ export default function NewListingPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [priceUsd, setPriceUsd] = useState("");
-  const [rate, setRate] = useState("");
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [contactKind, setContactKind] = useState<ContactKind>("whatsapp");
@@ -54,7 +78,27 @@ export default function NewListingPage() {
   }, []);
 
   const showPrice = !NO_PRICE.includes(kind);
-  const isService = kind === "service";
+
+  async function onPhotoPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoBusy(true);
+    setMsg(null);
+    try {
+      const url = await fileToResizedDataUrl(file);
+      if (url.length > 580_000) {
+        setMsg({ kind: "err", text: "That image is huge even resized. Try a smaller one." });
+        setPhoto(null);
+      } else {
+        setPhoto(url);
+      }
+    } catch {
+      setMsg({ kind: "err", text: "Could not read that image." });
+      setPhoto(null);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   async function submit() {
     if (!title.trim() || !body.trim() || !name.trim() || !handle.trim() || !contactValue.trim()) {
@@ -77,7 +121,7 @@ export default function NewListingPage() {
         const n = Number(priceUsd.replace(/[^\d.]/g, ""));
         if (Number.isFinite(n)) payload.priceUsd = n;
       }
-      if (isService && rate.trim()) payload.rate = rate.trim();
+      if (photo) payload.photo = photo;
 
       const res = await fetch("/api/market", {
         method: "POST",
@@ -184,30 +228,52 @@ export default function NewListingPage() {
           </Field>
 
           {showPrice && (
-            <Field label={isService ? "Price (optional)" : "Price in USD (optional)"}>
+            <Field label="Price in USD (optional)">
               <input
                 type="text"
                 inputMode="decimal"
                 value={priceUsd}
                 onChange={(e) => setPriceUsd(e.target.value)}
-                placeholder={kind === "housing" ? "900 (per month)" : "4800"}
+                placeholder="4800"
                 className="w-full rounded-xl border border-ink-200 bg-paper px-4 py-2.5 text-[14px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
               />
             </Field>
           )}
 
-          {isService && (
-            <Field label="Rate (optional, free text)">
-              <input
-                type="text"
-                value={rate}
-                onChange={(e) => setRate(e.target.value)}
-                placeholder="$60/hr"
-                maxLength={40}
-                className="w-full rounded-xl border border-ink-200 bg-paper px-4 py-2.5 text-[14px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
-              />
-            </Field>
-          )}
+          <Field label="Photo (optional, recommended)">
+            {photo ? (
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo}
+                  alt="Listing preview"
+                  className="h-20 w-20 rounded-xl border border-ink-200 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPhoto(null)}
+                  className="text-[12px] text-ink-500 underline-offset-2 hover:text-ink-950 hover:underline"
+                >
+                  Remove photo
+                </button>
+              </div>
+            ) : (
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-ink-300 px-4 py-3 text-[13px] text-ink-600 transition-colors hover:border-ink-950 hover:text-ink-950">
+                {photoBusy ? "Processing..." : "Add a photo"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onPhotoPick}
+                  disabled={photoBusy}
+                />
+              </label>
+            )}
+            <p className="mt-2 text-[11.5px] text-ink-400">
+              Resized on your device before upload. One photo. Things with a
+              photo sell far faster.
+            </p>
+          </Field>
 
           <div className="border-t border-ink-100 pt-5">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">

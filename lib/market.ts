@@ -14,9 +14,9 @@ export type Listing = {
   kind: ListingKind;
   title: string;
   body: string;
-  /** USD; null means N/A (free, wanted, community). */
+  /** USD; null means N/A (free, wanted). */
   priceUsd: number | null;
-  /** Free-text rate ("$60/hr", "$25/hr") for services. */
+  /** Free-text rate. Legacy field, unused in the 3-category MVP. */
   rate?: string;
   authorName: string;
   authorHandle: string;
@@ -25,7 +25,21 @@ export type Listing = {
   contactValue: string;
   postedAt: string;
   status: "open" | "claimed" | "expired";
+  /** True when the listing has a photo (served from /api/market/photo). */
+  hasPhoto?: boolean;
 };
+
+/**
+ * The MVP is "craigslist for the community": buying and selling physical
+ * goods only. Just three categories. The other kinds still exist in the
+ * type/DB enum for back-compat but are not surfaced anywhere.
+ */
+export const ACTIVE_KINDS: ListingKind[] = ["forsale", "free", "wanted"];
+
+/** <img src> for a listing's photo. Always valid; 404s if no photo. */
+export function marketPhotoSrc(id: string): string {
+  return `/api/market/photo?id=${encodeURIComponent(id)}`;
+}
 
 /**
  * Seeded NS-flavored listings. Real submissions land here as a CSV /
@@ -264,10 +278,6 @@ export const listingKinds: { id: ListingKind | "all"; label: string }[] = [
   { id: "forsale", label: "For sale" },
   { id: "free", label: "Free" },
   { id: "wanted", label: "Wanted" },
-  { id: "housing", label: "Housing" },
-  { id: "service", label: "Services" },
-  { id: "ride", label: "Rides" },
-  { id: "community", label: "Community" },
 ];
 
 export const kindStyles: Record<

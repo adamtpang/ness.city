@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  ACTIVE_KINDS,
   contactHref,
   contactLabel,
   daysAgo,
@@ -11,6 +12,7 @@ import {
   kindStyles,
   listingKinds,
   listings as seedListings,
+  marketPhotoSrc,
   type Listing,
   type ListingKind,
 } from "@/lib/market";
@@ -46,7 +48,11 @@ export default function MarketPage() {
 
   const allListings = useMemo(() => {
     const liveIds = new Set(live.map((l) => l.id));
-    return [...live, ...seedListings.filter((s) => !liveIds.has(s.id))];
+    // Only the 3 active categories surface anywhere (legacy seed entries
+    // for housing/rides/etc. stay in the file but never render).
+    return [...live, ...seedListings.filter((s) => !liveIds.has(s.id))].filter(
+      (l) => ACTIVE_KINDS.includes(l.kind),
+    );
   }, [live]);
 
   const filtered = useMemo(() => {
@@ -88,22 +94,18 @@ export default function MarketPage() {
       </FadeIn>
 
       <FadeIn delay={0.05}>
-        <div className="mt-7 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-              The Market
-            </p>
-            <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950 sm:text-[56px]">
-              Buy, sell, swap, share.
-            </h1>
-            <p className="mt-3 max-w-xl text-[15px] leading-[1.55] text-ink-600 sm:text-[16px]">
-              Local craigslist for the community. Things people are selling,
-              giving away, looking for, or driving to. Reply directly. Every
-              listing is tied to a real handle, so you always know who you
-              are dealing with.
-            </p>
-          </div>
-          <Nessie />
+        <div className="mt-7">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+            The Market
+          </p>
+          <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950 sm:text-[56px]">
+            Buy &amp; sell, locally.
+          </h1>
+          <p className="mt-3 max-w-xl text-[15px] leading-[1.55] text-ink-600 sm:text-[16px]">
+            The community marketplace. Things people are selling, giving
+            away, or looking for. Reply directly. Every listing is tied to
+            a real handle, so you always know who you are dealing with.
+          </p>
         </div>
       </FadeIn>
 
@@ -290,28 +292,31 @@ function ListingRow({
         divider ? "border-t border-ink-100" : ""
       }`}
     >
-      <div className="col-span-12 sm:col-span-7">
-        <div className="flex items-center gap-2">
-          <span className={`h-1.5 w-1.5 rounded-full ${k.dot}`} aria-hidden />
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-500">
-            {k.label}
-          </span>
-          <span className="text-ink-300">·</span>
-          <span className="text-[10.5px] text-ink-400">
-            {daysAgo(listing.postedAt)}
-          </span>
-        </div>
-        <h3 className="mt-1 text-[15px] font-medium leading-tight text-ink-950">
-          {listing.title}
-        </h3>
-        <p className="mt-1 text-[12.5px] leading-[1.55] text-ink-600">
-          {listing.body}
-        </p>
-        <div className="mt-2 flex items-center gap-2 text-[12px] text-ink-500">
-          <Avatar initials={initials} seed={listing.authorHandle} size={18} />
-          <span className="text-ink-700">{listing.authorName}</span>
-          <span className="text-ink-300">·</span>
-          <span className="font-mono text-[11px]">@{listing.authorHandle}</span>
+      <div className="col-span-12 flex gap-3 sm:col-span-7">
+        {listing.hasPhoto && <ListingThumb id={listing.id} />}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className={`h-1.5 w-1.5 rounded-full ${k.dot}`} aria-hidden />
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-500">
+              {k.label}
+            </span>
+            <span className="text-ink-300">·</span>
+            <span className="text-[10.5px] text-ink-400">
+              {daysAgo(listing.postedAt)}
+            </span>
+          </div>
+          <h3 className="mt-1 text-[15px] font-medium leading-tight text-ink-950">
+            {listing.title}
+          </h3>
+          <p className="mt-1 text-[12.5px] leading-[1.55] text-ink-600">
+            {listing.body}
+          </p>
+          <div className="mt-2 flex items-center gap-2 text-[12px] text-ink-500">
+            <Avatar initials={initials} seed={listing.authorHandle} size={18} />
+            <span className="text-ink-700">{listing.authorName}</span>
+            <span className="text-ink-300">·</span>
+            <span className="font-mono text-[11px]">@{listing.authorHandle}</span>
+          </div>
         </div>
       </div>
 
@@ -366,31 +371,24 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Nessie, the ness.city mascot. Drop the plushie photo at
- * public/nessie.jpg and it appears framed in the market hero. Until then
- * the whole card hides itself (onError), so prod never shows a broken
- * image. Vibey, not loud: a small loch-monster wink in the corner.
+ * Listing thumbnail. Lazy-loads the one photo from /api/market/photo and
+ * hides itself if the listing has none (seed entries, or load failure).
  */
-function Nessie() {
+function ListingThumb({ id }: { id: string }) {
   const [ok, setOk] = useState(true);
   if (!ok) return null;
   return (
-    <figure className="shrink-0 sm:w-[208px]">
-      <div className="overflow-hidden rounded-2xl border border-ink-200 bg-paper-tint">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/nessie.jpg"
-          alt="Nessie, the ness.city mascot"
-          width={208}
-          height={168}
-          loading="lazy"
-          onError={() => setOk(false)}
-          className="h-[168px] w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
-        />
-      </div>
-      <figcaption className="mt-2 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-400">
-        Nessie · she keeps the loch honest
-      </figcaption>
-    </figure>
+    <div className="hidden h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl border border-ink-200 bg-paper-tint sm:block">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={marketPhotoSrc(id)}
+        alt=""
+        width={72}
+        height={72}
+        loading="lazy"
+        onError={() => setOk(false)}
+        className="h-full w-full object-cover"
+      />
+    </div>
   );
 }

@@ -20,24 +20,30 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
+const NESS_DESCRIPTION =
+  "The civic layer for builders. Surface problems, diagnose root causes, fund the fixes, earn karma for shipping solutions. Community coordination, bottom-up.";
+
 export const metadata: Metadata = {
   title: {
-    default: "Ness",
+    default: "Ness · Civic coordination for builders",
     template: "%s · Ness",
   },
-  description: "A community coordination platform.",
+  description: NESS_DESCRIPTION,
   metadataBase: new URL("https://ness.city"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Ness",
-    description: "A community coordination platform.",
+    title: "Ness · Civic coordination for builders",
+    description: NESS_DESCRIPTION,
     url: "https://ness.city",
     siteName: "Ness",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ness",
-    description: "A community coordination platform.",
+    title: "Ness · Civic coordination for builders",
+    description: NESS_DESCRIPTION,
   },
 };
 

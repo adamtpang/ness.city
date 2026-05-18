@@ -1,0 +1,1 @@
+ALTER TABLE "market_listings" ADD COLUMN "photo_data" text;
