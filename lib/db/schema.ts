@@ -39,6 +39,29 @@ export const bountyStateEnum = pgEnum("bounty_state", [
   "paid",
 ]);
 
+export const marketKindEnum = pgEnum("market_kind", [
+  "forsale",
+  "free",
+  "wanted",
+  "housing",
+  "service",
+  "ride",
+  "community",
+]);
+
+export const marketContactEnum = pgEnum("market_contact", [
+  "whatsapp",
+  "email",
+  "discord",
+  "telegram",
+]);
+
+export const marketStatusEnum = pgEnum("market_status", [
+  "open",
+  "claimed",
+  "expired",
+]);
+
 export const citizens = pgTable(
   "citizens",
   {
@@ -201,6 +224,44 @@ export const directoryProfiles = pgTable(
   (t) => ({
     handleIdx: index("directory_profiles_handle_idx").on(t.handle),
     displayNameIdx: index("directory_profiles_display_name_idx").on(t.displayName),
+  }),
+);
+
+/**
+ * Market listings. The craigslist / marketplace surface, built on top of
+ * the identity layer: every listing carries a sellerHandle that resolves
+ * to a citizen (and, once scraped, a directory_profiles row). Static seed
+ * data in lib/market.ts is the fallback when the table is empty so the
+ * page is never blank.
+ *
+ * Listings expire 30 days after creation (expiresAt set in the API).
+ */
+export const marketListings = pgTable(
+  "market_listings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kind: marketKindEnum("kind").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    priceCents: integer("price_cents"),
+    rate: text("rate"),
+    sellerId: uuid("seller_id").references(() => citizens.id, {
+      onDelete: "set null",
+    }),
+    sellerHandle: text("seller_handle").notNull(),
+    sellerDisplayName: text("seller_display_name").notNull(),
+    contactKind: marketContactEnum("contact_kind").notNull(),
+    contactValue: text("contact_value").notNull(),
+    status: marketStatusEnum("status").notNull().default("open"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => ({
+    statusIdx: index("market_listings_status_idx").on(t.status),
+    kindIdx: index("market_listings_kind_idx").on(t.kind),
+    sellerIdx: index("market_listings_seller_idx").on(t.sellerHandle),
   }),
 );
 

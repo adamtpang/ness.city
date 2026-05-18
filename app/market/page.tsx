@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   contactHref,
@@ -10,7 +10,7 @@ import {
   formatListingPrice,
   kindStyles,
   listingKinds,
-  listings,
+  listings as seedListings,
   type Listing,
   type ListingKind,
 } from "@/lib/market";
@@ -23,22 +23,49 @@ type Filter = ListingKind | "all";
 export default function MarketPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const [live, setLive] = useState<Listing[]>([]);
+
+  // Pull real listings; fall back to seed when the DB is empty so the
+  // page is never blank. Live listings (UUID ids) sort above seed.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/market", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; listings?: Listing[] }) => {
+        if (!cancelled && d.ok && Array.isArray(d.listings)) {
+          setLive(d.listings);
+        }
+      })
+      .catch(() => {
+        /* offline: seed-only is fine */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const allListings = useMemo(() => {
+    const liveIds = new Set(live.map((l) => l.id));
+    return [...live, ...seedListings.filter((s) => !liveIds.has(s.id))];
+  }, [live]);
 
   const filtered = useMemo(() => {
-    return listings
+    return allListings
       .filter((l) => filter === "all" || l.kind === filter)
       .filter((l) => l.status === "open")
       .sort((a, b) => (b.postedAt > a.postedAt ? 1 : -1));
-  }, [filter]);
+  }, [filter, allListings]);
 
   const counts = useMemo(() => {
-    const acc: Record<string, number> = { all: listings.filter((l) => l.status === "open").length };
-    for (const l of listings) {
+    const acc: Record<string, number> = {
+      all: allListings.filter((l) => l.status === "open").length,
+    };
+    for (const l of allListings) {
       if (l.status !== "open") continue;
       acc[l.kind] = (acc[l.kind] ?? 0) + 1;
     }
     return acc;
-  }, []);
+  }, [allListings]);
 
   function toggleReveal(id: string) {
     setRevealed((prev) => {
@@ -171,16 +198,15 @@ export default function MarketPage() {
               Got something to sell, give, or find?
             </h3>
             <p className="mt-2 text-[13.5px] leading-[1.65] text-ink-600">
-              Until the dedicated form lands, file your listing as a Townhall
-              problem with the title prefixed{" "}
-              <span className="font-mono text-ink-950">[market]</span>. We
-              triage daily.
+              Post it in under a minute. Your listing is tied to your
+              handle so every reply knows who they are dealing with.
+              Listings expire after 30 days.
             </p>
             <Link
-              href="/solve/new"
+              href="/market/new"
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
             >
-              Surface a listing
+              Post a listing
               <span aria-hidden>→</span>
             </Link>
           </div>
