@@ -88,18 +88,22 @@ export default function MarketPage() {
       </FadeIn>
 
       <FadeIn delay={0.05}>
-        <div className="mt-7">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-            The Market
-          </p>
-          <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950 sm:text-[56px]">
-            Buy, sell, swap, share.
-          </h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-[1.55] text-ink-600 sm:text-[16px]">
-            Local craigslist for the city. Things people are selling, giving
-            away, looking for, or driving to. Reply directly. Every author
-            here is a citizen you can find on the map.
-          </p>
+        <div className="mt-7 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
+              The Market
+            </p>
+            <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950 sm:text-[56px]">
+              Buy, sell, swap, share.
+            </h1>
+            <p className="mt-3 max-w-xl text-[15px] leading-[1.55] text-ink-600 sm:text-[16px]">
+              Local craigslist for the community. Things people are selling,
+              giving away, looking for, or driving to. Reply directly. Every
+              listing is tied to a real handle, so you always know who you
+              are dealing with.
+            </p>
+          </div>
+          <Nessie />
         </div>
       </FadeIn>
 
@@ -358,5 +362,35 @@ function Stat({ label, value }: { label: string; value: string }) {
       <span className="text-ink-500">{label}</span>
       <span className="font-medium text-ink-950">{value}</span>
     </span>
+  );
+}
+
+/**
+ * Nessie, the ness.city mascot. Drop the plushie photo at
+ * public/nessie.jpg and it appears framed in the market hero. Until then
+ * the whole card hides itself (onError), so prod never shows a broken
+ * image. Vibey, not loud: a small loch-monster wink in the corner.
+ */
+function Nessie() {
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    <figure className="shrink-0 sm:w-[208px]">
+      <div className="overflow-hidden rounded-2xl border border-ink-200 bg-paper-tint">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/nessie.jpg"
+          alt="Nessie, the ness.city mascot"
+          width={208}
+          height={168}
+          loading="lazy"
+          onError={() => setOk(false)}
+          className="h-[168px] w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
+        />
+      </div>
+      <figcaption className="mt-2 text-center font-mono text-[10.5px] uppercase tracking-[0.16em] text-ink-400">
+        Nessie · she keeps the loch honest
+      </figcaption>
+    </figure>
   );
 }
