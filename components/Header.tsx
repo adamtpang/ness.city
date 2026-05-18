@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { NessieMark } from "./NessieLogo";
 
 /**
  * Focus mode. The product is the marketplace. Header is just the
@@ -19,14 +18,15 @@ export function Header() {
       className="sticky top-0 z-40 border-b border-ink-200/80 bg-paper/85 backdrop-blur-md"
     >
       <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-5">
-        <Link href="/market" className="group flex items-center gap-2.5">
-          <motion.div
-            whileHover={{ rotate: -4, scale: 1.04 }}
+        <Link href="/market" className="group flex items-center gap-2">
+          <motion.span
+            whileHover={{ rotate: -8, scale: 1.1 }}
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            className="relative flex h-8 w-8 items-center justify-center rounded-[8px] bg-nessie-600 text-paper shadow-[0_2px_8px_-2px_rgba(37,99,235,0.5)]"
+            className="text-[24px] leading-none"
+            aria-hidden
           >
-            <NessieMark className="h-5 w-5" />
-          </motion.div>
+            🦕
+          </motion.span>
           <span className="serif text-[20px] leading-none text-ink-950">
             ness<span className="text-ink-400">.city</span>
           </span>

@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FadeIn } from "@/components/motion/FadeIn";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { listingKinds, type ListingKind, type ContactKind } from "@/lib/market";
 
 const IDENTITY_KEY = "ness:identity:v1";
@@ -302,17 +309,21 @@ export default function NewListingPage() {
               How replies reach you
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-[160px_1fr]">
-              <select
+              <Select
                 value={contactKind}
-                onChange={(e) => setContactKind(e.target.value as ContactKind)}
-                className="rounded-xl border border-ink-200 bg-paper px-3 py-2.5 text-[14px] text-ink-950 focus:border-ink-950 focus:outline-none"
+                onValueChange={(v) => setContactKind(v as ContactKind)}
               >
-                {CONTACT_OPTIONS.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger aria-label="Contact method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTACT_OPTIONS.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <input
                 type="text"
                 value={contactValue}

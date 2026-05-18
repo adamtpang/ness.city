@@ -18,12 +18,19 @@ import {
 import { Avatar } from "@/components/Avatar";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 type Filter = ListingKind | "all";
 
 export default function MarketPage() {
   const [filter, setFilter] = useState<Filter>("all");
-  const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const [active, setActive] = useState<Listing | null>(null);
   const [live, setLive] = useState<Listing[]>([]);
 
   const [loaded, setLoaded] = useState(false);
@@ -73,14 +80,6 @@ export default function MarketPage() {
     return acc;
   }, [allListings]);
 
-  function toggleReveal(id: string) {
-    setRevealed((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
 
   return (
     <main className="mx-auto max-w-4xl px-5 pb-20 pt-12">
@@ -198,8 +197,7 @@ export default function MarketPage() {
                   <ListingRow
                     listing={l}
                     divider={idx > 0}
-                    revealed={revealed.has(l.id)}
-                    onToggle={() => toggleReveal(l.id)}
+                    onReply={() => setActive(l)}
                   />
                 </StaggerItem>
               ))}
@@ -277,6 +275,59 @@ export default function MarketPage() {
           </Link>
         </div>
       </FadeInOnView>
+
+      <Dialog
+        open={!!active}
+        onOpenChange={(o) => {
+          if (!o) setActive(null);
+        }}
+      >
+        <DialogContent>
+          {active && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{active.title}</DialogTitle>
+                <DialogDescription>
+                  Reach {active.authorName} directly. Deals happen in person.
+                  Be a good citizen.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="rounded-xl border border-ink-200 bg-paper-tint p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                  {contactLabel(active.contactKind)}
+                </p>
+                <p className="mt-1 break-all font-mono text-[14px] text-ink-950">
+                  {active.contactValue}
+                </p>
+                <a
+                  href={contactHref(active.contactKind, active.contactValue)}
+                  target={active.contactKind === "discord" ? undefined : "_blank"}
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
+                >
+                  Open {contactLabel(active.contactKind)}
+                  <span aria-hidden>→</span>
+                </a>
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-[12px] text-ink-500">
+                <Avatar
+                  initials={active.authorName
+                    .split(/\s+/)
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                  seed={active.authorHandle}
+                  size={20}
+                />
+                <span className="text-ink-700">{active.authorName}</span>
+                <span className="text-ink-300">·</span>
+                <span className="font-mono text-[11px]">@{active.authorHandle}</span>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
@@ -284,13 +335,11 @@ export default function MarketPage() {
 function ListingRow({
   listing,
   divider,
-  revealed,
-  onToggle,
+  onReply,
 }: {
   listing: Listing;
   divider: boolean;
-  revealed: boolean;
-  onToggle: () => void;
+  onReply: () => void;
 }) {
   const k = kindStyles[listing.kind];
   const initials = listing.authorName
@@ -342,35 +391,13 @@ function ListingRow({
       </div>
 
       <div className="col-span-6 flex flex-col items-end gap-2 sm:col-span-3">
-        {!revealed ? (
-          <button
-            onClick={onToggle}
-            className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-3.5 py-1.5 text-[12px] font-medium text-paper transition-colors hover:bg-ink-800"
-          >
-            Reply
-            <span aria-hidden>↓</span>
-          </button>
-        ) : (
-          <div className="flex flex-col items-end gap-1.5">
-            <a
-              href={contactHref(listing.contactKind, listing.contactValue)}
-              target={listing.contactKind === "discord" ? undefined : "_blank"}
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-ink-950 bg-paper px-3 py-1 font-mono text-[11px] text-ink-950 transition-colors hover:bg-ink-950 hover:text-paper"
-            >
-              {contactLabel(listing.contactKind)} →
-            </a>
-            <span className="font-mono text-[10.5px] text-ink-500">
-              {listing.contactValue}
-            </span>
-            <button
-              onClick={onToggle}
-              className="text-[10px] text-ink-400 transition-colors hover:text-ink-950"
-            >
-              hide
-            </button>
-          </div>
-        )}
+        <button
+          onClick={onReply}
+          className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-4 py-1.5 text-[12px] font-medium text-paper transition-colors hover:bg-ink-800"
+        >
+          Reply
+          <span aria-hidden>→</span>
+        </button>
       </div>
     </div>
   );
