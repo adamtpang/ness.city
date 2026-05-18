@@ -11,7 +11,6 @@ import {
   formatListingPrice,
   kindStyles,
   listingKinds,
-  listings as seedListings,
   marketPhotoSrc,
   type Listing,
   type ListingKind,
@@ -27,8 +26,10 @@ export default function MarketPage() {
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [live, setLive] = useState<Listing[]>([]);
 
-  // Pull real listings; fall back to seed when the DB is empty so the
-  // page is never blank. Live listings (UUID ids) sort above seed.
+  const [loaded, setLoaded] = useState(false);
+
+  // Real listings only. No seed, no fake data. An empty market is honest;
+  // the founders post the first real things. (Elon: best seed is no seed.)
   useEffect(() => {
     let cancelled = false;
     fetch("/api/market", { cache: "no-store" })
@@ -39,21 +40,20 @@ export default function MarketPage() {
         }
       })
       .catch(() => {
-        /* offline: seed-only is fine */
+        /* offline */
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const allListings = useMemo(() => {
-    const liveIds = new Set(live.map((l) => l.id));
-    // Only the 3 active categories surface anywhere (legacy seed entries
-    // for housing/rides/etc. stay in the file but never render).
-    return [...live, ...seedListings.filter((s) => !liveIds.has(s.id))].filter(
-      (l) => ACTIVE_KINDS.includes(l.kind),
-    );
-  }, [live]);
+  const allListings = useMemo(
+    () => live.filter((l) => ACTIVE_KINDS.includes(l.kind)),
+    [live],
+  );
 
   const filtered = useMemo(() => {
     return allListings
@@ -167,14 +167,29 @@ export default function MarketPage() {
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.2 }}
         >
-          {filtered.length === 0 ? (
-            <div className="mt-10 rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-10 text-center">
-              <p className="serif text-[22px] text-ink-950">
-                Nothing in this filter.
+          {!loaded ? (
+            <div className="mt-10 rounded-2xl border border-ink-200 bg-paper p-10 text-center">
+              <p className="text-[13px] text-ink-400">Loading the market...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="mt-10 rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-12 text-center">
+              <p className="serif text-[26px] leading-tight text-ink-950">
+                {filter === "all"
+                  ? "Nothing's listed yet."
+                  : "Nothing in this category yet."}
               </p>
-              <p className="mt-2 text-[13px] text-ink-500">
-                Try a different category, or post the first one.
+              <p className="mx-auto mt-2 max-w-sm text-[13.5px] leading-[1.6] text-ink-500">
+                {filter === "all"
+                  ? "This is a real market with real people. No fake listings. Post the first thing and it shows up here instantly."
+                  : "Try another category, or be the first to post here."}
               </p>
+              <Link
+                href="/market/new"
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
+              >
+                Post the first listing
+                <span aria-hidden>→</span>
+              </Link>
             </div>
           ) : (
             <StaggerList className="mt-6 overflow-hidden rounded-2xl border border-ink-200 bg-paper">
