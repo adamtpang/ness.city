@@ -57,3 +57,5 @@ yarn-error.log*
 scripts/compile-ns-shoulds.mjs
 scripts/extract-ns-shoulds.mjs
 scripts/probe-obsidian.mjs
+scripts/extract_local.py
+nsshould.md
