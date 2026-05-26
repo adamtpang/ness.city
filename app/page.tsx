@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 
@@ -184,23 +184,26 @@ function MaybeImage({
   caption: string;
   fallback: React.ReactNode;
 }) {
-  const [ok, setOk] = useState(true);
+  // Progressive: SVG renders by default (server + first paint). If the
+  // JPG actually exists, swap to it once preloaded. No broken-image
+  // flash when public/ slots are empty.
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setLoaded(true);
+    img.src = src;
+  }, [src]);
   return (
     <figure className="overflow-hidden rounded-2xl border border-ink-200 bg-paper-tint">
       <div className="relative" style={{ aspectRatio: aspect }}>
-        {ok ? (
+        <div className="absolute inset-0">{fallback}</div>
+        {loaded && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
             alt={alt}
-            onError={() => setOk(false)}
-            className="h-full w-full object-cover"
-            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            {fallback}
-          </div>
         )}
       </div>
       <figcaption className="border-t border-ink-100 bg-paper px-4 py-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-500">
@@ -244,17 +247,6 @@ function NessieSilhouette() {
           stroke="#e5e5e5"
         />
       </g>
-      <text
-        x="100"
-        y="248"
-        textAnchor="middle"
-        fontFamily="ui-monospace, SFMono-Regular, monospace"
-        fontSize="9"
-        letterSpacing="2"
-        fill="#a3a3a3"
-      >
-        DROP NESSIE.JPG IN /PUBLIC
-      </text>
     </svg>
   );
 }
@@ -302,18 +294,6 @@ function SolarpunkPlaceholder() {
         {/* paths */}
         <path d="M0 245 Q50 235 100 245 T200 245" stroke="#2563eb" strokeWidth="1.5" fill="none" opacity="0.45" />
       </g>
-      <text
-        x="100"
-        y="232"
-        textAnchor="middle"
-        fontFamily="ui-monospace, SFMono-Regular, monospace"
-        fontSize="9"
-        letterSpacing="2"
-        fill="#1d4ed8"
-        opacity="0.7"
-      >
-        DROP VISION.JPG IN /PUBLIC
-      </text>
     </svg>
   );
 }
