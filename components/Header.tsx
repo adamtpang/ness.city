@@ -24,7 +24,7 @@ export function Header() {
       className="sticky top-0 z-40 border-b border-ink-200/80 bg-paper/85 backdrop-blur-md"
     >
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-5">
-        <Link href="/market" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <motion.span
             whileHover={{ rotate: -8, scale: 1.12 }}
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
