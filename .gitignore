@@ -59,3 +59,7 @@ scripts/extract-ns-shoulds.mjs
 scripts/probe-obsidian.mjs
 scripts/extract_local.py
 nsshould.md
+scripts/triage_nsshoulds.py
+scripts/nsshould-report.pdf
+scripts/extract_all.py
+nsall.md

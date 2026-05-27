@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 const NAV = [
   { href: "/market", label: "Market" },
   { href: "/solve", label: "Forum" },
+  { href: "/roadmap", label: "Roadmap" },
   { href: "/citizens", label: "Citizens" },
 ];
 

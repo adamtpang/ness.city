@@ -148,11 +148,13 @@ export default function Home() {
             Every room in Ness
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Room href="/roadmap" name="The Roadmap" body="Living public roadmap. Eisenhower-prioritized. Owner per row." status="live" />
             <Room href="/market" name="The Market" body="Buy, sell, share. Like craigslist, with real handles." status="live" />
             <Room href="/solve" name="The Forum" body="File problems. Propose fixes. Patrons pledge. Ship and get paid." status="live" />
             <Room href="/pagerank" name="PageRank" body="Map your ring. See who the community has named." status="live" />
-            <Room href="/guide" name="The Guide" body="An honest, independent guide to Network School. Loch in." status="live" />
             <Room href="/citizens" name="Citizens" body="Solver karma · patron pledged. Two leaderboards." status="live" />
+            <Room href="/guide" name="The Guide" body="An honest, independent guide to Network School. Loch in." status="live" />
+            <Room href="/nslink" name="nslink" body="Snap a stack of routers, get a CSV the bot can run." status="live" />
             <Room href="https://discord.gg/fNmdFWcMU" name="Discord" body="Open chat, bug-reports, feature-requests, support." status="external" external />
           </div>
         </section>

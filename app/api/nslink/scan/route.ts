@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 /**
- * POST /api/routermill/scan
+ * POST /api/nslink/scan
  *
  * Body: { image: string }, a base64 data URI of a router label.
  *

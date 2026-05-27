@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import type { Problem, ProblemStatus } from "@/lib/types";
+import type { ProposalRow } from "@/lib/db/queries";
 
 type ProblemCategory = Problem["category"];
 
@@ -44,11 +45,17 @@ const STATUS_TONE: Record<
   solved: { dot: "bg-emerald-500", label: "SOLVED", variant: "solved" },
 };
 
-export function SolveForum({ problems }: { problems: Problem[] }) {
+export function SolveForum({
+  problems,
+  proposals = [],
+}: {
+  problems: Problem[];
+  proposals?: ProposalRow[];
+}) {
   const [q, setQ] = useState("");
   const [cats, setCats] = useState<Set<ProblemCategory>>(new Set());
   const [sort, setSort] = useState<Sort>("priority");
-  const [tab, setTab] = useState<"open" | "closed">("open");
+  const [tab, setTab] = useState<"open" | "closed" | "proposals">("open");
 
   // Apply non-state filters first (search + categories) so the Open/Closed
   // counts reflect the current scope, GitHub-style.
@@ -127,13 +134,13 @@ export function SolveForum({ problems }: { problems: Problem[] }) {
         {/* Header bar */}
         <Tabs
           value={tab}
-          onValueChange={(v) => setTab(v as "open" | "closed")}
+          onValueChange={(v) => setTab(v as "open" | "closed" | "proposals")}
         >
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-200 bg-paper-tint px-3 sm:px-4">
             <TabsList>
               <TabsTrigger value="open">
                 <span className="h-1.5 w-1.5 rounded-full bg-ink-400" aria-hidden />
-                Open
+                Issues
                 <span className="font-mono text-[11px] tabular-nums text-ink-500">
                   {openCount}
                 </span>
@@ -148,16 +155,28 @@ export function SolveForum({ problems }: { problems: Problem[] }) {
                   {closedCount}
                 </span>
               </TabsTrigger>
+              <TabsTrigger value="proposals">
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-violet-500"
+                  aria-hidden
+                />
+                Proposals
+                <span className="font-mono text-[11px] tabular-nums text-ink-500">
+                  {proposals.length}
+                </span>
+              </TabsTrigger>
             </TabsList>
 
-            <div className="flex items-center gap-1 py-1.5">
-              <CategoryFilter
-                selected={cats}
-                onToggle={toggleCat}
-                onClear={() => setCats(new Set())}
-              />
-              <SortFilter sort={sort} onChange={setSort} />
-            </div>
+            {tab !== "proposals" && (
+              <div className="flex items-center gap-1 py-1.5">
+                <CategoryFilter
+                  selected={cats}
+                  onToggle={toggleCat}
+                  onClear={() => setCats(new Set())}
+                />
+                <SortFilter sort={sort} onChange={setSort} />
+              </div>
+            )}
           </div>
 
           <TabsContent value="open">
@@ -165,6 +184,9 @@ export function SolveForum({ problems }: { problems: Problem[] }) {
           </TabsContent>
           <TabsContent value="closed">
             <ProblemList problems={visible} state="closed" />
+          </TabsContent>
+          <TabsContent value="proposals">
+            <ProposalList proposals={proposals} />
           </TabsContent>
         </Tabs>
       </div>
@@ -307,5 +329,60 @@ function ProblemRow({ problem }: { problem: Problem }) {
         </span>
       </Link>
     </li>
+  );
+}
+
+function ProposalList({ proposals }: { proposals: ProposalRow[] }) {
+  if (proposals.length === 0) {
+    return (
+      <div className="px-6 py-16 text-center">
+        <p className="serif text-[20px] leading-tight text-ink-950">
+          No proposals yet.
+        </p>
+        <p className="mx-auto mt-1.5 max-w-md text-[12.5px] leading-[1.55] text-ink-500">
+          The PR analog: when citizens propose fixes to open problems, the
+          proposals show up here. File an open problem first, then propose
+          the fix on its detail page.
+        </p>
+        <Link
+          href="/solve/new"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-ink-950 px-3 py-2 text-[12.5px] font-medium text-paper hover:bg-ink-800"
+        >
+          <span aria-hidden>+</span> Surface a problem
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <ul>
+      {proposals.map((p) => (
+        <li key={p.id} className="border-b border-ink-100 last:border-b-0">
+          <Link
+            href={`/solve/${p.problemSlug}`}
+            className="grid grid-cols-[10px_1fr_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-paper-tint sm:gap-4 sm:px-5"
+          >
+            <span className="h-2 w-2 rounded-full bg-violet-500" aria-hidden />
+            <span className="min-w-0">
+              <span className="block truncate text-[14px] font-medium text-ink-950">
+                {p.summary}
+              </span>
+              <span className="mt-0.5 flex items-center gap-2 text-[11.5px] text-ink-500">
+                <Badge variant="category" className="!tracking-[0.12em]">
+                  PROPOSAL
+                </Badge>
+                <span>· for</span>
+                <span className="truncate text-ink-700">{p.problemTitle}</span>
+                <span>·</span>
+                <span>@{p.authorDisplayName.toLowerCase().split(/\s+/)[0]}</span>
+              </span>
+            </span>
+            <span className="flex items-center gap-1 font-mono text-[12px] tabular-nums text-ink-700">
+              <span aria-hidden>↑</span>
+              {p.upvotes}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

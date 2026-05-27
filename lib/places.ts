@@ -31,6 +31,16 @@ export type Place = {
 export const places: Place[] = [
   // --- Civic engine ---
   {
+    id: "roadmap",
+    name: "Roadmap",
+    building: "Roadmap",
+    href: "/roadmap",
+    desc: "Living public roadmap. Eisenhower-prioritized. Owner per row.",
+    section: "civic",
+    status: "live",
+    inHeader: true,
+  },
+  {
     id: "townhall",
     name: "Townhall",
     building: "Townhall",
@@ -146,13 +156,13 @@ export const places: Place[] = [
     inHeader: true,
   },
   {
-    id: "routermill",
-    name: "Routermill",
-    href: "/tools/routermill",
-    desc: "Snap a CelcomDigi router label, get the credentials extracted.",
+    id: "nslink",
+    name: "nslink",
+    href: "/nslink",
+    desc: "Snap a stack of CelcomDigi router labels, get a setup CSV the bot can run.",
     section: "tools",
     status: "live",
-    inHeader: false,
+    inHeader: true,
   },
   {
     id: "match",

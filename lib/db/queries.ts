@@ -18,6 +18,51 @@ export async function listProblems() {
     .limit(100);
 }
 
+/**
+ * All proposals across all problems — the "Pull Requests" tab on /solve.
+ * Joined with the parent problem so the row can link back.
+ */
+export type ProposalRow = {
+  id: string;
+  summary: string;
+  authorDisplayName: string;
+  createdAt: string;
+  upvotes: number;
+  problemSlug: string;
+  problemTitle: string;
+  problemStatus: string;
+};
+
+export async function listAllProposals(): Promise<ProposalRow[]> {
+  if (!isDbConfigured) return [];
+  const db = getDb();
+  const rows = await db
+    .select({
+      id: schema.proposals.id,
+      summary: schema.proposals.summary,
+      authorDisplayName: schema.proposals.authorDisplayName,
+      createdAt: schema.proposals.createdAt,
+      upvotes: schema.proposals.upvotes,
+      problemSlug: schema.problems.slug,
+      problemTitle: schema.problems.title,
+      problemStatus: schema.problems.status,
+    })
+    .from(schema.proposals)
+    .innerJoin(schema.problems, eq(schema.proposals.problemId, schema.problems.id))
+    .orderBy(desc(schema.proposals.createdAt))
+    .limit(100);
+  return rows.map((r) => ({
+    id: r.id,
+    summary: r.summary,
+    authorDisplayName: r.authorDisplayName,
+    createdAt: r.createdAt.toISOString(),
+    upvotes: r.upvotes,
+    problemSlug: r.problemSlug,
+    problemTitle: r.problemTitle,
+    problemStatus: r.problemStatus as string,
+  }));
+}
+
 export async function getProblemBySlug(slug: string) {
   if (!isDbConfigured) return null;
   const db = getDb();

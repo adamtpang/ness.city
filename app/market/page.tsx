@@ -103,7 +103,15 @@ export default function MarketPage() {
           <p className="mt-3 max-w-xl text-[15px] leading-[1.55] text-ink-600 sm:text-[16px]">
             The community marketplace. Things people are selling, giving
             away, or looking for. Reply directly. Every listing is tied to
-            a real handle, so you always know who you are dealing with.
+            a real handle, so you always know who you are dealing with —
+            look anyone up on{" "}
+            <Link
+              href="/pagerank"
+              className="text-ink-950 underline-offset-2 hover:underline"
+            >
+              PageRank
+            </Link>{" "}
+            before you reply.
           </p>
         </div>
       </FadeIn>

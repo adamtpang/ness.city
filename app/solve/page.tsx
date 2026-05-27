@@ -1,4 +1,4 @@
-import { dbProblemToTownhall, listProblems } from "@/lib/db/queries";
+import { dbProblemToTownhall, listAllProposals, listProblems } from "@/lib/db/queries";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { SolveForum } from "./SolveForum";
 import type { Problem } from "@/lib/types";
@@ -13,7 +13,7 @@ export const revalidate = 0;
  * dropdowns, dense ledger of one-line rows).
  */
 export default async function SolvePage() {
-  const rows = await listProblems();
+  const [rows, proposals] = await Promise.all([listProblems(), listAllProposals()]);
   const problems: Problem[] = rows.map((r) =>
     dbProblemToTownhall({ ...r, proposals: [], bounty: null, documentation: null }),
   );
@@ -38,7 +38,7 @@ export default async function SolvePage() {
       </FadeIn>
 
       <FadeIn delay={0.05}>
-        <SolveForum problems={problems} />
+        <SolveForum problems={problems} proposals={proposals} />
       </FadeIn>
     </main>
   );
