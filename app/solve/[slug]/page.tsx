@@ -16,6 +16,7 @@ import {
   PledgeForm,
   DocumentForm,
 } from "@/components/TownhallActions";
+import { CommentThread } from "@/components/CommentThread";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -270,6 +271,9 @@ export default async function ProblemPage({
                 </div>
               </FadeInOnView>
             )}
+
+          {/* Comments thread (real DB problems only — sample slugs read-only) */}
+          {!isSample && <CommentThread slug={problem.slug} />}
         </article>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">

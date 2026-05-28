@@ -176,6 +176,35 @@ export const documentation = pgTable("documentation", {
 });
 
 /**
+ * Comments on a problem. The community-problem-solving thread that
+ * turns a flat issue into real conversation. GitHub Issues comments
+ * analog. Authored by handle + display name (same lightweight identity
+ * model used everywhere else); no auth gating yet.
+ */
+export const problemComments = pgTable(
+  "problem_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    problemId: uuid("problem_id")
+      .notNull()
+      .references(() => problems.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").references(() => citizens.id, {
+      onDelete: "set null",
+    }),
+    authorHandle: text("author_handle").notNull(),
+    authorDisplayName: text("author_display_name").notNull(),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    problemIdx: index("problem_comments_problem_idx").on(t.problemId),
+    createdIdx: index("problem_comments_created_idx").on(t.createdAt),
+  }),
+);
+
+/**
  * PageRank rings. Each row = one named connection within a citizen's ring.
  * Round runs 1..6, count limits enforced in the API layer.
  */
