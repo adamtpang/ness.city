@@ -65,6 +65,13 @@ ness.city is one node in **interneta.world**, Adam Pang's vision for the next ev
 
 The repo is public. The merge button isn't. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Third-party content
+
+- `/pulse` page + `lib/stats/*.json` + `docs/ns-api-discovery.md` ported from
+  [hiddentao/nspulse](https://github.com/hiddentao/nspulse) (MIT) by Ramesh Nair.
+  Original analysis lives at [nspulse.xyz](https://nspulse.xyz). All ported
+  content is attributed in-page and in this notice.
+
 ## License
 
 [MIT](LICENSE).

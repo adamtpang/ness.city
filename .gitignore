@@ -63,3 +63,6 @@ scripts/triage_nsshoulds.py
 scripts/nsshould-report.pdf
 scripts/extract_all.py
 nsall.md
+
+# nspulse refresh tooling (needs Discord exports + Anthropic key locally)
+scripts/nspulse/

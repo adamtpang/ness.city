@@ -92,6 +92,16 @@ export const places: Place[] = [
     status: "live",
     inHeader: true,
   },
+  {
+    id: "pulse",
+    name: "Pulse",
+    building: "Pulse",
+    href: "/pulse",
+    desc: "Community analytics. Skills, interests, ideas, apps. Data by hiddentao.",
+    section: "knowledge",
+    status: "live",
+    inHeader: true,
+  },
   // Points Vault commented out for the pre-public review. Restore by
   // unblocking this entry, reinstating the full app/points/page.tsx, and
   // adding the news banner item back.

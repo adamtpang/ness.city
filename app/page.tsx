@@ -152,6 +152,7 @@ export default function Home() {
             <Room href="/market" name="The Market" body="Buy, sell, share. Like craigslist, with real handles." status="live" />
             <Room href="/solve" name="The Forum" body="File problems. Propose fixes. Patrons pledge. Ship and get paid." status="live" />
             <Room href="/pagerank" name="PageRank" body="Map your ring. See who the community has named." status="live" />
+            <Room href="/pulse" name="Pulse" body="Community analytics: skills, interests, ideas, apps. Data by hiddentao." status="live" />
             <Room href="/citizens" name="Citizens" body="Solver karma · patron pledged. Two leaderboards." status="live" />
             <Room href="/guide" name="The Guide" body="An honest, independent guide to Network School. Loch in." status="live" />
             <Room href="/nslink" name="nslink" body="Snap a stack of routers, get a CSV the bot can run." status="live" />
