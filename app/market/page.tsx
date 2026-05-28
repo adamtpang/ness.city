@@ -28,12 +28,55 @@ import {
 
 type Filter = ListingKind | "all";
 
+const IDENTITY_KEY = "ness:identity:v1";
+
 export default function MarketPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [active, setActive] = useState<Listing | null>(null);
   const [live, setLive] = useState<Listing[]>([]);
 
   const [loaded, setLoaded] = useState(false);
+  const [myHandle, setMyHandle] = useState<string>("");
+  const [marking, setMarking] = useState(false);
+
+  // Restore the cached handle (the seller's identity from /market/new + pagerank).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(IDENTITY_KEY);
+      if (raw) {
+        const p = JSON.parse(raw) as { handle?: string };
+        if (p.handle) setMyHandle(p.handle.toLowerCase());
+      }
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  async function markSold(listing: Listing) {
+    if (marking) return;
+    setMarking(true);
+    try {
+      const res = await fetch("/api/market/sold", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: listing.id,
+          sellerHandle: myHandle,
+        }),
+      });
+      if (res.ok) {
+        // Drop the listing from local state and close the Dialog.
+        setLive((prev) => prev.filter((l) => l.id !== listing.id));
+        setActive(null);
+      }
+    } catch {
+      /* offline; user can retry */
+    } finally {
+      setMarking(false);
+    }
+  }
+
+  const viewerIsAuthor = active != null && !!myHandle && myHandle === active.authorHandle.toLowerCase();
 
   // Real listings only. No seed, no fake data. An empty market is honest;
   // the founders post the first real things. (Elon: best seed is no seed.)
@@ -332,6 +375,27 @@ export default function MarketPage() {
                 <span className="text-ink-300">·</span>
                 <span className="font-mono text-[11px]">@{active.authorHandle}</span>
               </div>
+
+              {viewerIsAuthor && (
+                <div className="mt-5 flex items-center justify-between gap-3 rounded-xl border border-dashed border-ink-300 bg-paper-tint p-3">
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+                      This is your listing
+                    </p>
+                    <p className="mt-0.5 text-[12px] text-ink-700">
+                      Mark it sold to drop it from the feed.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => markSold(active)}
+                    disabled={marking}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-[12px] font-medium text-paper transition-colors hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    {marking ? "Marking…" : "Mark sold"}
+                    {!marking && <span aria-hidden>✓</span>}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </DialogContent>
