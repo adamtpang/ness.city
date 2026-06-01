@@ -17,6 +17,7 @@ import {
   DocumentForm,
 } from "@/components/TownhallActions";
 import { CommentThread } from "@/components/CommentThread";
+import { ReactionBar } from "@/components/ReactionBar";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -126,7 +127,7 @@ export default async function ProblemPage({
           </FadeIn>
 
           <FadeIn delay={0.16}>
-            <div className="mt-5 flex items-center gap-3 text-[13px] text-ink-600">
+            <div className="mt-5 flex flex-wrap items-center gap-3 text-[13px] text-ink-600">
               <Link
                 href="/citizens"
                 className="flex items-center gap-2 transition-colors hover:text-ink-950"
@@ -141,6 +142,14 @@ export default async function ProblemPage({
               <span>{problem.affected} citizens affected</span>
             </div>
           </FadeIn>
+
+          {!isSample && (
+            <FadeIn delay={0.2}>
+              <div className="mt-4">
+                <ReactionBar slug={problem.slug} />
+              </div>
+            </FadeIn>
+          )}
 
           <FadeInOnView>
             <Section title="Summary">

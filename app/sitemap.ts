@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 const SITE_URL = "https://ness.city";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ["", "/problems", "/market", "/feedback"];
+  const routes = ["", "/problems", "/market", "/feedback", "/kpi"];
   return routes.map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: new Date(),

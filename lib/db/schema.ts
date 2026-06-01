@@ -6,6 +6,7 @@ import {
   pgEnum,
   uuid,
   index,
+  uniqueIndex,
   jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -201,6 +202,35 @@ export const problemComments = pgTable(
   (t) => ({
     problemIdx: index("problem_comments_problem_idx").on(t.problemId),
     createdIdx: index("problem_comments_created_idx").on(t.createdAt),
+  }),
+);
+
+/**
+ * Reactions on a problem. The GitHub-Issues 👍 ❤️ 🎯 🚀 toggle bar.
+ * Compresses the "+1" signal from many viewers into one number. Each
+ * (problemId, authorHandle, emoji) tuple is unique — a citizen can
+ * pick one emoji per problem; clicking the same one again toggles off.
+ */
+export const problemReactions = pgTable(
+  "problem_reactions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    problemId: uuid("problem_id")
+      .notNull()
+      .references(() => problems.id, { onDelete: "cascade" }),
+    authorHandle: text("author_handle").notNull(),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    problemIdx: index("problem_reactions_problem_idx").on(t.problemId),
+    uniq: uniqueIndex("problem_reactions_unique").on(
+      t.problemId,
+      t.authorHandle,
+      t.emoji,
+    ),
   }),
 );
 
