@@ -17,7 +17,6 @@ import {
   DocumentForm,
 } from "@/components/TownhallActions";
 import { CommentThread } from "@/components/CommentThread";
-import { ReactionBar } from "@/components/ReactionBar";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -142,14 +141,6 @@ export default async function ProblemPage({
               <span>{problem.affected} citizens affected</span>
             </div>
           </FadeIn>
-
-          {!isSample && (
-            <FadeIn delay={0.2}>
-              <div className="mt-4">
-                <ReactionBar slug={problem.slug} />
-              </div>
-            </FadeIn>
-          )}
 
           <FadeInOnView>
             <Section title="Summary">
