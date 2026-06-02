@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ness.city — UI kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="kit.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="Chrome.jsx"></script>
+<script type="text/babel" src="Home.jsx"></script>
+<script type="text/babel" src="Market.jsx"></script>
+<script type="text/babel" src="Forum.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [route, setRoute] = useState("home");
+  const go = (r) => { setRoute(r); window.scrollTo({ top: 0 }); };
+  window.__nessGo = go;
+
+  let screen = null;
+  if (route === "home") screen = <Home go={go} />;
+  else if (route === "market") screen = <Market go={go} />;
+  else if (route === "forum") screen = <Forum go={go} />;
+  else screen = <Placeholder route={route} go={go} />;
+
+  return (
+    <div className="ness-app">
+      <LiveBackground />
+      <NewsBanner />
+      <Header route={route} go={go} />
+      {screen}
+      <Footer />
+    </div>
+  );
+}
+
+/* Rooms that exist in the product but aren't recreated here — shown honestly blank. */
+function Placeholder({ route, go }) {
+  const label = { roadmap: "The Roadmap", citizens: "Citizens" }[route] || route;
+  return (
+    <main className="container container-narrow" style={{ paddingBottom: 120 }}>
+      <a className="backlink" href="#" onClick={(e) => { e.preventDefault(); go("home"); }} style={{ marginTop: 28, display: "inline-flex" }}><span aria-hidden>←</span> back to the city</a>
+      <div className="card card-dashed" style={{ marginTop: 40, textAlign: "center", padding: 56 }}>
+        <p style={{ fontFamily: "var(--font-serif)", fontSize: 30, lineHeight: 1.05, margin: 0 }}>{label}</p>
+        <p style={{ margin: "10px auto 0", maxWidth: 420, fontSize: 14, lineHeight: 1.6, color: "var(--ink-500)" }}>
+          A live room in ness.city, not recreated in this UI kit. The kit focuses on the landing, Market, and Forum surfaces — explore the repo for the rest.
+        </p>
+        <a className="btn btn-primary btn-sm" href="#" onClick={(e) => { e.preventDefault(); go("home"); }} style={{ marginTop: 20 }}>Back to the city <span aria-hidden>→</span></a>
+      </div>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

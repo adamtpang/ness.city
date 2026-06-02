@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radius scale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:var(--paper);}
+  .wrap{width:700px;box-sizing:border-box;padding:24px;}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .col{display:flex;flex-direction:column;gap:4px;}
+  .sw{height:56px;border-radius:10px;}
+  .swlabel{font-family:var(--font-mono);font-size:10px;color:var(--ink-700);}
+  .swhex{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--ink-400);}
+  .scale{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+  .scale11{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;}
+  .scale11 .sw{height:44px;}
+  .lbl{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.18em;color:var(--ink-500);margin:0 0 14px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:9999px;font-family:var(--font-sans);font-size:13.5px;font-weight:500;border:0;cursor:pointer;}
+  .btn-primary{background:var(--ink-950);color:#fff;padding:10px 20px;}
+  .btn-sm{padding:8px 16px;font-size:12.5px;}
+  .btn-sq{border-radius:12px;}
+  .btn-sec{background:var(--paper);color:var(--ink-950);border:1px solid var(--ink-200);padding:10px 20px;}
+  .btn-ghost{background:none;color:var(--ink-600);padding:6px 2px;}
+  .dot{width:6px;height:6px;border-radius:9999px;display:inline-block;}
+</style></head>
+<body><div class="wrap"><p class="lbl">Radius · cards 2xl · pills full</p><div class="row" style="gap:18px"><div class="col" style="align-items:center"><div style="width:64px;height:64px;background:var(--ink-950);border-radius:4px"></div><span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-500)">sm</span></div><div class="col" style="align-items:center"><div style="width:64px;height:64px;background:var(--ink-950);border-radius:8px"></div><span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-500)">md</span></div><div class="col" style="align-items:center"><div style="width:64px;height:64px;background:var(--ink-950);border-radius:12px"></div><span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-500)">lg</span></div><div class="col" style="align-items:center"><div style="width:64px;height:64px;background:var(--ink-950);border-radius:16px"></div><span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-500)">xl</span></div><div class="col" style="align-items:center"><div style="width:64px;height:64px;background:var(--ink-950);border-radius:26px;border-radius:9999px"></div><span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-500)">pill</span></div></div></div></body></html>
