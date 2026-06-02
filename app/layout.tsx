@@ -3,7 +3,7 @@ import { Inter, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Header } from "@/components/Header";
-import { FeedbackWidget } from "@/components/FeedbackWidget";
+import { Nessie } from "@/components/Nessie";
 import { LiveBackground } from "@/components/LiveBackground";
 
 const inter = Inter({
@@ -100,7 +100,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
-        <FeedbackWidget />
+        <Nessie />
         <Analytics />
       </body>
     </html>
