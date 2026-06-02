@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { UpvoteButton } from "@/components/UpvoteButton";
 import type { Problem, ProblemStatus } from "@/lib/types";
 import type { ProposalRow } from "@/lib/db/queries";
 
@@ -323,10 +324,7 @@ function ProblemRow({ problem }: { problem: Problem }) {
             <span>{problem.affected} affected</span>
           </span>
         </span>
-        <span className="flex items-center gap-1 font-mono text-[12px] tabular-nums text-ink-700">
-          <span aria-hidden>↑</span>
-          {problem.upvotes}
-        </span>
+        <UpvoteButton slug={problem.slug} initial={problem.upvotes} variant="inline" />
       </Link>
     </li>
   );

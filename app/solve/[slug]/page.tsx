@@ -17,6 +17,7 @@ import {
   DocumentForm,
 } from "@/components/TownhallActions";
 import { CommentThread } from "@/components/CommentThread";
+import { UpvoteButton } from "@/components/UpvoteButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -120,9 +121,20 @@ export default async function ProblemPage({
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <h1 className="serif mt-4 text-[40px] leading-[1.05] text-ink-950 sm:text-[48px] sm:leading-[1.02]">
-              {problem.title}
-            </h1>
+            <div className="mt-4 flex items-start gap-4">
+              {!isSample && (
+                <div className="shrink-0 pt-1">
+                  <UpvoteButton
+                    slug={problem.slug}
+                    initial={problem.upvotes}
+                    variant="pill"
+                  />
+                </div>
+              )}
+              <h1 className="serif text-[40px] leading-[1.05] text-ink-950 sm:text-[48px] sm:leading-[1.02]">
+                {problem.title}
+              </h1>
+            </div>
           </FadeIn>
 
           <FadeIn delay={0.16}>
