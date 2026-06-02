@@ -1,0 +1,43 @@
+import { NextResponse } from "next/server";
+import { getDb, isDbConfigured, schema } from "@/lib/db";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/**
+ * POST /api/feedback  { rating (1-5), message?, page? }
+ * On-site feedback. Writes to the feedback table. No GitHub round-trip —
+ * lowest-friction way for a member to tell us how it's going.
+ */
+export async function POST(req: Request) {
+  if (!isDbConfigured) {
+    return NextResponse.json(
+      { ok: false, error: "Database not configured" },
+      { status: 503 },
+    );
+  }
+  let body: { rating?: unknown; message?: unknown; page?: unknown };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const rating =
+    typeof body.rating === "number" && body.rating >= 1 && body.rating <= 5
+      ? Math.round(body.rating)
+      : null;
+  if (rating === null) {
+    return NextResponse.json(
+      { ok: false, error: "rating (1-5) required" },
+      { status: 400 },
+    );
+  }
+  const message =
+    typeof body.message === "string" ? body.message.trim().slice(0, 2000) : null;
+  const page = typeof body.page === "string" ? body.page.slice(0, 200) : null;
+
+  const db = getDb();
+  await db.insert(schema.feedback).values({ rating, message, page });
+  return NextResponse.json({ ok: true });
+}

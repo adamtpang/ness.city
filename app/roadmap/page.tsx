@@ -280,8 +280,44 @@ export default function RoadmapPage() {
           </ul>
           <p className="mt-4 text-[13px] leading-[1.6] text-ink-600">
             Anyone in the community can propose a fix on{" "}
-            <Link href="/townhall" className="underline-offset-2 hover:underline">/townhall</Link>{" "}
-            or open a GitHub issue. Patrons can fund any open bounty.
+            <Link href="/" className="underline-offset-2 hover:underline">the engine</Link>.
+            Patrons can fund any open bounty.
+          </p>
+        </section>
+      </FadeInOnView>
+
+      {/* Where ness.city is headed — public backlog */}
+      <FadeInOnView>
+        <section className="mt-10">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-500">
+              Where ness.city goes next
+            </h2>
+            <span className="font-mono text-[10px] text-ink-500">public backlog</span>
+          </div>
+          <div className="mt-3 overflow-hidden rounded-xl border border-ink-200 bg-paper">
+            {[
+              ["AI topic-tagging", "Every problem auto-tagged on submit; humans and Nessie sort together."],
+              ["Nessie agent", "A 24/7 AI that triages, drafts explanations, and never sleeps."],
+              ["Experience feedback loop", "0–5 ratings across learn / earn / burn / fun, with weekly reports."],
+              ["Quests + meritocracy", "Prioritized problems become gamified quests a vetted Ness team takes on."],
+              ["Forkable civic OS", "Any startup society clones ness.city to coordinate its own community — and we share notes across the network."],
+            ].map(([t, d], i) => (
+              <div
+                key={t}
+                className={`px-4 py-3.5 sm:px-5 ${i > 0 ? "border-t border-ink-100" : ""}`}
+              >
+                <p className="text-[14px] font-medium text-ink-950">{t}</p>
+                <p className="mt-0.5 text-[12.5px] leading-[1.5] text-ink-600">{d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[12.5px] leading-[1.55] text-ink-500">
+            Open-source and bottom-up.{" "}
+            <a href="https://discord.gg/fNmdFWcMU" target="_blank" rel="noopener noreferrer" className="text-ink-950 underline-offset-2 hover:underline">Join the Discord</a>{" "}
+            or{" "}
+            <a href="https://github.com/adamtpang/ness.city" target="_blank" rel="noopener noreferrer" className="text-ink-950 underline-offset-2 hover:underline">contribute on GitHub</a>{" "}
+            to help build any of these.
           </p>
         </section>
       </FadeInOnView>

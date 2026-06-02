@@ -1,6 +1,42 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { getDb, isDbConfigured, schema } from "@/lib/db";
 import type { Problem as TownhallProblem } from "@/lib/types";
+
+/**
+ * Engine vital signs for the home KPI strip. Real counts from the DB:
+ * open problems, solved problems, total pledged (USD), active Fixers.
+ */
+export type EngineStats = {
+  open: number;
+  solved: number;
+  pledgedUsd: number;
+  fixers: number;
+};
+
+export async function getEngineStats(): Promise<EngineStats> {
+  if (!isDbConfigured) return { open: 0, solved: 0, pledgedUsd: 0, fixers: 0 };
+  const db = getDb();
+  const [probRows, pledgeRow, fixerRow] = await Promise.all([
+    db.select({ status: schema.problems.status }).from(schema.problems),
+    db
+      .select({
+        cents: sql<number>`coalesce(sum(${schema.pledges.amountCents}), 0)::int`,
+      })
+      .from(schema.pledges),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.citizens)
+      .where(sql`${schema.citizens.karma} > 0`),
+  ]);
+  const open = probRows.filter((p) => p.status !== "solved").length;
+  const solved = probRows.filter((p) => p.status === "solved").length;
+  return {
+    open,
+    solved,
+    pledgedUsd: Math.round((pledgeRow[0]?.cents ?? 0) / 100),
+    fixers: fixerRow[0]?.n ?? 0,
+  };
+}
 
 export type DbProblem = typeof schema.problems.$inferSelect;
 export type DbProposal = typeof schema.proposals.$inferSelect;

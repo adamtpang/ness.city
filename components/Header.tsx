@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
  * The forum is the product. Everything else is one click away.
  */
 const NAV = [
-  { href: "/townhall", label: "Townhall" },
   { href: "/roadmap", label: "Roadmap" },
   { href: "/citizens", label: "Leaderboard" },
 ];
