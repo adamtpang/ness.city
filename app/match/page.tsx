@@ -67,7 +67,7 @@ export default function MatchPage() {
             title="What we score against"
             items={[
               "Curated public job listings (Jobs tab)",
-              "Active bounties (Townhall, paid solvers)",
+              "Active bounties (Townhall, paid fixers)",
               "Co-founder posts (when surfaced)",
               "Fellowships and accelerators",
             ]}

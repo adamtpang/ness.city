@@ -78,7 +78,7 @@ function kpiPlaceholder(): Pillar[] {
       label: "Problems surfaced",
       value: "—",
       hint: "Open problems awaiting root-cause + bounty.",
-      href: "/solve",
+      href: "/townhall",
       stub: true,
     },
     {
@@ -93,7 +93,7 @@ function kpiPlaceholder(): Pillar[] {
       key: "karma",
       label: "Karma awarded",
       value: "—",
-      hint: "Lifetime karma points across all solvers.",
+      hint: "Lifetime karma points across all fixers.",
       href: "/points",
       stub: true,
     },
@@ -235,7 +235,7 @@ export default function KpiPage() {
             </li>
             <li>
               <span className="font-mono text-[11px] text-ink-500">Karma</span>{" "}
-              counts lifetime points awarded across all solvers; does not
+              counts lifetime points awarded across all fixers; does not
               decay.
             </li>
             <li>

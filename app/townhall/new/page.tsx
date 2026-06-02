@@ -247,7 +247,7 @@ export default function SubmitPage() {
           <div className="mt-6 flex flex-wrap gap-3">
             {submitted.serverMode && submitted.slug && (
               <Link
-                href={`/solve/${submitted.slug}`}
+                href={`/townhall/${submitted.slug}`}
                 className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
               >
                 Open the problem page
@@ -255,7 +255,7 @@ export default function SubmitPage() {
               </Link>
             )}
             <Link
-              href="/solve"
+              href="/townhall"
               className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-5 py-2.5 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
             >
               Back to townhall
@@ -276,7 +276,7 @@ export default function SubmitPage() {
     <main className="mx-auto max-w-2xl px-5 pb-16 pt-10">
       <FadeIn y={6}>
         <Link
-          href="/solve"
+          href="/townhall"
           className="inline-flex items-center gap-1.5 text-[12px] text-ink-500 transition-colors hover:text-ink-950"
         >
           <span aria-hidden>←</span> back to townhall

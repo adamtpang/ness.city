@@ -19,7 +19,7 @@ export async function listProblems() {
 }
 
 /**
- * All proposals across all problems — the "Pull Requests" tab on /solve.
+ * All proposals across all problems — the "Pull Requests" tab on /townhall.
  * Joined with the parent problem so the row can link back.
  */
 export type ProposalRow = {

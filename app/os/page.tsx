@@ -45,7 +45,7 @@ export default function OsPage() {
       <FadeIn delay={0.12}>
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
-            href="/solve"
+            href="/townhall"
             className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
           >
             Open Townhall

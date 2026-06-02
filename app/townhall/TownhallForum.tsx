@@ -46,7 +46,7 @@ const STATUS_TONE: Record<
   solved: { dot: "bg-emerald-500", label: "SOLVED", variant: "solved" },
 };
 
-export function SolveForum({
+export function TownhallForum({
   problems,
   proposals = [],
 }: {
@@ -123,7 +123,7 @@ export function SolveForum({
           />
         </div>
         <Link
-          href="/solve/new"
+          href="/townhall/new"
           className="inline-flex items-center gap-1.5 rounded-lg bg-ink-950 px-3 py-2 text-[12.5px] font-medium text-paper transition-colors hover:bg-ink-800"
         >
           <span aria-hidden>+</span> New problem
@@ -282,7 +282,7 @@ function ProblemList({
         </p>
         {state === "open" && (
           <Link
-            href="/solve/new"
+            href="/townhall/new"
             className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-ink-950 px-3 py-2 text-[12.5px] font-medium text-paper hover:bg-ink-800"
           >
             <span aria-hidden>+</span> Surface a problem
@@ -305,7 +305,7 @@ function ProblemRow({ problem }: { problem: Problem }) {
   return (
     <li className="border-b border-ink-100 last:border-b-0">
       <Link
-        href={`/solve/${problem.slug}`}
+        href={`/townhall/${problem.slug}`}
         className="grid grid-cols-[10px_1fr_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-paper-tint sm:grid-cols-[10px_auto_1fr_auto] sm:gap-4 sm:px-5"
       >
         <span className={`h-2 w-2 rounded-full ${tone.dot}`} aria-hidden />
@@ -343,7 +343,7 @@ function ProposalList({ proposals }: { proposals: ProposalRow[] }) {
           the fix on its detail page.
         </p>
         <Link
-          href="/solve/new"
+          href="/townhall/new"
           className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-ink-950 px-3 py-2 text-[12.5px] font-medium text-paper hover:bg-ink-800"
         >
           <span aria-hidden>+</span> Surface a problem
@@ -356,7 +356,7 @@ function ProposalList({ proposals }: { proposals: ProposalRow[] }) {
       {proposals.map((p) => (
         <li key={p.id} className="border-b border-ink-100 last:border-b-0">
           <Link
-            href={`/solve/${p.problemSlug}`}
+            href={`/townhall/${p.problemSlug}`}
             className="grid grid-cols-[10px_1fr_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-paper-tint sm:gap-4 sm:px-5"
           >
             <span className="h-2 w-2 rounded-full bg-violet-500" aria-hidden />

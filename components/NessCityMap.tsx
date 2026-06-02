@@ -22,7 +22,7 @@ const PLACES: Record<string, Place> = {
     id: "townhall",
     name: "Townhall",
     desc: "Surface, fund, ship.",
-    href: "/solve",
+    href: "/townhall",
   },
   citizens: {
     id: "citizens",
@@ -58,7 +58,7 @@ const PLACES: Record<string, Place> = {
     id: "loch",
     name: "The Loch",
     desc: "Surface a problem here.",
-    href: "/solve/new",
+    href: "/townhall/new",
   },
 };
 

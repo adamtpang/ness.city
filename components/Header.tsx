@@ -9,9 +9,9 @@ import { motion } from "framer-motion";
  * The forum is the product. Everything else is one click away.
  */
 const NAV = [
-  { href: "/solve", label: "Forum" },
+  { href: "/townhall", label: "Townhall" },
   { href: "/roadmap", label: "Roadmap" },
-  { href: "/citizens", label: "Citizens" },
+  { href: "/citizens", label: "Leaderboard" },
 ];
 
 export function Header() {
@@ -58,7 +58,7 @@ export function Header() {
         </nav>
 
         <Link
-          href="/solve/new"
+          href="/townhall/new"
           className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-3.5 py-1.5 text-[12.5px] font-medium text-paper transition-colors hover:bg-ink-800"
         >
           Surface

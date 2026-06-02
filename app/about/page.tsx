@@ -94,7 +94,7 @@ export default function AboutPage() {
             work once people use it.
           </p>
           <Link
-            href={`/solve/${wifi.slug}`}
+            href={`/townhall/${wifi.slug}`}
             className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-ink-950 hover:opacity-70"
           >
             Open the example problem page
@@ -244,7 +244,7 @@ export default function AboutPage() {
             Surface. Explain. Propose. Bounty. Ship.
           </h2>
           <p className="mt-3 text-[15px] leading-[1.65] text-ink-200">
-            Two leaderboards keep score. <strong>Solvers</strong> earn karma.{" "}
+            Two leaderboards keep score. <strong>Fixers</strong> earn karma.{" "}
             <strong>Patrons</strong> earn attribution. Neither one runs the
             city alone. Together they do.
           </p>
@@ -388,7 +388,7 @@ export default function AboutPage() {
       <FadeInOnView>
         <div className="mt-16 flex flex-wrap gap-3 border-t border-ink-200 pt-10">
           <Link
-            href="/solve/new"
+            href="/townhall/new"
             className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
           >
             Surface a problem

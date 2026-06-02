@@ -27,13 +27,13 @@ export default function LeaderboardPage() {
       <FadeIn>
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-            Citizens
+            Leaderboard
           </p>
           <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950">
             Who showed up.
           </h1>
           <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
-            Two ways to leave the city better than you found it. Solvers ship
+            Two ways to leave the city better than you found it. Fixers ship
             the fixes. Patrons fund them. Both compound.
           </p>
         </div>
@@ -42,7 +42,7 @@ export default function LeaderboardPage() {
       <FadeIn delay={0.06}>
         <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-ink-200 bg-paper p-1">
           <TabButton active={tab === "solvers"} onClick={() => setTab("solvers")}>
-            Solvers · karma
+            Fixers · karma
           </TabButton>
           <TabButton active={tab === "patrons"} onClick={() => setTab("patrons")}>
             Patrons · pledged
@@ -63,7 +63,7 @@ export default function LeaderboardPage() {
             </h2>
             <p className="mt-3 text-[14px] leading-[1.6] text-ink-600">
               {tab === "solvers"
-                ? "First solver of the city: see the example fix to learn the pattern."
+                ? "First fixer of the city: see the example fix to learn the pattern."
                 : "First patrons of the city: pick an open bounty and pledge."}
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
@@ -157,7 +157,7 @@ export default function LeaderboardPage() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-ink-200 bg-paper-tint p-6">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-              How Solvers earn karma
+              How Fixers earn karma
             </h2>
             <ul className="mt-4 space-y-3 text-[14px] text-ink-800">
               <Rule v="+5" t="Surface a problem with a real diagnosis" />

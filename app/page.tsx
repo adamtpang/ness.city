@@ -38,10 +38,10 @@ export default function Home() {
           <FadeIn delay={0.16}>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/solve"
+                href="/townhall"
                 className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-6 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
               >
-                Open the forum <span aria-hidden>→</span>
+                Open the Townhall <span aria-hidden>→</span>
               </Link>
               <Link
                 href="/roadmap"
@@ -147,11 +147,11 @@ export default function Home() {
             Every room in Ness
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Room href="/solve" name="The Forum" body="Surface problems. The community prioritizes. Patrons fund. Builders ship." status="live" />
+            <Room href="/townhall" name="Townhall" body="Surface problems. The community prioritizes. Patrons fund. Fixers ship." status="live" />
             <Room href="/roadmap" name="The Roadmap" body="Living public roadmap. Eisenhower-prioritized. Owner per row." status="live" />
             <Room href="/pagerank" name="PageRank" body="Map your ring. See who the community has named." status="live" />
             <Room href="/pulse" name="Pulse" body="Community analytics: skills, interests, ideas, apps. Data by hiddentao." status="live" />
-            <Room href="/citizens" name="Citizens" body="Solver karma · patron pledged. Two leaderboards." status="live" />
+            <Room href="/citizens" name="Leaderboard" body="Fixer karma · patron pledged. Two leaderboards." status="live" />
             <Room href="/guide" name="The Guide" body="An honest, independent guide to Network School. Loch in." status="live" />
             <Room href="/nslink" name="nslink" body="Snap a stack of routers, get a CSV the bot can run." status="live" />
             <Room href="https://discord.gg/fNmdFWcMU" name="Discord" body="Open chat, bug-reports, feature-requests, support." status="external" external />

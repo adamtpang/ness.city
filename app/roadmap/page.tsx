@@ -82,7 +82,7 @@ const Q2: Item[] = [
   {
     title: "Trial-to-Core paths haven't converted; clearer success criteria + exit terms upfront (Britt model: time-bound contracts)",
     qty: 40, quality: 3, timeWeeks: 1, capitalUsd: 0, owner: "Donovan",
-    ness: "Could be /solve-tracked; largely an HR flow.",
+    ness: "Could be /townhall-tracked; largely an HR flow.",
   },
   {
     title: "Only entry is full residency; no day or week passes (try before you buy)",
@@ -280,7 +280,7 @@ export default function RoadmapPage() {
           </ul>
           <p className="mt-4 text-[13px] leading-[1.6] text-ink-600">
             Anyone in the community can propose a fix on{" "}
-            <Link href="/solve" className="underline-offset-2 hover:underline">/solve</Link>{" "}
+            <Link href="/townhall" className="underline-offset-2 hover:underline">/townhall</Link>{" "}
             or open a GitHub issue. Patrons can fund any open bounty.
           </p>
         </section>

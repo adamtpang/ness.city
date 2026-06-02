@@ -44,7 +44,7 @@ export const places: Place[] = [
     id: "townhall",
     name: "Townhall",
     building: "Townhall",
-    href: "/solve",
+    href: "/townhall",
     desc: "Surface problems, propose fixes, ship them.",
     section: "civic",
     status: "live",

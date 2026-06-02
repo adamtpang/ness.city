@@ -95,7 +95,7 @@ export default async function ProblemPage({
 
       <FadeIn y={6}>
         <Link
-          href="/solve"
+          href="/townhall"
           className="inline-flex items-center gap-1.5 text-[12px] text-ink-500 transition-colors hover:text-ink-950"
         >
           <span aria-hidden>←</span> back to townhall
@@ -256,7 +256,7 @@ export default async function ProblemPage({
               <Section title="Documentation. What shipped.">
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
                   <p className="text-[14px] font-medium text-ink-950">
-                    Solver: {problem.documentation.authorId}
+                    Fixer: {problem.documentation.authorId}
                   </p>
                   <p className="mt-3 text-[15px] leading-[1.7] text-ink-800">
                     {problem.documentation.body}

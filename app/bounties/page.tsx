@@ -25,7 +25,7 @@ export default function BountiesPage() {
           Pay for what you wish was fixed.
         </h1>
         <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
-          Patrons pledge. Solvers claim. The community votes with dollars.
+          Patrons pledge. Fixers claim. The community votes with dollars.
           Fully-funded bounties bubble to the top. They are the ones someone
           is about to ship.
         </p>
@@ -54,7 +54,7 @@ export default function BountiesPage() {
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/solve/new"
+                href="/townhall/new"
                 className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
               >
                 Surface a problem
@@ -79,7 +79,7 @@ export default function BountiesPage() {
             return (
               <StaggerItem key={p.id}>
                 <Link
-                  href={`/solve/${p.slug}`}
+                  href={`/townhall/${p.slug}`}
                   className="group block rounded-2xl border border-ink-200 bg-paper p-6 transition-colors hover:border-ink-400"
                 >
                   <div className="grid gap-6 sm:grid-cols-[1fr_220px]">

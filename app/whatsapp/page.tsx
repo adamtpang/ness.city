@@ -185,7 +185,7 @@ export default function WhatsAppPage() {
               steward will get added here.
             </p>
             <Link
-              href="/solve/new"
+              href="/townhall/new"
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
             >
               Surface as a Townhall problem

@@ -8,7 +8,7 @@ import { Avatar } from "./Avatar";
 
 const stateLabel: Record<NonNullable<Problem["bounty"]>["state"], string> = {
   collecting: "Collecting pledges",
-  funded: "Fully funded. Needs a solver.",
+  funded: "Fully funded. Needs a Fixer.",
   claimed: "Claimed. Being shipped.",
   paid: "Paid out",
 };
@@ -31,7 +31,7 @@ export function BountyPanel({
         </h3>
         <p className="mt-2 text-[14px] leading-[1.6] text-ink-600">
           Once a solution is proposed, anyone can pledge to fund it. Patrons
-          earn attribution. Solvers earn Ness karma.
+          earn attribution. Fixers earn Ness karma.
         </p>
         <button className="mt-5 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-colors hover:border-ink-950">
           Pledge a starter

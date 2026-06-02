@@ -5,7 +5,7 @@ const SITE_URL = "https://ness.city";
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     "",
-    "/solve",
+    "/townhall",
     "/roadmap",
     "/citizens",
     "/pagerank",

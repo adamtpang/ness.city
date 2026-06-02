@@ -40,7 +40,7 @@ const utilities: Util[] = [
   {
     name: "USDC bounty calculator",
     blurb:
-      "Estimate gas + bridging costs for a USDC pledge from any chain. Shows the net amount a solver would actually receive.",
+      "Estimate gas + bridging costs for a USDC pledge from any chain. Shows the net amount a fixer would actually receive.",
     state: "planned",
   },
   {
@@ -121,7 +121,7 @@ export default function ToolsPage() {
             ship it as a free tool here.
           </p>
           <Link
-            href="/solve/new"
+            href="/townhall/new"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
           >
             Surface a tool

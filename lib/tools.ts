@@ -17,7 +17,7 @@ export const tools: Tool[] = [
     description:
       "Surface a problem. Someone proposes a fix. Patrons pledge USDC. The solver ships, documents, and gets paid.",
     status: "live",
-    href: "/solve",
+    href: "/townhall",
   },
   {
     id: "pagerank",
