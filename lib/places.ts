@@ -137,15 +137,6 @@ export const places: Place[] = [
     inHeader: true,
   },
   {
-    id: "market",
-    name: "The Market",
-    href: "/market",
-    desc: "Buy, sell, swap, share. Ness's local craigslist.",
-    section: "community",
-    status: "live",
-    inHeader: true,
-  },
-  {
     id: "minecraft",
     name: "Minecraft",
     href: "/minecraft",

@@ -6,10 +6,9 @@ import { motion } from "framer-motion";
 
 /**
  * Tight three-pane header: brand · nav · primary action.
- * The whole community engine is one click away from anywhere.
+ * The forum is the product. Everything else is one click away.
  */
 const NAV = [
-  { href: "/market", label: "Market" },
   { href: "/solve", label: "Forum" },
   { href: "/roadmap", label: "Roadmap" },
   { href: "/citizens", label: "Citizens" },
@@ -41,10 +40,7 @@ export function Header() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {NAV.map((n) => {
-            const active =
-              n.href === "/market"
-                ? pathname.startsWith("/market")
-                : pathname.startsWith(n.href);
+            const active = pathname.startsWith(n.href);
             return (
               <Link
                 key={n.href}
@@ -62,10 +58,10 @@ export function Header() {
         </nav>
 
         <Link
-          href={pathname.startsWith("/solve") ? "/solve/new" : "/market/new"}
+          href="/solve/new"
           className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-3.5 py-1.5 text-[12.5px] font-medium text-paper transition-colors hover:bg-ink-800"
         >
-          {pathname.startsWith("/solve") ? "Surface" : "Post"}
+          Surface
           <span aria-hidden>→</span>
         </Link>
       </div>

@@ -8,10 +8,9 @@ import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 /**
  * The brand landing. Loch in is the catchphrase. Two image slots —
  * /nessie-loch.jpg and /ness-city-vision.jpg — gracefully fall back to
- * SVG placeholders if the JPGs aren't dropped in public/ yet. Every
- * other surface still has its own URL; this is the front door for
- * brand and orientation. CTAs route into the live product (Market,
- * Forum).
+ * SVG placeholders if the JPGs aren't dropped in public/ yet. CTAs
+ * route into the product: the Forum (surface + solve problems) and
+ * the Roadmap (where the community is headed).
  */
 export default function Home() {
   return (
@@ -31,24 +30,24 @@ export default function Home() {
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="mt-6 max-w-xl text-[17px] leading-[1.55] text-ink-700 sm:text-[19px]">
-              The bottom-up coordination platform for the community.
-              Marketplace, problem-solving forum, social graph, all in one
-              repo. Free, public, MIT.
+              A civic coordination platform. Surface a problem, the
+              community prioritizes it, patrons fund it, builders ship the
+              fix. Open-source, bottom-up, MIT.
             </p>
           </FadeIn>
           <FadeIn delay={0.16}>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/market"
+                href="/solve"
                 className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-6 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800"
               >
-                Open the market <span aria-hidden>→</span>
+                Open the forum <span aria-hidden>→</span>
               </Link>
               <Link
-                href="/solve"
+                href="/roadmap"
                 className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-6 py-3 text-[14px] font-medium text-ink-950 transition-colors hover:border-ink-950"
               >
-                Open the forum
+                See the roadmap
               </Link>
             </div>
           </FadeIn>
@@ -148,9 +147,8 @@ export default function Home() {
             Every room in Ness
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Room href="/solve" name="The Forum" body="Surface problems. The community prioritizes. Patrons fund. Builders ship." status="live" />
             <Room href="/roadmap" name="The Roadmap" body="Living public roadmap. Eisenhower-prioritized. Owner per row." status="live" />
-            <Room href="/market" name="The Market" body="Buy, sell, share. Like craigslist, with real handles." status="live" />
-            <Room href="/solve" name="The Forum" body="File problems. Propose fixes. Patrons pledge. Ship and get paid." status="live" />
             <Room href="/pagerank" name="PageRank" body="Map your ring. See who the community has named." status="live" />
             <Room href="/pulse" name="Pulse" body="Community analytics: skills, interests, ideas, apps. Data by hiddentao." status="live" />
             <Room href="/citizens" name="Citizens" body="Solver karma · patron pledged. Two leaderboards." status="live" />

@@ -5,7 +5,6 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { LiveBackground } from "@/components/LiveBackground";
-import { NewsBanner } from "@/components/NewsBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,12 +19,11 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
-const NESS_DESCRIPTION =
-  "The civic layer for builders. Surface problems, diagnose root causes, fund the fixes, earn karma for shipping solutions. Community coordination, bottom-up.";
+const NESS_DESCRIPTION = "A civic coordination platform.";
 
 export const metadata: Metadata = {
   title: {
-    default: "Ness · Civic coordination for builders",
+    default: "Ness",
     template: "%s · Ness",
   },
   description: NESS_DESCRIPTION,
@@ -34,7 +32,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Ness · Civic coordination for builders",
+    title: "Ness",
     description: NESS_DESCRIPTION,
     url: "https://ness.city",
     siteName: "Ness",
@@ -42,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ness · Civic coordination for builders",
+    title: "Ness",
     description: NESS_DESCRIPTION,
   },
 };
@@ -56,7 +54,6 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-dvh bg-paper font-sans text-ink-950 antialiased">
         <LiveBackground />
-        <NewsBanner />
         <Header />
         {children}
         <footer className="mt-32 border-t border-ink-200 py-10">
