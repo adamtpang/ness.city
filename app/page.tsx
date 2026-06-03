@@ -7,7 +7,9 @@ import {
   type ProblemWithCounts,
 } from "@/lib/db/queries";
 import { NewProblemModal } from "@/components/NewProblemModal";
-import { demoBoards, demoProblems, demoStats } from "@/lib/demo-seed";
+import { VoteCell } from "@/components/VoteCell";
+import { Avatar } from "@/components/Avatar";
+import { demoBoards, demoProblems, demoStats, type DemoProblem, type DemoSolver } from "@/lib/demo-seed";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,22 +21,48 @@ const STATUS: Record<string, { dot: string; label: string }> = {
   solved: { dot: "bg-emerald-500", label: "Solved" },
 };
 
-// Community thresholds for the Eisenhower split.
 const IMPORTANT = 25;
 const URGENT = 25;
-const COLS = "grid-cols-[1fr_2.25rem_2.25rem_3rem_4.5rem]";
+const COLS = "grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_minmax(0,1fr)_8.5rem]";
 
-type Item = { p: ProblemWithCounts; urgency: number };
+type Item = {
+  p: ProblemWithCounts;
+  importance: number;
+  urgency: number;
+  emoji: string;
+  solution: string | null;
+  solver: DemoSolver | null;
+  surfaced: string;
+};
 
-function urgencyOf(p: ProblemWithCounts): number {
-  return (p as { urgency?: number }).urgency ?? 0;
+function initials(name: string): string {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
+  );
 }
 
+function timeAgo(d: Date): string {
+  const days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
+  if (days <= 0) return "today";
+  if (days === 1) return "1d ago";
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+const byPriority = (a: Item, b: Item) =>
+  b.importance - a.importance || b.urgency - a.urgency;
+
 /**
- * Home = the engine as an Eisenhower quest board. Problems are sorted by
- * community importance and urgency into Q1 (do now), Q2 (schedule and fund),
- * and Archived (revisit later). Patrons rail left, Solvers rail right. When
- * the DB has no problems yet, a curated demo set renders so the board is full.
+ * Home = the engine as an Eisenhower quest board. Problems sort by community
+ * importance and urgency into Q1 (do now), Q2 (schedule + fund), Archived.
+ * Patrons rail left, Solvers rail right, both in USDC. When the DB has no
+ * problems yet, a curated demo set renders so the board is full.
  */
 export default async function Home() {
   const [liveProblems, liveBoards, liveStats] = await Promise.all([
@@ -47,28 +75,49 @@ export default async function Home() {
   const boards = usingDemo ? demoBoards : liveBoards;
   const stats = usingDemo ? demoStats : liveStats;
 
-  const items: Item[] = problems.map((p) => ({ p, urgency: urgencyOf(p) }));
-  const q1 = items.filter((i) => i.p.upvotes >= IMPORTANT && i.urgency >= URGENT);
-  const q2 = items.filter((i) => i.p.upvotes >= IMPORTANT && i.urgency < URGENT);
-  const archived = items.filter((i) => i.p.upvotes < IMPORTANT);
+  const items: Item[] = problems.map((p) => {
+    const d = p as Partial<DemoProblem> & ProblemWithCounts;
+    return {
+      p,
+      importance: p.upvotes,
+      urgency: d.urgency ?? 0,
+      emoji: d.emoji ?? "🧩",
+      solution: d.solution ?? null,
+      solver: d.solver ?? null,
+      surfaced: d.surfaced ?? timeAgo(p.createdAt),
+    };
+  });
+  const q1 = items.filter((i) => i.importance >= IMPORTANT && i.urgency >= URGENT).sort(byPriority);
+  const q2 = items.filter((i) => i.importance >= IMPORTANT && i.urgency < URGENT).sort(byPriority);
+  const archived = items.filter((i) => i.importance < IMPORTANT).sort(byPriority);
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-8 pt-4">
-      {/* Compact header: title + KPIs + action, one row */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 pb-3">
+      {/* Compact header: title + KPIs + action */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink-200 pb-3">
         <div className="flex items-baseline gap-3">
           <span className="serif text-[24px] leading-none text-ink-950">Loch in.</span>
           <span className="hidden text-[12.5px] text-ink-500 sm:inline">
             The community solves its own problems, in the open.
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <Kpi label="Bounty value" value={`$${stats.pledgedUsd.toLocaleString()}`} />
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 rounded-xl border border-[#2775CA]/40 bg-[#2775CA]/5 px-3 py-1.5">
+            <UsdcMark />
+            <div>
+              <div className="serif text-[19px] leading-none text-ink-950">
+                ${stats.pledgedUsd.toLocaleString()}
+              </div>
+              <div className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-[#2775CA]">
+                Bounty value · USDC on Base
+              </div>
+            </div>
+          </div>
           <Kpi label="Open" value={stats.open} />
           <Kpi label="Solved" value={stats.solved} />
           <NewProblemModal
             trigger={
-              <button className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-3.5 py-1.5 text-[12.5px] font-medium text-paper transition-colors hover:bg-ink-800">
+              <button className="inline-flex items-center gap-1.5 rounded-full bg-[#2563eb] px-4 py-2 text-[12.5px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1d4ed8]">
                 <span aria-hidden>+</span> New problem
               </button>
             }
@@ -78,39 +127,56 @@ export default async function Home() {
 
       {/* The board */}
       <div className="mt-3 grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
-        <Rail title="Patrons" unit="$" entries={boards.patrons} empty="No patrons yet" />
+        <Rail title="Patrons" sub="USDC in" entries={boards.patrons} empty="No patrons yet" />
 
         {/* Center: prioritized quest board */}
-        <div className="flex min-h-[72vh] flex-col overflow-hidden rounded-xl border border-ink-200 bg-paper">
-          <div
-            className={`grid ${COLS} items-center gap-2 border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500 sm:px-4`}
-          >
-            <div>Problem</div>
-            <div className="text-center" title="Community importance">Imp</div>
-            <div className="text-center" title="Community urgency">Urg</div>
-            <div className="text-center" title="Explanations and solutions">Disc</div>
-            <div className="text-right">Status</div>
-          </div>
+        <div className="min-h-[72vh] overflow-hidden rounded-xl border-2 border-ink-300 bg-paper">
+          <div className="overflow-x-auto">
+            <div className="min-w-[680px]">
+              <div
+                className={`grid ${COLS} items-center gap-2 border-b-2 border-ink-300 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500 sm:px-4`}
+              >
+                <div>Problem</div>
+                <div className="text-center" title="Community importance">Imp</div>
+                <div className="text-center" title="Community urgency">Urg</div>
+                <div>Solution</div>
+                <div className="text-right">Execution</div>
+              </div>
 
-          {items.length === 0 ? (
-            <div className="px-4 py-10 text-center">
-              <p className="text-[14px] text-ink-700">No problems yet.</p>
-              <p className="mt-1 text-[12px] text-ink-500">
-                File the first, it shows up here instantly.
-              </p>
+              {items.length === 0 ? (
+                <div className="px-4 py-10 text-center">
+                  <p className="text-[14px] text-ink-700">No problems yet.</p>
+                  <p className="mt-1 text-[12px] text-ink-500">
+                    File the first, it shows up here instantly.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <QuadrantSection label="Q1 — Important + urgent" sub="Do now" accent="bg-amber-500" items={q1} />
+                  <QuadrantSection label="Q2 — Important, not urgent" sub="Schedule + fund" accent="bg-blue-500" items={q2} />
+                  <QuadrantSection label="Archived — not a priority now" sub="Community can revisit" accent="bg-ink-300" items={archived} muted />
+                </div>
+              )}
             </div>
-          ) : (
-            <div>
-              <QuadrantSection label="Q1 — Important + urgent" sub="Do now" accent="bg-amber-500" items={q1} />
-              <QuadrantSection label="Q2 — Important, not urgent" sub="Schedule + fund" accent="bg-blue-500" items={q2} />
-              <QuadrantSection label="Archived — not a priority now" sub="Community can revisit" accent="bg-ink-300" items={archived} muted />
-            </div>
-          )}
+          </div>
         </div>
 
-        <Rail title="Solvers" unit="" entries={boards.fixers} empty="No solvers yet" />
+        <Rail title="Solvers" sub="USDC earned" entries={boards.fixers} empty="No solvers yet" />
       </div>
     </main>
+  );
+}
+
+function UsdcMark({ size = 20 }: { size?: number }) {
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full bg-[#2775CA] font-bold text-white"
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.62) }}
+      title="USDC on Base"
+      aria-label="USDC"
+    >
+      $
+    </span>
   );
 }
 
@@ -141,15 +207,15 @@ function QuadrantSection({
   if (items.length === 0) return null;
   return (
     <section>
-      <div className="flex items-center gap-2 border-b border-ink-100 bg-paper-tint/60 px-3 py-1.5 sm:px-4">
-        <span className={`h-1.5 w-1.5 rounded-full ${accent}`} aria-hidden />
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-700">
+      <div className="flex items-center gap-2 border-b border-ink-200 bg-paper-tint px-3 py-1.5 sm:px-4">
+        <span className={`h-2 w-2 rounded-full ${accent}`} aria-hidden />
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-ink-800">
           {label}
         </span>
         <span className="hidden font-mono text-[10px] text-ink-400 sm:inline">· {sub}</span>
-        <span className="ml-auto font-mono text-[10px] tabular-nums text-ink-400">{items.length}</span>
+        <span className="ml-auto font-mono text-[10px] tabular-nums text-ink-500">{items.length}</span>
       </div>
-      <ul className={muted ? "opacity-70" : ""}>
+      <ul className={muted ? "opacity-65" : ""}>
         {items.map((i) => (
           <Row key={i.p.id} item={i} />
         ))}
@@ -159,33 +225,54 @@ function QuadrantSection({
 }
 
 function Row({ item }: { item: Item }) {
-  const { p, urgency } = item;
+  const { p, importance, urgency, emoji, solution, solver, surfaced } = item;
   const s = STATUS[p.status] ?? STATUS.open;
+  const done = p.status === "solved" || (solver?.progress ?? 0) >= 100;
   return (
-    <li className="border-b border-ink-100 last:border-0">
+    <li className="border-b border-ink-200 last:border-0">
       <div className={`grid ${COLS} items-center gap-2 px-3 py-2.5 transition-colors hover:bg-paper-tint sm:px-4`}>
-        <Link href={`/townhall/${p.slug}`} className="min-w-0">
-          <span className="block truncate text-[13.5px] font-medium text-ink-950">{p.title}</span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
-            {p.category} · {p.affected} affected
+        <Link href={`/townhall/${p.slug}`} className="flex min-w-0 items-start gap-2">
+          <span className="text-[17px] leading-none">{emoji}</span>
+          <span className="min-w-0">
+            <span className="block truncate text-[13.5px] font-medium text-ink-950">{p.title}</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-400">
+              {p.category} · {p.affected} hit · {surfaced}
+            </span>
           </span>
         </Link>
-        <span className="text-center font-mono text-[13px] font-medium tabular-nums text-ink-950">
-          {p.upvotes}
-        </span>
-        <span className="text-center font-mono text-[13px] tabular-nums text-ink-600">
-          {urgency}
-        </span>
-        <Link
-          href={`/townhall/${p.slug}`}
-          className="text-center font-mono text-[11px] tabular-nums text-ink-600"
-          title="Explanations · solutions"
-        >
-          {p.commentCount}e·{p.proposalCount}s
-        </Link>
-        <div className="flex items-center justify-end gap-1.5">
-          <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden />
-          <span className="hidden text-[11px] text-ink-600 sm:inline">{s.label}</span>
+
+        <VoteCell initial={importance} />
+        <VoteCell initial={urgency} />
+
+        <div className="min-w-0">
+          {solution ? (
+            <span className="block truncate text-[12.5px] leading-snug text-ink-700">{solution}</span>
+          ) : (
+            <span className="text-[11.5px] text-ink-400">Open for solutions</span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end">
+          {solver ? (
+            <div className="flex w-[7.5rem] flex-col items-end gap-1">
+              <div className="flex items-center gap-1.5">
+                <Avatar initials={initials(solver.name)} seed={solver.handle} size={18} />
+                <span className="font-mono text-[10px] text-ink-600">@{solver.handle}</span>
+                <span className="font-mono text-[10px] tabular-nums text-ink-500">{solver.progress}%</span>
+              </div>
+              <div className="h-1 w-full overflow-hidden rounded-full bg-ink-200">
+                <div
+                  className={`h-full rounded-full ${done ? "bg-emerald-500" : "bg-blue-500"}`}
+                  style={{ width: `${Math.max(4, solver.progress)}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-ink-500">
+              <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden />
+              {s.label}
+            </span>
+          )}
         </div>
       </div>
     </li>
@@ -194,19 +281,20 @@ function Row({ item }: { item: Item }) {
 
 function Rail({
   title,
-  unit,
+  sub,
   entries,
   empty,
 }: {
   title: string;
-  unit: string;
+  sub: string;
   entries: LeaderEntry[];
   empty: string;
 }) {
   return (
-    <aside className="overflow-hidden rounded-xl border border-ink-200 bg-paper">
-      <div className="border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-500">
-        {title}
+    <aside className="overflow-hidden rounded-xl border-2 border-ink-300 bg-paper">
+      <div className="border-b-2 border-ink-300 bg-paper-tint px-3 py-2">
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-700">{title}</div>
+        <div className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-[#2775CA]">{sub}</div>
       </div>
       {entries.length === 0 ? (
         <p className="px-3 py-4 text-[11.5px] text-ink-400">{empty}</p>
@@ -215,15 +303,15 @@ function Rail({
           {entries.map((e, i) => (
             <li
               key={e.handle}
-              className={`flex items-center justify-between gap-2 px-3 py-2 ${i > 0 ? "border-t border-ink-100" : ""}`}
+              className={`flex items-center gap-2 px-3 py-2 ${i > 0 ? "border-t border-ink-200" : ""}`}
             >
-              <span className="min-w-0">
+              <Avatar initials={initials(e.name)} seed={e.handle} size={24} />
+              <span className="min-w-0 flex-1">
                 <span className="block truncate text-[12px] text-ink-950">{e.name}</span>
                 <span className="font-mono text-[10px] text-ink-400">@{e.handle}</span>
               </span>
-              <span className="shrink-0 font-mono text-[12px] tabular-nums text-ink-700">
-                {unit}
-                {e.value.toLocaleString()}
+              <span className="shrink-0 font-mono text-[12px] font-medium tabular-nums text-ink-800">
+                ${e.value.toLocaleString()}
               </span>
             </li>
           ))}
@@ -231,7 +319,7 @@ function Rail({
       )}
       <Link
         href="/citizens"
-        className="block border-t border-ink-100 px-3 py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400 transition-colors hover:text-ink-950"
+        className="block border-t-2 border-ink-300 px-3 py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400 transition-colors hover:text-ink-950"
       >
         full board →
       </Link>
