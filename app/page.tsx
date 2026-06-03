@@ -6,7 +6,6 @@ import {
   type LeaderEntry,
   type ProblemWithCounts,
 } from "@/lib/db/queries";
-import { UpvoteButton } from "@/components/UpvoteButton";
 import { NewProblemModal } from "@/components/NewProblemModal";
 import { demoBoards, demoProblems, demoStats } from "@/lib/demo-seed";
 
@@ -20,11 +19,22 @@ const STATUS: Record<string, { dot: string; label: string }> = {
   solved: { dot: "bg-emerald-500", label: "Solved" },
 };
 
+// Community thresholds for the Eisenhower split.
+const IMPORTANT = 25;
+const URGENT = 25;
+const COLS = "grid-cols-[1fr_2.25rem_2.25rem_3rem_4.5rem]";
+
+type Item = { p: ProblemWithCounts; urgency: number };
+
+function urgencyOf(p: ProblemWithCounts): number {
+  return (p as { urgency?: number }).urgency ?? 0;
+}
+
 /**
- * Home = the engine, compressed. One viewport: a tight header, then a
- * three-column board, Patrons (left), the problem table (center),
- * Fixers (right). Filing a problem is a modal. No scrolling to reach
- * the thing that matters.
+ * Home = the engine as an Eisenhower quest board. Problems are sorted by
+ * community importance and urgency into Q1 (do now), Q2 (schedule and fund),
+ * and Archived (revisit later). Patrons rail left, Solvers rail right. When
+ * the DB has no problems yet, a curated demo set renders so the board is full.
  */
 export default async function Home() {
   const [liveProblems, liveBoards, liveStats] = await Promise.all([
@@ -32,12 +42,15 @@ export default async function Home() {
     getLeaderboards(),
     getEngineStats(),
   ]);
-  // Until the board has real problems, render a curated demo set so the
-  // engine reads full. Auto-switches to live data the moment one exists.
   const usingDemo = liveProblems.length === 0;
   const problems = usingDemo ? demoProblems : liveProblems;
   const boards = usingDemo ? demoBoards : liveBoards;
   const stats = usingDemo ? demoStats : liveStats;
+
+  const items: Item[] = problems.map((p) => ({ p, urgency: urgencyOf(p) }));
+  const q1 = items.filter((i) => i.p.upvotes >= IMPORTANT && i.urgency >= URGENT);
+  const q2 = items.filter((i) => i.p.upvotes >= IMPORTANT && i.urgency < URGENT);
+  const archived = items.filter((i) => i.p.upvotes < IMPORTANT);
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-8 pt-4">
@@ -67,15 +80,19 @@ export default async function Home() {
       <div className="mt-3 grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
         <Rail title="Patrons" unit="$" entries={boards.patrons} empty="No patrons yet" />
 
-        {/* Center: problem table */}
+        {/* Center: prioritized quest board */}
         <div className="flex min-h-[72vh] flex-col overflow-hidden rounded-xl border border-ink-200 bg-paper">
-          <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-500 sm:px-4">
+          <div
+            className={`grid ${COLS} items-center gap-2 border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500 sm:px-4`}
+          >
             <div>Problem</div>
-            <div className="w-14 text-center" title="Importance, votes">Importance</div>
-            <div className="w-16 text-center" title="Explanations and solutions">Discussion</div>
-            <div className="w-20 text-right">Execution</div>
+            <div className="text-center" title="Community importance">Imp</div>
+            <div className="text-center" title="Community urgency">Urg</div>
+            <div className="text-center" title="Explanations and solutions">Disc</div>
+            <div className="text-right">Status</div>
           </div>
-          {problems.length === 0 ? (
+
+          {items.length === 0 ? (
             <div className="px-4 py-10 text-center">
               <p className="text-[14px] text-ink-700">No problems yet.</p>
               <p className="mt-1 text-[12px] text-ink-500">
@@ -83,11 +100,11 @@ export default async function Home() {
               </p>
             </div>
           ) : (
-            <ul>
-              {problems.map((p) => (
-                <Row key={p.id} p={p} />
-              ))}
-            </ul>
+            <div>
+              <QuadrantSection label="Q1 — Important + urgent" sub="Do now" accent="bg-amber-500" items={q1} />
+              <QuadrantSection label="Q2 — Important, not urgent" sub="Schedule + fund" accent="bg-blue-500" items={q2} />
+              <QuadrantSection label="Archived — not a priority now" sub="Community can revisit" accent="bg-ink-300" items={archived} muted />
+            </div>
           )}
         </div>
 
@@ -108,32 +125,67 @@ function Kpi({ label, value }: { label: string; value: number | string }) {
   );
 }
 
-function Row({ p }: { p: ProblemWithCounts }) {
+function QuadrantSection({
+  label,
+  sub,
+  accent,
+  items,
+  muted,
+}: {
+  label: string;
+  sub: string;
+  accent: string;
+  items: Item[];
+  muted?: boolean;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <section>
+      <div className="flex items-center gap-2 border-b border-ink-100 bg-paper-tint/60 px-3 py-1.5 sm:px-4">
+        <span className={`h-1.5 w-1.5 rounded-full ${accent}`} aria-hidden />
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-700">
+          {label}
+        </span>
+        <span className="hidden font-mono text-[10px] text-ink-400 sm:inline">· {sub}</span>
+        <span className="ml-auto font-mono text-[10px] tabular-nums text-ink-400">{items.length}</span>
+      </div>
+      <ul className={muted ? "opacity-70" : ""}>
+        {items.map((i) => (
+          <Row key={i.p.id} item={i} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function Row({ item }: { item: Item }) {
+  const { p, urgency } = item;
   const s = STATUS[p.status] ?? STATUS.open;
   return (
     <li className="border-b border-ink-100 last:border-0">
-      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 px-3 py-2.5 transition-colors hover:bg-paper-tint sm:px-4">
+      <div className={`grid ${COLS} items-center gap-2 px-3 py-2.5 transition-colors hover:bg-paper-tint sm:px-4`}>
         <Link href={`/townhall/${p.slug}`} className="min-w-0">
-          <span className="block truncate text-[13.5px] font-medium text-ink-950">
-            {p.title}
-          </span>
+          <span className="block truncate text-[13.5px] font-medium text-ink-950">{p.title}</span>
           <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
             {p.category} · {p.affected} affected
           </span>
         </Link>
-        <div className="flex w-14 justify-center">
-          <UpvoteButton slug={p.slug} initial={p.upvotes} variant="inline" />
-        </div>
+        <span className="text-center font-mono text-[13px] font-medium tabular-nums text-ink-950">
+          {p.upvotes}
+        </span>
+        <span className="text-center font-mono text-[13px] tabular-nums text-ink-600">
+          {urgency}
+        </span>
         <Link
           href={`/townhall/${p.slug}`}
-          className="w-16 text-center font-mono text-[11.5px] tabular-nums text-ink-600"
+          className="text-center font-mono text-[11px] tabular-nums text-ink-600"
           title="Explanations · solutions"
         >
-          {p.commentCount}e · {p.proposalCount}s
+          {p.commentCount}e·{p.proposalCount}s
         </Link>
-        <div className="flex w-20 items-center justify-end gap-1.5">
+        <div className="flex items-center justify-end gap-1.5">
           <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden />
-          <span className="text-[11px] text-ink-600">{s.label}</span>
+          <span className="hidden text-[11px] text-ink-600 sm:inline">{s.label}</span>
         </div>
       </div>
     </li>
@@ -163,9 +215,7 @@ function Rail({
           {entries.map((e, i) => (
             <li
               key={e.handle}
-              className={`flex items-center justify-between gap-2 px-3 py-2 ${
-                i > 0 ? "border-t border-ink-100" : ""
-              }`}
+              className={`flex items-center justify-between gap-2 px-3 py-2 ${i > 0 ? "border-t border-ink-100" : ""}`}
             >
               <span className="min-w-0">
                 <span className="block truncate text-[12px] text-ink-950">{e.name}</span>
