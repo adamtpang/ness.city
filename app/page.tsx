@@ -1,78 +1,183 @@
+import Link from "next/link";
 import {
-  dbProblemToTownhall,
   getEngineStats,
-  listAllProposals,
-  listProblems,
+  getLeaderboards,
+  listProblemsWithCounts,
+  type LeaderEntry,
+  type ProblemWithCounts,
 } from "@/lib/db/queries";
-import { FadeIn } from "@/components/motion/FadeIn";
-import { TownhallForum } from "./townhall/TownhallForum";
-import type { Problem } from "@/lib/types";
+import { UpvoteButton } from "@/components/UpvoteButton";
+import { NewProblemModal } from "@/components/NewProblemModal";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const STATUS: Record<string, { dot: string; label: string }> = {
+  open: { dot: "bg-ink-400", label: "Open" },
+  investigating: { dot: "bg-amber-500", label: "Investigating" },
+  "in-progress": { dot: "bg-blue-500", label: "In progress" },
+  solved: { dot: "bg-emerald-500", label: "Solved" },
+};
+
 /**
- * Home = the engine. You land, you see the community's problems sorted by
- * what matters most, and you act: explain, fund, or fix. Nameless on
- * purpose — ness.city does one thing. No marketing rooms.
+ * Home = the engine, compressed. One viewport: a tight header, then a
+ * three-column board — Patrons (left), the problem table (center),
+ * Fixers (right). Filing a problem is a modal. No scrolling to reach
+ * the thing that matters.
  */
 export default async function Home() {
-  const [rows, proposals, stats] = await Promise.all([
-    listProblems(),
-    listAllProposals(),
+  const [problems, boards, stats] = await Promise.all([
+    listProblemsWithCounts(),
+    getLeaderboards(),
     getEngineStats(),
   ]);
-  const problems: Problem[] = rows.map((r) =>
-    dbProblemToTownhall({ ...r, proposals: [], bounty: null, documentation: null }),
-  );
-
-  const kpis = [
-    { label: "Open", value: stats.open.toLocaleString() },
-    { label: "Solved", value: stats.solved.toLocaleString() },
-    { label: "Pledged", value: `$${stats.pledgedUsd.toLocaleString()}` },
-    { label: "Fixers", value: stats.fixers.toLocaleString() },
-  ];
 
   return (
-    <main className="mx-auto max-w-5xl px-5 pb-20 pt-10">
-      <FadeIn>
-        <header>
-          <h1 className="serif text-[56px] leading-[0.95] text-ink-950 sm:text-[88px]">
-            Loch in.
-          </h1>
-          <p className="mt-4 max-w-xl text-[16px] leading-[1.5] text-ink-700 sm:text-[18px]">
-            The community solves its own problems, in the open. Surface one,
-            the community sorts it by what matters, then anyone can explain,
-            fund, or fix it.
-          </p>
-        </header>
-      </FadeIn>
+    <main className="mx-auto max-w-6xl px-4 pb-8 pt-4">
+      {/* Compact header: title + KPIs + action, one row */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 pb-3">
+        <div className="flex items-baseline gap-3">
+          <span className="serif text-[24px] leading-none text-ink-950">Loch in.</span>
+          <span className="hidden text-[12.5px] text-ink-500 sm:inline">
+            The community solves its own problems, in the open.
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <Kpi label="Open" value={stats.open} />
+          <Kpi label="Solved" value={stats.solved} />
+          <Kpi label="Pledged" value={`$${stats.pledgedUsd.toLocaleString()}`} />
+          <NewProblemModal
+            trigger={
+              <button className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-3.5 py-1.5 text-[12.5px] font-medium text-paper transition-colors hover:bg-ink-800">
+                <span aria-hidden>+</span> New problem
+              </button>
+            }
+          />
+        </div>
+      </div>
 
-      {/* KPI strip */}
-      <FadeIn delay={0.06}>
-        <div className="mt-8 grid grid-cols-4 overflow-hidden rounded-xl border border-ink-200 bg-paper">
-          {kpis.map((k, i) => (
-            <div
-              key={k.label}
-              className={`px-4 py-4 ${i > 0 ? "border-l border-ink-100" : ""}`}
-            >
-              <div className="serif text-[28px] leading-none text-ink-950 sm:text-[34px]">
-                {k.value}
-              </div>
-              <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-                {k.label}
-              </div>
+      {/* The board */}
+      <div className="mt-3 grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
+        <Rail title="Patrons" unit="$" entries={boards.patrons} empty="No patrons yet" />
+
+        {/* Center: problem table */}
+        <div className="overflow-hidden rounded-xl border border-ink-200 bg-paper">
+          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-3 border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-500 sm:px-4">
+            <div>Problem</div>
+            <div className="w-12 text-center" title="Importance — upvote">Imp.</div>
+            <div className="w-9 text-center" title="Explanations (comments)">Expl</div>
+            <div className="w-9 text-center" title="Solutions (proposals)">Sol</div>
+            <div className="w-20 text-right">Execution</div>
+          </div>
+          {problems.length === 0 ? (
+            <div className="px-4 py-10 text-center">
+              <p className="text-[14px] text-ink-700">No problems yet.</p>
+              <p className="mt-1 text-[12px] text-ink-500">
+                File the first — it shows up here instantly.
+              </p>
             </div>
-          ))}
+          ) : (
+            <ul>
+              {problems.map((p) => (
+                <Row key={p.id} p={p} />
+              ))}
+            </ul>
+          )}
         </div>
-      </FadeIn>
 
-      {/* The engine */}
-      <FadeIn delay={0.12}>
-        <div className="mt-10">
-          <TownhallForum problems={problems} proposals={proposals} />
-        </div>
-      </FadeIn>
+        <Rail title="Fixers" unit="" entries={boards.fixers} empty="No fixers yet" />
+      </div>
     </main>
+  );
+}
+
+function Kpi({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="text-right">
+      <div className="serif text-[18px] leading-none text-ink-950">{value}</div>
+      <div className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-ink-500">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function Row({ p }: { p: ProblemWithCounts }) {
+  const s = STATUS[p.status] ?? STATUS.open;
+  return (
+    <li className="border-b border-ink-100 last:border-0">
+      <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-3 px-3 py-2 transition-colors hover:bg-paper-tint sm:px-4">
+        <Link href={`/townhall/${p.slug}`} className="min-w-0">
+          <span className="block truncate text-[13.5px] font-medium text-ink-950">
+            {p.title}
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
+            {p.category} · {p.affected} affected
+          </span>
+        </Link>
+        <div className="w-12 flex justify-center">
+          <UpvoteButton slug={p.slug} initial={p.upvotes} variant="inline" />
+        </div>
+        <div className="w-9 text-center font-mono text-[12px] tabular-nums text-ink-600">
+          {p.commentCount}
+        </div>
+        <div className="w-9 text-center font-mono text-[12px] tabular-nums text-ink-600">
+          {p.proposalCount}
+        </div>
+        <div className="flex w-20 items-center justify-end gap-1.5">
+          <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden />
+          <span className="text-[11px] text-ink-600">{s.label}</span>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function Rail({
+  title,
+  unit,
+  entries,
+  empty,
+}: {
+  title: string;
+  unit: string;
+  entries: LeaderEntry[];
+  empty: string;
+}) {
+  return (
+    <aside className="overflow-hidden rounded-xl border border-ink-200 bg-paper">
+      <div className="border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-500">
+        {title}
+      </div>
+      {entries.length === 0 ? (
+        <p className="px-3 py-4 text-[11.5px] text-ink-400">{empty}</p>
+      ) : (
+        <ul>
+          {entries.map((e, i) => (
+            <li
+              key={e.handle}
+              className={`flex items-center justify-between gap-2 px-3 py-2 ${
+                i > 0 ? "border-t border-ink-100" : ""
+              }`}
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-[12px] text-ink-950">{e.name}</span>
+                <span className="font-mono text-[10px] text-ink-400">@{e.handle}</span>
+              </span>
+              <span className="shrink-0 font-mono text-[12px] tabular-nums text-ink-700">
+                {unit}
+                {e.value.toLocaleString()}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link
+        href="/citizens"
+        className="block border-t border-ink-100 px-3 py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400 transition-colors hover:text-ink-950"
+      >
+        full board →
+      </Link>
+    </aside>
   );
 }

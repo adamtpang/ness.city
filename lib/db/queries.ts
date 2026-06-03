@@ -193,3 +193,84 @@ export async function getCitizensByIds(ids: string[]) {
     .from(schema.citizens)
     .where(eq(schema.citizens.id, unique[0])); // simple case for now
 }
+
+/** Problems + per-problem explanation (comment) and solution (proposal)
+ *  counts, for the dashboard table. Sorted by votes desc. */
+export type ProblemWithCounts = DbProblem & {
+  commentCount: number;
+  proposalCount: number;
+};
+
+export async function listProblemsWithCounts(): Promise<ProblemWithCounts[]> {
+  if (!isDbConfigured) return [];
+  const db = getDb();
+  const problems = await db
+    .select()
+    .from(schema.problems)
+    .orderBy(desc(schema.problems.upvotes), desc(schema.problems.createdAt))
+    .limit(100);
+  if (problems.length === 0) return [];
+  const [comments, proposals] = await Promise.all([
+    db
+      .select({
+        pid: schema.problemComments.problemId,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(schema.problemComments)
+      .groupBy(schema.problemComments.problemId),
+    db
+      .select({
+        pid: schema.proposals.problemId,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(schema.proposals)
+      .groupBy(schema.proposals.problemId),
+  ]);
+  const cmap = new Map(comments.map((r) => [r.pid, r.n]));
+  const pmap = new Map(proposals.map((r) => [r.pid, r.n]));
+  return problems.map((p) => ({
+    ...p,
+    commentCount: cmap.get(p.id) ?? 0,
+    proposalCount: pmap.get(p.id) ?? 0,
+  }));
+}
+
+/** Top Patrons (by $ pledged) and Fixers (by karma) for the side rails. */
+export type LeaderEntry = { name: string; handle: string; value: number };
+export async function getLeaderboards(): Promise<{
+  patrons: LeaderEntry[];
+  fixers: LeaderEntry[];
+}> {
+  if (!isDbConfigured) return { patrons: [], fixers: [] };
+  const db = getDb();
+  const [fixers, patrons] = await Promise.all([
+    db
+      .select({
+        name: schema.citizens.displayName,
+        handle: schema.citizens.handle,
+        karma: schema.citizens.karma,
+      })
+      .from(schema.citizens)
+      .where(sql`${schema.citizens.karma} > 0`)
+      .orderBy(desc(schema.citizens.karma))
+      .limit(6),
+    db
+      .select({
+        name: schema.citizens.displayName,
+        handle: schema.citizens.handle,
+        cents: schema.citizens.patronageCents,
+      })
+      .from(schema.citizens)
+      .where(sql`${schema.citizens.patronageCents} > 0`)
+      .orderBy(desc(schema.citizens.patronageCents))
+      .limit(6),
+  ]);
+  return {
+    fixers: fixers.map((f) => ({ name: f.name, handle: f.handle, value: f.karma })),
+    patrons: patrons.map((p) => ({
+      name: p.name,
+      handle: p.handle,
+      value: Math.round(p.cents / 100),
+    })),
+  };
+}
