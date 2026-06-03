@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * delta is +1 (upvote) or -1 (remove upvote). Adjusts the existing
  * problems.upvotes counter, clamped at 0. Dedup is client-side
  * (localStorage remembers which slugs you've upvoted), so this is an
- * honest community signal, not a hardened anti-sybil vote — that comes
+ * honest community signal, not a hardened anti-sybil vote, that comes
  * with the directory-seeded membership phase. Returns the new count.
  */
 export async function POST(req: Request) {

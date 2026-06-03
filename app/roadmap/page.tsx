@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 
 /**
- * /roadmap — the living public roadmap.
+ * /roadmap, the living public roadmap.
  *
  * Synthesis of the problems Adam discussed with Donovan Sung. Plotted on
  * Eisenhower (urgent × important). Each row carries quantity affected,
@@ -129,7 +129,7 @@ function PriorityDots({ n }: { n: number }) {
 }
 
 function fmtTime(w: number | null) {
-  if (w == null) return "—";
+  if (w == null) return "-";
   if (w === 1) return "1 wk";
   return `${w} wks`;
 }
@@ -272,7 +272,7 @@ export default function RoadmapPage() {
             How to read this
           </h3>
           <ul className="mt-3 space-y-2 text-[13.5px] leading-[1.6] text-ink-700">
-            <li><span className="font-mono text-[11px] text-ink-500">Quality</span> · 1–5. Composite of severity × impact. 5 = ship-stopper.</li>
+            <li><span className="font-mono text-[11px] text-ink-500">Quality</span> · 1-5. Composite of severity × impact. 5 = ship-stopper.</li>
             <li><span className="font-mono text-[11px] text-ink-500">Affected</span> · order-of-magnitude estimate of members impacted.</li>
             <li><span className="font-mono text-[11px] text-ink-500">Time / Capital</span> · rough cost of the fix.</li>
             <li><span className="font-mono text-[11px] text-ink-500">Owner</span> · who'd land the fix on the NS side.</li>
@@ -286,7 +286,7 @@ export default function RoadmapPage() {
         </section>
       </FadeInOnView>
 
-      {/* Where ness.city is headed — public backlog */}
+      {/* Where ness.city is headed, public backlog */}
       <FadeInOnView>
         <section className="mt-10">
           <div className="flex items-baseline justify-between gap-3">
@@ -299,9 +299,9 @@ export default function RoadmapPage() {
             {[
               ["AI topic-tagging", "Every problem auto-tagged on submit; humans and Nessie sort together."],
               ["Nessie agent", "A 24/7 AI that triages, drafts explanations, and never sleeps."],
-              ["Experience feedback loop", "0–5 ratings across learn / earn / burn / fun, with weekly reports."],
+              ["Experience feedback loop", "0-5 ratings across learn / earn / burn / fun, with weekly reports."],
               ["Quests + meritocracy", "Prioritized problems become gamified quests a vetted Ness team takes on."],
-              ["Forkable civic OS", "Any startup society clones ness.city to coordinate its own community — and we share notes across the network."],
+              ["Forkable civic OS", "Any startup society clones ness.city to coordinate its own community, and we share notes across the network."],
             ].map(([t, d], i) => (
               <div
                 key={t}

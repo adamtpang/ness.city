@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * shadcn-style Dialog, themed to the ness ink/paper system and animated
- * with CSS data-state transitions (no extra animation plugin — Elon: no
+ * with CSS data-state transitions (no extra animation plugin, Elon: no
  * unnecessary part). Radix gives focus trap, escape, scroll lock, a11y.
  */
 

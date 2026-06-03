@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 /**
- * On-site feedback. Floating button → small popover with a 1–5 rating
+ * On-site feedback. Floating button → small popover with a 1-5 rating
  * and an optional note → POST /api/feedback (writes to the DB). No
  * GitHub round-trip; lowest friction for a member to say how it's going.
  */
@@ -52,7 +52,7 @@ export function FeedbackWidget() {
           >
             {state === "done" ? (
               <p className="py-4 text-center text-[14px] text-ink-700">
-                Thanks — logged.
+                Thanks, logged.
               </p>
             ) : (
               <>

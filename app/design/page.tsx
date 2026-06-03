@@ -8,7 +8,7 @@ import { StaggerList, StaggerItem } from "@/components/motion/Stagger";
 import { Avatar } from "@/components/Avatar";
 
 /**
- * /design — the Ness design system reference + scratch pad.
+ * /design, the Ness design system reference + scratch pad.
  *
  * This page exists to:
  *   1. Document every primitive (color, type, spacing, motion) in one place.

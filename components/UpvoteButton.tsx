@@ -29,8 +29,8 @@ function writeVoted(set: Set<string>) {
  * Optimistic; rolls back on failure. Stops propagation so it works
  * inside a clickable issue row without triggering navigation.
  *
- * variant "pill" — big vertical pill for the detail page.
- * variant "inline" — compact for list rows.
+ * variant "pill", big vertical pill for the detail page.
+ * variant "inline", compact for list rows.
  */
 export function UpvoteButton({
   slug,

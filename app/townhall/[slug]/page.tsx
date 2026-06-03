@@ -284,7 +284,7 @@ export default async function ProblemPage({
               </FadeInOnView>
             )}
 
-          {/* Comments thread (real DB problems only — sample slugs read-only) */}
+          {/* Comments thread (real DB problems only, sample slugs read-only) */}
           {!isSample && <CommentThread slug={problem.slug} />}
         </article>
 

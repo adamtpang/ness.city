@@ -21,7 +21,7 @@ const STATUS: Record<string, { dot: string; label: string }> = {
 
 /**
  * Home = the engine, compressed. One viewport: a tight header, then a
- * three-column board — Patrons (left), the problem table (center),
+ * three-column board, Patrons (left), the problem table (center),
  * Fixers (right). Filing a problem is a modal. No scrolling to reach
  * the thing that matters.
  */
@@ -61,19 +61,18 @@ export default async function Home() {
         <Rail title="Patrons" unit="$" entries={boards.patrons} empty="No patrons yet" />
 
         {/* Center: problem table */}
-        <div className="overflow-hidden rounded-xl border border-ink-200 bg-paper">
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-3 border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-500 sm:px-4">
+        <div className="flex min-h-[72vh] flex-col overflow-hidden rounded-xl border border-ink-200 bg-paper">
+          <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 border-b border-ink-200 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-500 sm:px-4">
             <div>Problem</div>
-            <div className="w-12 text-center" title="Importance — upvote">Imp.</div>
-            <div className="w-9 text-center" title="Explanations (comments)">Expl</div>
-            <div className="w-9 text-center" title="Solutions (proposals)">Sol</div>
+            <div className="w-14 text-center" title="Importance, votes">Importance</div>
+            <div className="w-16 text-center" title="Explanations and solutions">Discussion</div>
             <div className="w-20 text-right">Execution</div>
           </div>
           {problems.length === 0 ? (
             <div className="px-4 py-10 text-center">
               <p className="text-[14px] text-ink-700">No problems yet.</p>
               <p className="mt-1 text-[12px] text-ink-500">
-                File the first — it shows up here instantly.
+                File the first, it shows up here instantly.
               </p>
             </div>
           ) : (
@@ -106,7 +105,7 @@ function Row({ p }: { p: ProblemWithCounts }) {
   const s = STATUS[p.status] ?? STATUS.open;
   return (
     <li className="border-b border-ink-100 last:border-0">
-      <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-3 px-3 py-2 transition-colors hover:bg-paper-tint sm:px-4">
+      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 px-3 py-2.5 transition-colors hover:bg-paper-tint sm:px-4">
         <Link href={`/townhall/${p.slug}`} className="min-w-0">
           <span className="block truncate text-[13.5px] font-medium text-ink-950">
             {p.title}
@@ -115,15 +114,16 @@ function Row({ p }: { p: ProblemWithCounts }) {
             {p.category} · {p.affected} affected
           </span>
         </Link>
-        <div className="w-12 flex justify-center">
+        <div className="flex w-14 justify-center">
           <UpvoteButton slug={p.slug} initial={p.upvotes} variant="inline" />
         </div>
-        <div className="w-9 text-center font-mono text-[12px] tabular-nums text-ink-600">
-          {p.commentCount}
-        </div>
-        <div className="w-9 text-center font-mono text-[12px] tabular-nums text-ink-600">
-          {p.proposalCount}
-        </div>
+        <Link
+          href={`/townhall/${p.slug}`}
+          className="w-16 text-center font-mono text-[11.5px] tabular-nums text-ink-600"
+          title="Explanations · solutions"
+        >
+          {p.commentCount}e · {p.proposalCount}s
+        </Link>
         <div className="flex w-20 items-center justify-end gap-1.5">
           <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden />
           <span className="text-[11px] text-ink-600">{s.label}</span>

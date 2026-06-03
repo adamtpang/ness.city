@@ -3,14 +3,14 @@ import Link from "next/link";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 
 /**
- * /kpi — Network State KPI dashboard.
+ * /kpi, Network State KPI dashboard.
  *
  * Top-level community health metrics across all of ness.city's domains.
  * Complementary to /pulse (which is Discord-channel analytics). This page
  * answers "is the network actually growing and shipping?" at the platform
  * level.
  *
- * Originally a separate concept (nskpi.com) — folded into ness.city after
+ * Originally a separate concept (nskpi.com), folded into ness.city after
  * the 2026-05-22 source-loss incident as a native route. Strategically
  * correct: KPIs of the network belong inside the network.
  *
@@ -24,7 +24,7 @@ import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
  *   - Tools      → lib/tools.ts
  *   - WhatsApp   → lib/whatsapp.ts (group counts)
  *
- * Wiring is stubbed in this V0 — replace `kpiPlaceholder()` with real
+ * Wiring is stubbed in this V0, replace `kpiPlaceholder()` with real
  * server-action / DB calls when the data sources are ready. Stub values
  * are clearly labeled so they never get mistaken for real metrics.
  */
@@ -68,7 +68,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "citizens",
       label: "Citizens",
-      value: "—",
+      value: "-",
       hint: "Registered profiles, all-time.",
       href: "/citizens",
       stub: true,
@@ -76,7 +76,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "problems",
       label: "Problems surfaced",
-      value: "—",
+      value: "-",
       hint: "Open problems awaiting root-cause + bounty.",
       href: "/townhall",
       stub: true,
@@ -84,7 +84,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "bounties",
       label: "Open bounties (USDC)",
-      value: "—",
+      value: "-",
       hint: "Sum of unsettled bounty escrow.",
       href: "/bounties",
       stub: true,
@@ -92,7 +92,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "karma",
       label: "Karma awarded",
-      value: "—",
+      value: "-",
       hint: "Lifetime karma points across all fixers.",
       href: "/points",
       stub: true,
@@ -100,7 +100,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "market",
       label: "Market listings",
-      value: "—",
+      value: "-",
       hint: "Active listings on ness.city/market (30-day TTL).",
       href: "/market",
       stub: true,
@@ -108,7 +108,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "jobs",
       label: "Jobs posted",
-      value: "—",
+      value: "-",
       hint: "Open roles posted by NS-aligned societies.",
       href: "/jobs",
       stub: true,
@@ -116,7 +116,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "tools",
       label: "Tools listed",
-      value: "—",
+      value: "-",
       hint: "Open-source tools indexed for the community.",
       href: "/tools",
       stub: true,
@@ -124,7 +124,7 @@ function kpiPlaceholder(): Pillar[] {
     {
       key: "whatsapp",
       label: "WhatsApp groups",
-      value: "—",
+      value: "-",
       hint: "Active interest groups bridged into Ness.",
       href: "/whatsapp",
       stub: true,

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 
 /**
- * /guide — the SEO funnel.
+ * /guide, the SEO funnel.
  *
  * Independent-guide positioning (same defensible stance thensguide.com
  * uses). Ranks for "Network School" research intent, answers the real

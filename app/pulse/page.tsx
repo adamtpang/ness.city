@@ -5,7 +5,7 @@ import receptionRaw from "@/lib/stats/reception.json";
 import discussionRaw from "@/lib/stats/discussion.json";
 
 /**
- * /pulse — community analytics dashboard.
+ * /pulse, community analytics dashboard.
  *
  * Data and methodology by Ramesh Nair (hiddentao), originally
  * published at nspulse.xyz. Ported into ness.city under MIT with
@@ -184,7 +184,7 @@ export default function PulsePage() {
             intros, top ideas and apps from{" "}
             <code className="font-mono text-[13px]">#discussion</code>.
             Synthesized by Claude into anonymous category aggregates and
-            named-idea summaries — no individual messages, no handles.
+            named-idea summaries, no individual messages, no handles.
           </p>
         </header>
       </FadeIn>
@@ -306,7 +306,7 @@ export default function PulsePage() {
             , parsed and categorized by Claude using prompts from{" "}
             <code className="font-mono text-[12.5px]">scripts/parseReceptionCsv.ts</code>{" "}
             and <code className="font-mono text-[12.5px]">scripts/parseDiscussionCsv.ts</code>{" "}
-            in the original repo. Output is fully aggregated — no
+            in the original repo. Output is fully aggregated, no
             individual messages, names, or handles ever land in the JSON.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">

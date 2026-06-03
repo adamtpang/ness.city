@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
  *
  * POST /api/comments
  * Body: { slug, authorHandle, authorDisplayName, body }
- * Inserts a comment. Same identity model as listing/ring creation —
+ * Inserts a comment. Same identity model as listing/ring creation -
  * handle + display name, ensureCitizen() resolves the FK. No auth.
  */
 

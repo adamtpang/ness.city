@@ -361,7 +361,7 @@ export const proposalsRelations = relations(proposals, ({ one }) => ({
 /**
  * Reverse side of problems.documentation. Without this, the relational
  * query API can't infer the join and throws "not enough information to
- * infer relation problems.documentation" — which 500s every
+ * infer relation problems.documentation", which 500s every
  * /townhall/[slug] page. (Regression from the 2026-05-22 source loss;
  * the documentation table holds the problemId FK.)
  */

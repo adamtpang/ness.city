@@ -1,65 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 /**
- * Nessie — the 🦕 button, bottom-right.
- *
- * v1 is the feedback interview: Nessie asks how your NS experience is
- * (0–5), what would make it a 5, and optional per-track ratings
- * (Learn / Earn / Burn / Fun). Posts to /api/feedback.
- *
- * The 24/7 autonomous problem-solving agent (importance × urgency, an
- * OpenClaw/Hermes loop that works the priority queue) is the next build.
- * For now Nessie listens; soon she acts.
+ * Nessie, the 🦕 chat in the bottom-right. Conversational: talks to
+ * /api/nessie (the agent's reactive brain). A one-tap 0 to 5 rating logs
+ * structured feedback to /api/feedback. The 24/7 autonomous worker is the
+ * OpenClaw instance on the VPS; this is where humans and the agent meet.
  */
 
-const TRACKS = ["learn", "earn", "burn", "fun"] as const;
-type Track = (typeof TRACKS)[number];
+type Msg = { role: "user" | "assistant"; content: string };
+
+const GREETING =
+  "Hi, I am Nessie. I help the community surface and solve its own problems. How is your NS experience right now?";
 
 export function Nessie() {
   const pathname = usePathname() || "/";
   const [open, setOpen] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [message, setMessage] = useState("");
-  const [tracks, setTracks] = useState<Record<Track, number>>({
-    learn: 0,
-    earn: 0,
-    burn: 0,
-    fun: 0,
-  });
-  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [msgs, setMsgs] = useState<Msg[]>([{ role: "assistant", content: GREETING }]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [rated, setRated] = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [msgs, open]);
+
+  async function rate(n: number) {
+    setRated(n);
+    setMsgs((m) => [
+      ...m,
+      { role: "user", content: `My experience: ${n}/5` },
+      {
+        role: "assistant",
+        content: n >= 5 ? "Love that. What is working best?" : "Thanks. What would make it a 5?",
+      },
+    ]);
+    fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rating: n, page: pathname }),
+    }).catch(() => {});
+  }
 
   async function send() {
-    if (!rating || state === "sending") return;
-    setState("sending");
-    const meta: Record<string, number> = {};
-    for (const t of TRACKS) if (tracks[t] > 0) meta[t] = tracks[t];
-    try {
-      await fetch("/api/feedback", {
+    const text = input.trim();
+    if (!text || busy) return;
+    const next = [...msgs, { role: "user" as const, content: text }];
+    setMsgs(next);
+    setInput("");
+    setBusy(true);
+    // If they answered the "what would make it a 5" with a low rating, log it.
+    if (rated !== null && rated < 5) {
+      fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rating,
-          message: message.trim() || undefined,
-          page: pathname,
-          meta: Object.keys(meta).length ? meta : undefined,
-        }),
+        body: JSON.stringify({ rating: rated, message: text, page: pathname }),
+      }).catch(() => {});
+      setRated(null);
+    }
+    try {
+      const res = await fetch("/api/nessie", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
       });
-      setState("done");
-      setTimeout(() => {
-        setOpen(false);
-        setTimeout(() => {
-          setState("idle");
-          setRating(0);
-          setMessage("");
-          setTracks({ learn: 0, earn: 0, burn: 0, fun: 0 });
-        }, 220);
-      }, 1200);
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; reply?: string };
+      setMsgs((m) => [
+        ...m,
+        { role: "assistant", content: data.reply || "I am here, but a little quiet right now." },
+      ]);
     } catch {
-      setState("idle");
+      setMsgs((m) => [...m, { role: "assistant", content: "I could not reach my brain just now." }]);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -72,7 +89,7 @@ export function Nessie() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.97 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute bottom-14 right-0 w-[300px] overflow-hidden rounded-2xl border border-ink-200 bg-paper shadow-[0_20px_50px_-20px_rgba(10,10,10,0.35)]"
+            className="absolute bottom-14 right-0 flex h-[420px] w-[320px] flex-col overflow-hidden rounded-2xl border border-ink-200 bg-paper shadow-[0_20px_50px_-20px_rgba(10,10,10,0.35)]"
           >
             <div className="flex items-center gap-2 border-b border-ink-100 bg-paper-tint px-4 py-2.5">
               <span className="text-[18px] leading-none" aria-hidden>🦕</span>
@@ -81,79 +98,54 @@ export function Nessie() {
               </span>
             </div>
 
-            <div className="p-4">
-              {state === "done" ? (
-                <p className="py-6 text-center text-[14px] text-ink-700">
-                  Thank you. I&apos;m listening.
-                </p>
-              ) : (
-                <>
-                  <p className="text-[13.5px] leading-[1.5] text-ink-800">
-                    How&apos;s your NS experience right now?
-                  </p>
-                  <div className="mt-3 flex gap-1.5">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => setRating(n)}
-                        aria-label={`${n} of 5`}
-                        className={`h-8 w-8 rounded-lg text-[15px] transition-colors ${
-                          n <= rating
-                            ? "bg-ink-950 text-paper"
-                            : "border border-ink-200 text-ink-400 hover:border-ink-950"
-                        }`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-
-                  {rating > 0 && (
-                    <>
-                      {rating < 5 && (
-                        <textarea
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          placeholder="What would make it a 5?"
-                          rows={2}
-                          className="mt-3 w-full resize-none rounded-lg border border-ink-200 bg-paper px-3 py-2 text-[13px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
-                        />
-                      )}
-                      <p className="mt-3 font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-400">
-                        Rate the tracks (optional)
-                      </p>
-                      <div className="mt-1.5 space-y-1">
-                        {TRACKS.map((t) => (
-                          <div key={t} className="flex items-center justify-between">
-                            <span className="text-[12px] capitalize text-ink-700">{t}</span>
-                            <div className="flex gap-1">
-                              {[1, 2, 3, 4, 5].map((n) => (
-                                <button
-                                  key={n}
-                                  onClick={() =>
-                                    setTracks((prev) => ({ ...prev, [t]: n }))
-                                  }
-                                  aria-label={`${t} ${n} of 5`}
-                                  className={`h-3.5 w-3.5 rounded-full transition-colors ${
-                                    n <= tracks[t] ? "bg-ink-950" : "bg-ink-200 hover:bg-ink-400"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        onClick={send}
-                        disabled={state === "sending"}
-                        className="mt-4 w-full rounded-full bg-ink-950 px-4 py-2 text-[12.5px] font-medium text-paper transition-colors hover:bg-ink-800 disabled:opacity-40"
-                      >
-                        {state === "sending" ? "Sending…" : "Send to Nessie"}
-                      </button>
-                    </>
-                  )}
-                </>
+            <div ref={scrollRef} className="flex-1 space-y-2.5 overflow-y-auto px-3 py-3">
+              {msgs.map((m, i) => (
+                <div
+                  key={i}
+                  className={`max-w-[85%] rounded-xl px-3 py-2 text-[13px] leading-[1.45] ${
+                    m.role === "assistant"
+                      ? "bg-paper-tint text-ink-800"
+                      : "ml-auto bg-ink-950 text-paper"
+                  }`}
+                >
+                  {m.content}
+                </div>
+              ))}
+              {rated === null && (
+                <div className="flex gap-1.5 pt-1">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => rate(n)}
+                      className="h-7 w-7 rounded-lg border border-ink-200 text-[13px] text-ink-500 transition-colors hover:border-ink-950 hover:text-ink-950"
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
               )}
+              {busy && <div className="text-[12px] text-ink-400">Nessie is thinking...</div>}
+            </div>
+
+            <div className="border-t border-ink-100 p-2.5">
+              <div className="flex items-center gap-2">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") send();
+                  }}
+                  placeholder="Tell Nessie anything"
+                  className="flex-1 rounded-lg border border-ink-200 bg-paper px-3 py-2 text-[13px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+                />
+                <button
+                  onClick={send}
+                  disabled={busy || !input.trim()}
+                  className="rounded-full bg-ink-950 px-3 py-2 text-[12px] font-medium text-paper transition-colors hover:bg-ink-800 disabled:opacity-40"
+                >
+                  Send
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

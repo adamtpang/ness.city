@@ -80,8 +80,17 @@ export async function POST(request: Request) {
   }
 
   const title = clean(body.title, MAX_TITLE);
-  const summary = clean(body.summary, MAX_TEXT);
-  const rootCause = clean(body.rootCause, MAX_TEXT);
+  if (!title) {
+    return NextResponse.json(
+      { ok: false, error: "A title is required." },
+      { status: 400 },
+    );
+  }
+  // Fewest-clicks filing: only the title is required. Summary and root
+  // cause default to the title so a one-liner is a valid problem; the
+  // community fleshes out the diagnosis in the thread.
+  const summary = clean(body.summary, MAX_TEXT) ?? title;
+  const rootCause = clean(body.rootCause, MAX_TEXT) ?? "To be diagnosed by the community.";
   const reporterDisplayName = clean(body.reporterDisplayName, 80) ?? "Anonymous";
   const reporterHandle = clean(body.reporterHandle, 40) ?? "anon";
   const categoryRaw = clean(body.category, 40) ?? "other";
@@ -90,16 +99,6 @@ export async function POST(request: Request) {
     typeof body.affected === "number" && Number.isFinite(body.affected)
       ? Math.max(0, Math.min(100000, Math.round(body.affected)))
       : 0;
-
-  if (!title || !summary || !rootCause) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "title, summary, and rootCause are required",
-      },
-      { status: 400 },
-    );
-  }
 
   const db = getDb();
 

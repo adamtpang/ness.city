@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/feedback  { rating (1-5), message?, page? }
- * On-site feedback. Writes to the feedback table. No GitHub round-trip —
+ * On-site feedback. Writes to the feedback table. No GitHub round-trip -
  * lowest-friction way for a member to tell us how it's going.
  */
 export async function POST(req: Request) {
