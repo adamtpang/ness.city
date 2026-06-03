@@ -1,31 +1,10 @@
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import { getDb, isDbConfigured, schema } from "@/lib/db";
+import { createProblem } from "@/lib/db/queries";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const MAX_TITLE = 200;
-const MAX_TEXT = 6000;
-const SLUG_RE = /[^a-z0-9]+/g;
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .trim()
-    .replace(SLUG_RE, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
-const ALLOWED_CATEGORIES = new Set([
-  "operations",
-  "social",
-  "infra",
-  "policy",
-  "wellbeing",
-  "other",
-]);
 
 type CreateBody = {
   title?: unknown;
@@ -37,11 +16,8 @@ type CreateBody = {
   affected?: unknown;
 };
 
-function clean(value: unknown, max: number): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  return trimmed.slice(0, max);
+function str(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 export async function GET() {
@@ -79,84 +55,29 @@ export async function POST(request: Request) {
     return new NextResponse("Invalid JSON", { status: 400 });
   }
 
-  const title = clean(body.title, MAX_TITLE);
-  if (!title) {
+  if (!str(body.title)?.trim()) {
     return NextResponse.json(
       { ok: false, error: "A title is required." },
       { status: 400 },
     );
   }
-  // Fewest-clicks filing: only the title is required. Summary and root
-  // cause default to the title so a one-liner is a valid problem; the
-  // community fleshes out the diagnosis in the thread.
-  const summary = clean(body.summary, MAX_TEXT) ?? title;
-  const rootCause = clean(body.rootCause, MAX_TEXT) ?? "To be diagnosed by the community.";
-  const reporterDisplayName = clean(body.reporterDisplayName, 80) ?? "Anonymous";
-  const reporterHandle = clean(body.reporterHandle, 40) ?? "anon";
-  const categoryRaw = clean(body.category, 40) ?? "other";
-  const category = ALLOWED_CATEGORIES.has(categoryRaw) ? categoryRaw : "other";
-  const affected =
-    typeof body.affected === "number" && Number.isFinite(body.affected)
-      ? Math.max(0, Math.min(100000, Math.round(body.affected)))
-      : 0;
 
-  const db = getDb();
-
-  // Resolve or create the citizen by handle
-  let citizen = await db.query.citizens.findFirst({
-    where: eq(schema.citizens.handle, reporterHandle),
-  });
-  if (!citizen) {
-    const inserted = await db
-      .insert(schema.citizens)
-      .values({
-        handle: reporterHandle,
-        displayName: reporterDisplayName,
-        avatarSeed: reporterHandle,
-      })
-      .returning();
-    citizen = inserted[0];
+  try {
+    const { problem, karmaAwarded } = await createProblem({
+      title: str(body.title) ?? "",
+      summary: str(body.summary),
+      rootCause: str(body.rootCause),
+      category: str(body.category),
+      reporterDisplayName: str(body.reporterDisplayName),
+      reporterHandle: str(body.reporterHandle),
+      affected:
+        typeof body.affected === "number" ? body.affected : undefined,
+    });
+    return NextResponse.json({ ok: true, problem, karmaAwarded });
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, error: e instanceof Error ? e.message : "Could not file" },
+      { status: 400 },
+    );
   }
-
-  // Slug must be unique. Append a short id if collision.
-  let slug = slugify(title);
-  if (!slug) slug = "untitled";
-  const existing = await db.query.problems.findFirst({
-    where: eq(schema.problems.slug, slug),
-  });
-  if (existing) {
-    slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
-  }
-
-  const inserted = await db
-    .insert(schema.problems)
-    .values({
-      slug,
-      title,
-      summary,
-      rootCause,
-      category: category as
-        | "operations"
-        | "social"
-        | "infra"
-        | "policy"
-        | "wellbeing"
-        | "other",
-      reporterId: citizen.id,
-      reporterDisplayName: citizen.displayName,
-      affected,
-    })
-    .returning();
-
-  // +5 karma to the reporter for surfacing with a real diagnosis
-  await db
-    .update(schema.citizens)
-    .set({ karma: (citizen.karma ?? 0) + 5 })
-    .where(eq(schema.citizens.id, citizen.id));
-
-  return NextResponse.json({
-    ok: true,
-    problem: inserted[0],
-    karmaAwarded: 5,
-  });
 }

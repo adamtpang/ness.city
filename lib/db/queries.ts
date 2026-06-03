@@ -235,6 +235,123 @@ export async function listProblemsWithCounts(): Promise<ProblemWithCounts[]> {
   }));
 }
 
+/**
+ * Single source of truth for filing a problem. Both the modal (via
+ * /api/problems) and Nessie's interview (via /api/nessie tool use) go
+ * through here, so a problem surfaced by a human and one diagnosed by the
+ * agent are identical rows: clean inputs, resolve-or-create the reporter
+ * citizen, guarantee a unique slug, insert, and award surfacing karma.
+ *
+ * Inputs are normalized here so any caller can pass loose strings safely.
+ * Throws on a missing title (caller maps that to a 400).
+ */
+const PROBLEM_SLUG_RE = /[^a-z0-9]+/g;
+
+function slugifyProblem(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(PROBLEM_SLUG_RE, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+const PROBLEM_CATEGORIES = new Set([
+  "operations",
+  "social",
+  "infra",
+  "policy",
+  "wellbeing",
+  "other",
+]);
+
+export type CreateProblemInput = {
+  title: string;
+  summary?: string | null;
+  rootCause?: string | null;
+  category?: string | null;
+  reporterDisplayName?: string | null;
+  reporterHandle?: string | null;
+  affected?: number | null;
+};
+
+export type CreateProblemResult = { problem: DbProblem; karmaAwarded: number };
+
+export async function createProblem(
+  input: CreateProblemInput,
+): Promise<CreateProblemResult> {
+  const db = getDb();
+
+  const title = (input.title ?? "").trim().slice(0, 200);
+  if (!title) throw new Error("A title is required.");
+
+  // Fewest-friction filing: only the title is required. Summary defaults
+  // to the title; root cause stays open for the community to diagnose.
+  const summary = (input.summary ?? "").trim().slice(0, 6000) || title;
+  const rootCause =
+    (input.rootCause ?? "").trim().slice(0, 6000) ||
+    "To be diagnosed by the community.";
+  const reporterDisplayName =
+    (input.reporterDisplayName ?? "").trim().slice(0, 80) || "Anonymous";
+  const reporterHandle =
+    (input.reporterHandle ?? "")
+      .trim()
+      .replace(/^@/, "")
+      .toLowerCase()
+      .slice(0, 40) || "anon";
+  const categoryRaw = (input.category ?? "").trim().toLowerCase().slice(0, 40);
+  const category = PROBLEM_CATEGORIES.has(categoryRaw) ? categoryRaw : "other";
+  const affected =
+    typeof input.affected === "number" && Number.isFinite(input.affected)
+      ? Math.max(0, Math.min(100000, Math.round(input.affected)))
+      : 0;
+
+  // Resolve or create the reporter by handle.
+  let citizen = await db.query.citizens.findFirst({
+    where: eq(schema.citizens.handle, reporterHandle),
+  });
+  if (!citizen) {
+    const inserted = await db
+      .insert(schema.citizens)
+      .values({
+        handle: reporterHandle,
+        displayName: reporterDisplayName,
+        avatarSeed: reporterHandle,
+      })
+      .returning();
+    citizen = inserted[0];
+  }
+
+  // Slug must be unique. Append a short random suffix on collision.
+  let slug = slugifyProblem(title) || "untitled";
+  const existing = await db.query.problems.findFirst({
+    where: eq(schema.problems.slug, slug),
+  });
+  if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+
+  const inserted = await db
+    .insert(schema.problems)
+    .values({
+      slug,
+      title,
+      summary,
+      rootCause,
+      category: category as DbProblem["category"],
+      reporterId: citizen.id,
+      reporterDisplayName: citizen.displayName,
+      affected,
+    })
+    .returning();
+
+  // +5 karma to the reporter for surfacing.
+  await db
+    .update(schema.citizens)
+    .set({ karma: (citizen.karma ?? 0) + 5 })
+    .where(eq(schema.citizens.id, citizen.id));
+
+  return { problem: inserted[0], karmaAwarded: 5 };
+}
+
 /** Top Patrons (by $ pledged) and Fixers (by karma) for the side rails. */
 export type LeaderEntry = { name: string; handle: string; value: number };
 export async function getLeaderboards(): Promise<{
