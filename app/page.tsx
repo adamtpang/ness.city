@@ -23,7 +23,8 @@ const STATUS: Record<string, { dot: string; label: string }> = {
 
 const IMPORTANT = 25;
 const URGENT = 25;
-const COLS = "grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_minmax(0,1fr)_8.5rem]";
+// Problem -> Priority -> Solution -> Bounty.
+const COLS = "grid-cols-[minmax(0,1fr)_6rem_minmax(0,1fr)_6rem]";
 
 type Item = {
   p: ProblemWithCounts;
@@ -33,6 +34,7 @@ type Item = {
   solution: string | null;
   solver: DemoSolver | null;
   surfaced: string;
+  bountyUsd: number;
 };
 
 function initials(name: string): string {
@@ -59,10 +61,10 @@ const byPriority = (a: Item, b: Item) =>
   b.importance - a.importance || b.urgency - a.urgency;
 
 /**
- * Home = the engine as an Eisenhower quest board. Problems sort by community
- * importance and urgency into Q1 (do now), Q2 (schedule + fund), Archived.
- * Patrons rail left, Solvers rail right, both in USDC. When the DB has no
- * problems yet, a curated demo set renders so the board is full.
+ * Home = the engine, as the civic pipeline. Problems flow Problem ->
+ * Priority -> Solution -> Bounty, grouped into Eisenhower quadrants by
+ * community importance and urgency. Patrons rail left, Solvers right, both in
+ * USDC. When the DB has no problems yet, a curated demo set renders.
  */
 export default async function Home() {
   const [liveProblems, liveBoards, liveStats] = await Promise.all([
@@ -85,6 +87,7 @@ export default async function Home() {
       solution: d.solution ?? null,
       solver: d.solver ?? null,
       surfaced: d.surfaced ?? timeAgo(p.createdAt),
+      bountyUsd: d.bountyUsd ?? 0,
     };
   });
   const q1 = items.filter((i) => i.importance >= IMPORTANT && i.urgency >= URGENT).sort(byPriority);
@@ -129,18 +132,17 @@ export default async function Home() {
       <div className="mt-3 grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
         <Rail title="Patrons" sub="USDC in" entries={boards.patrons} empty="No patrons yet" />
 
-        {/* Center: prioritized quest board */}
+        {/* Center: the pipeline */}
         <div className="min-h-[72vh] overflow-hidden rounded-xl border-2 border-ink-300 bg-paper">
           <div className="overflow-x-auto">
-            <div className="min-w-[680px]">
+            <div className="min-w-[720px]">
               <div
-                className={`grid ${COLS} items-center gap-2 border-b-2 border-ink-300 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500 sm:px-4`}
+                className={`grid ${COLS} items-center gap-3 border-b-2 border-ink-300 bg-paper-tint px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500 sm:px-4`}
               >
                 <div>Problem</div>
-                <div className="text-center" title="Community importance">Imp</div>
-                <div className="text-center" title="Community urgency">Urg</div>
+                <div className="text-center">Priority</div>
                 <div>Solution</div>
-                <div className="text-right">Execution</div>
+                <div className="text-right">Bounty</div>
               </div>
 
               {items.length === 0 ? (
@@ -225,12 +227,12 @@ function QuadrantSection({
 }
 
 function Row({ item }: { item: Item }) {
-  const { p, importance, urgency, emoji, solution, solver, surfaced } = item;
-  const s = STATUS[p.status] ?? STATUS.open;
+  const { p, importance, urgency, emoji, solution, solver, surfaced, bountyUsd } = item;
   const done = p.status === "solved" || (solver?.progress ?? 0) >= 100;
   return (
     <li className="border-b border-ink-200 last:border-0">
-      <div className={`grid ${COLS} items-center gap-2 px-3 py-2.5 transition-colors hover:bg-paper-tint sm:px-4`}>
+      <div className={`grid ${COLS} items-center gap-3 px-3 py-3 transition-colors hover:bg-paper-tint sm:px-4`}>
+        {/* Problem */}
         <Link href={`/townhall/${p.slug}`} className="flex min-w-0 items-start gap-2">
           <span className="text-[17px] leading-none">{emoji}</span>
           <span className="min-w-0">
@@ -241,37 +243,59 @@ function Row({ item }: { item: Item }) {
           </span>
         </Link>
 
-        <VoteCell initial={importance} />
-        <VoteCell initial={urgency} />
+        {/* Priority: importance + urgency votes */}
+        <div className="flex items-start justify-center gap-3">
+          <div className="flex flex-col items-center">
+            <VoteCell initial={importance} />
+            <span className="font-mono text-[8px] uppercase tracking-wide text-ink-400">imp</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <VoteCell initial={urgency} />
+            <span className="font-mono text-[8px] uppercase tracking-wide text-ink-400">urg</span>
+          </div>
+        </div>
 
+        {/* Solution + who is on it */}
         <div className="min-w-0">
           {solution ? (
-            <span className="block truncate text-[12.5px] leading-snug text-ink-700">{solution}</span>
+            <>
+              <span className="block truncate text-[12.5px] leading-snug text-ink-700">{solution}</span>
+              {solver && (
+                <span className="mt-1 flex items-center gap-1.5">
+                  <Avatar initials={initials(solver.name)} seed={solver.handle} size={14} />
+                  <span className="font-mono text-[9.5px] text-ink-500">
+                    @{solver.handle} · {solver.progress}%
+                  </span>
+                  <span className="h-1 w-12 overflow-hidden rounded-full bg-ink-200">
+                    <span
+                      className={`block h-full rounded-full ${done ? "bg-emerald-500" : "bg-blue-500"}`}
+                      style={{ width: `${Math.max(6, solver.progress)}%` }}
+                    />
+                  </span>
+                </span>
+              )}
+            </>
           ) : (
             <span className="text-[11.5px] text-ink-400">Open for solutions</span>
           )}
         </div>
 
+        {/* Bounty */}
         <div className="flex items-center justify-end">
-          {solver ? (
-            <div className="flex w-[7.5rem] flex-col items-end gap-1">
-              <div className="flex items-center gap-1.5">
-                <Avatar initials={initials(solver.name)} seed={solver.handle} size={18} />
-                <span className="font-mono text-[10px] text-ink-600">@{solver.handle}</span>
-                <span className="font-mono text-[10px] tabular-nums text-ink-500">{solver.progress}%</span>
-              </div>
-              <div className="h-1 w-full overflow-hidden rounded-full bg-ink-200">
-                <div
-                  className={`h-full rounded-full ${done ? "bg-emerald-500" : "bg-blue-500"}`}
-                  style={{ width: `${Math.max(4, solver.progress)}%` }}
-                />
-              </div>
-            </div>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-ink-500">
-              <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden />
-              {s.label}
+          {bountyUsd > 0 ? (
+            <span className="inline-flex items-center gap-1.5">
+              <UsdcMark size={15} />
+              <span className="font-mono text-[13px] font-semibold tabular-nums text-ink-900">
+                ${bountyUsd.toLocaleString()}
+              </span>
             </span>
+          ) : (
+            <Link
+              href={`/townhall/${p.slug}`}
+              className="font-mono text-[11px] font-medium text-[#2563eb] hover:underline"
+            >
+              Fund →
+            </Link>
           )}
         </div>
       </div>
