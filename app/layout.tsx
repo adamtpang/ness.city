@@ -5,6 +5,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Nessie } from "@/components/Nessie";
 import { LiveBackground } from "@/components/LiveBackground";
+import { Providers } from "@/components/Providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -53,9 +54,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-dvh bg-paper-warm font-sans text-ink-950 antialiased">
-        <LiveBackground />
-        <Header />
-        {children}
+        <Providers>
+          <LiveBackground />
+          <Header />
+          {children}
         <footer className="mt-32 border-t border-ink-200 py-10">
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -99,8 +101,9 @@ export default function RootLayout({
               Ness is its own brand and operates separately.
             </div>
           </div>
-        </footer>
-        <Nessie />
+          </footer>
+          <Nessie />
+        </Providers>
         <Analytics />
       </body>
     </html>
