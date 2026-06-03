@@ -2,12 +2,14 @@ import type { EngineStats, LeaderEntry, ProblemWithCounts } from "@/lib/db/queri
 
 /**
  * Curated showcase dataset. The home board renders this when the database
- * has no problems yet, so the engine reads full for a demo without any DB
- * wiring. The moment real problems exist, the board switches to live data.
+ * has no problems yet, so the engine reads full without any DB wiring. The
+ * moment real problems exist, the board switches to live data.
  *
- * Each problem carries community importance + urgency (for the Eisenhower
- * sort), an emoji, a leading solution, a claiming solver with progress, and
- * a surfaced time. Mixes community problems with meta problems (Ness on Ness).
+ * The problems here are seeded from the real Network School community: the
+ * most-requested features and most-persistent gaps surfaced in Ramesh Nair's
+ * analysis of the #build-log (Aug 2024 to Feb 2026), plus a few meta problems
+ * (Ness improving Ness). Member directory with skills search was the single
+ * most requested thing across all of NS, so it leads the board.
  */
 
 export type DemoSolver = { name: string; handle: string; progress: number };
@@ -35,19 +37,18 @@ type Seed = {
 };
 
 const SEED: Seed[] = [
-  // Ness on Ness: the platform improving itself, in the open.
-  { slug: "ness-usdc-escrow-base", emoji: "🏦", title: "Ness needs USDC escrow on Base for bounties", category: "infra", status: "in-progress", importance: 41, urgency: 30, affected: 130, surfaced: "5d ago", solution: "Audited Base escrow that releases USDC on patron sign-off", solver: { name: "Sol", handle: "sol", progress: 40 } },
-  { slug: "per-problem-discussion-threads", emoji: "💬", title: "Per-problem discussion threads (WhatsApp and Discord style)", category: "social", status: "investigating", importance: 33, urgency: 16, affected: 110, surfaced: "4d ago", solution: "A lightweight thread embedded under each problem", solver: null },
-  { slug: "nessie-auto-tag-importance-urgency", emoji: "🤖", title: "Nessie should auto-tag importance and urgency on new problems", category: "policy", status: "in-progress", importance: 30, urgency: 19, affected: 95, surfaced: "3d ago", solution: "Nessie scores each new problem on submit via the agent API", solver: { name: "Jin", handle: "jin", progress: 25 } },
-  { slug: "campus-business-directory", emoji: "🏢", title: "Campus business directory: on-land vs cloud companies", category: "operations", status: "open", importance: 24, urgency: 12, affected: 70, surfaced: "6d ago", solution: null, solver: null },
+  { slug: "member-directory-skills-search", emoji: "📒", title: "Member directory with skills search", category: "social", status: "in-progress", importance: 44, urgency: 26, affected: 180, surfaced: "since cohort 1", solution: "A searchable directory: skills, current projects, what each member is building", solver: { name: "Jin", handle: "jin", progress: 35 } },
+  { slug: "coworking-wifi-drops", emoji: "📶", title: "Coworking wifi drops during calls", category: "infra", status: "in-progress", importance: 38, urgency: 33, affected: 90, surfaced: "2d ago", solution: "Two mesh APs in the east wing, segment the call traffic", solver: { name: "Remy", handle: "remy", progress: 30 } },
+  { slug: "flexible-meal-credits", emoji: "🍽️", title: "Meal credits should be flexible", category: "operations", status: "open", importance: 34, urgency: 28, affected: 140, surfaced: "4d ago", solution: "Roll over unused credits and allow nearby partner cafes", solver: null },
+  { slug: "gym-overcrowded-6pm", emoji: "🏋️", title: "Gym is overcrowded at 6pm", category: "wellbeing", status: "open", importance: 32, urgency: 30, affected: 51, surfaced: "2d ago", solution: "Add a second 6 to 8pm coach-led slot + rack booking", solver: { name: "Sol", handle: "sol", progress: 60 } },
 
-  // Community problems from the floor.
-  { slug: "gym-overcrowded-6pm", emoji: "🏋️", title: "Gym is overcrowded at 6pm", category: "wellbeing", status: "open", importance: 38, urgency: 34, affected: 51, surfaced: "2d ago", solution: "Add a second 6 to 8pm coach-led slot + rack booking", solver: { name: "Sol", handle: "sol", progress: 60 } },
-  { slug: "coworking-wifi-drops", emoji: "📶", title: "Coworking wifi drops during calls", category: "infra", status: "in-progress", importance: 31, urgency: 33, affected: 44, surfaced: "2d ago", solution: "Two mesh APs in the east wing, segment the call traffic", solver: { name: "Remy", handle: "remy", progress: 30 } },
-  { slug: "no-quiet-deep-work-room", emoji: "🤫", title: "No quiet room for deep work", category: "infra", status: "investigating", importance: 28, urgency: 17, affected: 42, surfaced: "4d ago", solution: "Convert the east corner into a phones-off quiet zone", solver: null },
-  { slug: "onboarding-new-arrivals", emoji: "🧭", title: "No clear onboarding for week-one arrivals", category: "social", status: "solved", importance: 26, urgency: 14, affected: 47, surfaced: "8d ago", solution: "Week-one checklist + a Sunday walkthrough", solver: { name: "Sol", handle: "sol", progress: 100 } },
-  { slug: "visa-run-logistics", emoji: "🛂", title: "Visa run logistics are confusing for newcomers", category: "operations", status: "open", importance: 22, urgency: 24, affected: 33, surfaced: "6d ago", solution: null, solver: null },
-  { slug: "find-training-partners", emoji: "🤝", title: "Hard to find people to train with", category: "social", status: "open", importance: 14, urgency: 9, affected: 21, surfaced: "7d ago", solution: null, solver: null },
+  { slug: "ness-usdc-escrow-base", emoji: "🏦", title: "Ness needs USDC escrow on Base for bounties", category: "infra", status: "in-progress", importance: 31, urgency: 20, affected: 130, surfaced: "5d ago", solution: "Audited Base escrow that releases USDC on patron sign-off", solver: { name: "Sol", handle: "sol", progress: 40 } },
+  { slug: "unified-event-calendar", emoji: "🗓️", title: "No unified event calendar", category: "social", status: "investigating", importance: 30, urgency: 18, affected: 120, surfaced: "5d ago", solution: "One calendar that aggregates every NS event with RSVPs", solver: { name: "Sol", handle: "sol", progress: 20 } },
+  { slug: "governance-model", emoji: "🏛️", title: "We need a clear governance model", category: "policy", status: "open", importance: 28, urgency: 14, affected: 110, surfaced: "6d ago", solution: "Draft a lightweight charter the community ratifies", solver: null },
+  { slug: "nessie-auto-tag-importance-urgency", emoji: "🤖", title: "Nessie should auto-tag importance and urgency on new problems", category: "policy", status: "in-progress", importance: 27, urgency: 16, affected: 95, surfaced: "3d ago", solution: "Nessie scores each new problem on submit via the agent API", solver: { name: "Jin", handle: "jin", progress: 25 } },
+
+  { slug: "more-nature-outdoor-space", emoji: "🌳", title: "More nature and outdoor green space", category: "wellbeing", status: "open", importance: 22, urgency: 12, affected: 80, surfaced: "7d ago", solution: null, solver: null },
+  { slug: "standing-desks", emoji: "🪑", title: "Standing desks in the coworking space", category: "operations", status: "open", importance: 16, urgency: 10, affected: 40, surfaced: "8d ago", solution: null, solver: null },
 ];
 
 const SEED_DATE = new Date("2026-06-01T00:00:00.000Z");
