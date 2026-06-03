@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import QRCode from "qrcode";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { isDbConfigured } from "@/lib/db";
 import { ensureWaitlistTable, waitlistCount } from "@/lib/waitlist";
@@ -12,16 +11,7 @@ export const metadata: Metadata = {
     "Sign up to help surface and solve problems for Network School and Ness.",
 };
 
-const JOIN_URL = "https://ness.city/join";
-
 export default async function JoinPage() {
-  const qr = await QRCode.toDataURL(JOIN_URL, {
-    margin: 1,
-    width: 360,
-    errorCorrectionLevel: "M",
-    color: { dark: "#0a0a0a", light: "#fbfaf7" },
-  });
-
   let count = 0;
   if (isDbConfigured) {
     try {
@@ -56,7 +46,7 @@ export default async function JoinPage() {
           <div className="rounded-3xl border border-ink-200 bg-paper p-6 shadow-[0_24px_60px_-30px_rgba(10,10,10,0.4)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={qr}
+              src="/qr-join.svg"
               alt="Scan to join Ness"
               width={300}
               height={300}
