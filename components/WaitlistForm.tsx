@@ -10,7 +10,6 @@ import { useState, type FormEvent } from "react";
  */
 export function WaitlistForm({ initialCount }: { initialCount: number }) {
   const [email, setEmail] = useState("");
-  const [note, setNote] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [count, setCount] = useState(initialCount);
   const [err, setErr] = useState<string | null>(null);
@@ -28,11 +27,7 @@ export function WaitlistForm({ initialCount }: { initialCount: number }) {
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          note: note.trim() || undefined,
-          source: "join",
-        }),
+        body: JSON.stringify({ email: email.trim(), source: "join" }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -75,13 +70,6 @@ export function WaitlistForm({ initialCount }: { initialCount: number }) {
         placeholder="you@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="text"
-        className={field}
-        placeholder="What would you build or fix? (optional)"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
       />
       <div className="flex items-center justify-between gap-3 pt-1">
         <span className="text-[12px] text-ink-500">

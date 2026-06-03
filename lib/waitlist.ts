@@ -26,6 +26,22 @@ export async function waitlistCount(): Promise<number> {
   return (rows as unknown as Array<{ n: number }>)[0]?.n ?? 0;
 }
 
+export type WaitlistRow = { email: string; note: string | null; createdAt: string };
+
+export async function listWaitlist(): Promise<WaitlistRow[]> {
+  const db = getDb();
+  const rows = await db.execute(
+    sql`SELECT email, note, created_at FROM waitlist ORDER BY created_at DESC LIMIT 2000`,
+  );
+  return (
+    rows as unknown as Array<{ email: string; note: string | null; created_at: string | Date }>
+  ).map((r) => ({
+    email: r.email,
+    note: r.note ?? null,
+    createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
+  }));
+}
+
 export async function addToWaitlist(
   email: string,
   note: string | null,
