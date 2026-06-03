@@ -9,13 +9,9 @@ type Util = {
 };
 
 const utilities: Util[] = [
-  {
-    name: "Routermill",
-    blurb:
-      "Snap a photo of a CelcomDigi router label, get the serial number, default SSID, and default password extracted by Gemini. Build a queue, name each target, download a CSV. Pairs with a desktop bot that runs the setup wizard for you.",
-    state: "live",
-    href: "/tools/routermill",
-  },
+  // Routermill / nslink lives on its own subdomain now (routers.ness.city),
+  // an internal ops tool rather than a public utility, so it is intentionally
+  // not listed in the public belt.
   // Points calculator commented out for pre-public review. Restore by
   // un-commenting and pointing href to /points once the page is back.
   // {

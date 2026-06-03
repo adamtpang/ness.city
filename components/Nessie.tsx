@@ -40,6 +40,7 @@ export function Nessie() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [rated, setRated] = useState<number | null>(null);
+  const [onRoutersHost, setOnRoutersHost] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +55,19 @@ export function Nessie() {
       return () => clearTimeout(t);
     }
   }, [open]);
+
+  // Nessie is the civic chat for the main site. The router tool on
+  // routers.ness.city is a focused internal utility, so keep her out of the
+  // way there. The launcher has a 0.6s entrance delay, so hiding it on mount
+  // happens before it ever animates in (no flash).
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.location.hostname.startsWith("routers.")
+    ) {
+      setOnRoutersHost(true);
+    }
+  }, []);
 
   async function rate(n: number) {
     setRated(n);
@@ -122,6 +136,10 @@ export function Nessie() {
       setBusy(false);
     }
   }
+
+  // Hidden on the router tool: its own /nslink path, and the routers.* host
+  // (where the page is rewritten to /nslink so pathname reads as "/").
+  if (pathname.startsWith("/nslink") || onRoutersHost) return null;
 
   return (
     <div className="fixed bottom-5 right-5 z-50 sm:bottom-6 sm:right-6">

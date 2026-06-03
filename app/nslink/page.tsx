@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { FadeIn } from "@/components/motion/FadeIn";
 
@@ -135,18 +134,18 @@ export default function NslinkPage() {
   return (
     <main className="mx-auto max-w-3xl px-5 pb-20 pt-10">
       <FadeIn y={6}>
-        <Link
-          href="/"
+        <a
+          href="https://ness.city"
           className="inline-flex items-center gap-1.5 text-[12px] text-ink-500 transition-colors hover:text-ink-950"
         >
           <span aria-hidden>←</span> ness.city
-        </Link>
+        </a>
       </FadeIn>
 
       <FadeIn delay={0.05}>
         <div className="mt-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-            nslink · the router provisioning tool
+            routers.ness.city · router provisioning
           </p>
           <h1 className="serif mt-2 text-[44px] leading-[1.05] text-ink-950 sm:text-[56px]">
             Scan a stack of routers.
@@ -353,8 +352,8 @@ export default function NslinkPage() {
             sets the new SSID + admin password, verifies, and moves on.
           </p>
           <p className="mt-3 text-[13px] text-ink-500">
-            Bot lives in <code className="font-mono">scripts/nslink/</code>{" "}
-            (formerly <code className="font-mono">routermill/</code>) in this repo. Setup steps in its README.
+            Bot lives in <code className="font-mono">scripts/routermill/</code>{" "}
+            in this repo. Full setup steps are in its README.
           </p>
         </div>
       </FadeIn>

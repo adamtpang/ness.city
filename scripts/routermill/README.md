@@ -1,14 +1,14 @@
 # Routermill bot
 
-Desktop companion to [`/tools/routermill`](https://ness.city/tools/routermill).
+Desktop companion to the router tool at [routers.ness.city](https://routers.ness.city).
 
 The web app reads router labels and produces a `router_queue.csv`. This bot
 takes the CSV, watches the airwaves, and runs the CelcomDigi setup wizard
 against each router as it powers on.
 
 Originally built for the Network School coworking buildout in Forest City,
-Malaysia. Hand-off target: Aaron (campus AV). Forward-compatible with the
-fiber rollout — same routers will be repurposed as mesh extensions.
+Malaysia. Hand-off target: Conor (NS intern). Forward-compatible with the
+fiber rollout, the same routers will be repurposed as mesh extensions.
 
 ## What it does
 
@@ -48,7 +48,7 @@ playwright install chromium
 ## Usage
 
 ```bash
-# 1. Open https://ness.city/tools/routermill on your phone, scan labels,
+# 1. Open https://routers.ness.city on your phone, scan labels,
 #    fill in the target SSIDs, download the CSV.
 # 2. Drop router_queue.csv into this folder.
 # 3. Power on a batch of routers (5-10 at a time is fine).
