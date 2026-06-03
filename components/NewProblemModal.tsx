@@ -12,31 +12,37 @@ import {
 
 const IDENTITY_KEY = "ness:identity:v1";
 
+type Mode = "anonymous" | "pseudonymous" | "real";
+
+const MODES: { id: Mode; label: string; hint: string }[] = [
+  { id: "anonymous", label: "Anonymous", hint: "No name attached. Just the problem." },
+  { id: "pseudonymous", label: "Pseudonym", hint: "Show a handle, not your real name." },
+  { id: "real", label: "Real name", hint: "Put your name to it." },
+];
+
 /**
- * Fewest-clicks problem filing. Returning user: open, type one line,
- * Enter. That is it. Identity is remembered; we only ask for it the
- * first time, inline. Category + diagnosis are optional, behind a tap.
+ * Fewest-clicks filing. Default is anonymous: open, type one line, Enter.
+ * No name or handle fields unless you opt into a pseudonym or your real
+ * name. (Once Privy is live these tiers bind to your wallet identity.)
  */
 export function NewProblemModal({ trigger }: { trigger: React.ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [mode, setMode] = useState<Mode>("anonymous");
   const [handle, setHandle] = useState("");
   const [name, setName] = useState("");
-  const [hasIdentity, setHasIdentity] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Prefill remembered identity (used only if they pick pseudonym/real).
   useEffect(() => {
     try {
       const raw = localStorage.getItem(IDENTITY_KEY);
       if (raw) {
         const p = JSON.parse(raw) as { name?: string; handle?: string };
-        if (p.handle) {
-          setName(p.name ?? "");
-          setHandle(p.handle);
-          setHasIdentity(true);
-        }
+        if (p.handle) setHandle(p.handle);
+        if (p.name) setName(p.name);
       }
     } catch {
       /* noop */
@@ -48,25 +54,45 @@ export function NewProblemModal({ trigger }: { trigger: React.ReactNode }) {
       setErr("Type the problem in one line.");
       return;
     }
-    const h = (handle.trim() || "anon").replace(/^@/, "").toLowerCase();
-    const n = name.trim() || "Anonymous";
+
+    let reporterDisplayName = "Anonymous";
+    let reporterHandle = "anon";
+    if (mode === "pseudonymous") {
+      const h = handle.trim().replace(/^@/, "").toLowerCase();
+      if (!h) {
+        setErr("Add a handle, or switch to anonymous.");
+        return;
+      }
+      reporterHandle = h;
+      reporterDisplayName = `@${h}`;
+    } else if (mode === "real") {
+      const n = name.trim();
+      if (!n) {
+        setErr("Add your name, or switch to anonymous.");
+        return;
+      }
+      reporterDisplayName = n;
+      reporterHandle =
+        handle.trim().replace(/^@/, "").toLowerCase() ||
+        n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    }
+
     setBusy(true);
     setErr(null);
     try {
       const res = await fetch("/api/problems", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          reporterDisplayName: n,
-          reporterHandle: h,
-        }),
+        body: JSON.stringify({ title: title.trim(), reporterDisplayName, reporterHandle }),
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
-      if (handle.trim()) {
+      if (mode !== "anonymous") {
         try {
-          localStorage.setItem(IDENTITY_KEY, JSON.stringify({ name: n, handle: h }));
+          localStorage.setItem(
+            IDENTITY_KEY,
+            JSON.stringify({ name: name.trim(), handle: reporterHandle }),
+          );
         } catch {
           /* noop */
         }
@@ -91,7 +117,7 @@ export function NewProblemModal({ trigger }: { trigger: React.ReactNode }) {
         <DialogHeader>
           <DialogTitle>What is the problem?</DialogTitle>
         </DialogHeader>
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           <input
             className={field}
             placeholder="One line. Press Enter."
@@ -106,11 +132,41 @@ export function NewProblemModal({ trigger }: { trigger: React.ReactNode }) {
             maxLength={140}
             autoFocus
           />
-          {!hasIdentity && (
+
+          {/* Privacy mode */}
+          <div className="inline-flex rounded-lg border border-ink-200 p-0.5">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => {
+                  setMode(m.id);
+                  setErr(null);
+                }}
+                className={`rounded-md px-2.5 py-1 text-[11.5px] font-medium transition-colors ${
+                  mode === m.id
+                    ? "bg-ink-950 text-paper"
+                    : "text-ink-500 hover:text-ink-950"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {mode === "pseudonymous" && (
+            <input
+              className={field}
+              placeholder="handle"
+              value={handle}
+              onChange={(e) => setHandle(e.target.value.replace(/^@/, ""))}
+            />
+          )}
+          {mode === "real" && (
             <div className="grid grid-cols-2 gap-2">
               <input
                 className={field}
-                placeholder="Name (optional)"
+                placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -122,9 +178,14 @@ export function NewProblemModal({ trigger }: { trigger: React.ReactNode }) {
               />
             </div>
           )}
+
           <div className="flex items-center justify-between gap-3 pt-0.5">
             <span className="text-[11px] text-ink-400">
-              {err ? <span className="text-amber-700">{err}</span> : "Sorted by the community next."}
+              {err ? (
+                <span className="text-amber-700">{err}</span>
+              ) : (
+                MODES.find((m) => m.id === mode)?.hint
+              )}
             </span>
             <button
               onClick={submit}

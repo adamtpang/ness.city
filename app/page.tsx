@@ -43,9 +43,9 @@ export default async function Home() {
           </span>
         </div>
         <div className="flex items-center gap-4">
+          <Kpi label="Bounty value" value={`$${stats.pledgedUsd.toLocaleString()}`} />
           <Kpi label="Open" value={stats.open} />
           <Kpi label="Solved" value={stats.solved} />
-          <Kpi label="Pledged" value={`$${stats.pledgedUsd.toLocaleString()}`} />
           <NewProblemModal
             trigger={
               <button className="inline-flex items-center gap-1.5 rounded-full bg-ink-950 px-3.5 py-1.5 text-[12.5px] font-medium text-paper transition-colors hover:bg-ink-800">
