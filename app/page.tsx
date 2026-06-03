@@ -8,6 +8,7 @@ import {
 } from "@/lib/db/queries";
 import { UpvoteButton } from "@/components/UpvoteButton";
 import { NewProblemModal } from "@/components/NewProblemModal";
+import { demoBoards, demoProblems, demoStats } from "@/lib/demo-seed";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -26,11 +27,17 @@ const STATUS: Record<string, { dot: string; label: string }> = {
  * the thing that matters.
  */
 export default async function Home() {
-  const [problems, boards, stats] = await Promise.all([
+  const [liveProblems, liveBoards, liveStats] = await Promise.all([
     listProblemsWithCounts(),
     getLeaderboards(),
     getEngineStats(),
   ]);
+  // Until the board has real problems, render a curated demo set so the
+  // engine reads full. Auto-switches to live data the moment one exists.
+  const usingDemo = liveProblems.length === 0;
+  const problems = usingDemo ? demoProblems : liveProblems;
+  const boards = usingDemo ? demoBoards : liveBoards;
+  const stats = usingDemo ? demoStats : liveStats;
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-8 pt-4">
@@ -84,7 +91,7 @@ export default async function Home() {
           )}
         </div>
 
-        <Rail title="Fixers" unit="" entries={boards.fixers} empty="No fixers yet" />
+        <Rail title="Solvers" unit="" entries={boards.fixers} empty="No solvers yet" />
       </div>
     </main>
   );
