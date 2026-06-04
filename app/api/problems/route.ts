@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getDb, isDbConfigured, schema } from "@/lib/db";
 import { createProblem } from "@/lib/db/queries";
 
@@ -80,4 +80,45 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+}
+
+/**
+ * DELETE /api/problems  { slug, token }  (token may also be ?token=)
+ *
+ * Admin delete, gated by AGENT_API_TOKEN. Removes a problem; the FK cascades
+ * take its proposals, bounty, pledges, comments, and documentation with it.
+ * Used by the /admin panel to clear out test entries.
+ */
+export async function DELETE(request: Request) {
+  if (!isDbConfigured) {
+    return NextResponse.json(
+      { ok: false, error: "Database not configured" },
+      { status: 503 },
+    );
+  }
+  const url = new URL(request.url);
+  let body: { slug?: unknown; token?: unknown } = {};
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    /* allow query-only */
+  }
+
+  const token = str(body.token) ?? url.searchParams.get("token") ?? "";
+  const expected = process.env.AGENT_API_TOKEN ?? "";
+  if (!expected || token !== expected) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const slug = str(body.slug) ?? url.searchParams.get("slug") ?? "";
+  if (!slug) {
+    return NextResponse.json({ ok: false, error: "slug required" }, { status: 400 });
+  }
+
+  const db = getDb();
+  const deleted = await db
+    .delete(schema.problems)
+    .where(eq(schema.problems.slug, slug))
+    .returning({ id: schema.problems.id });
+  return NextResponse.json({ ok: true, deleted: deleted.length });
 }

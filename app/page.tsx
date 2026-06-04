@@ -6,6 +6,7 @@ import {
   type LeaderEntry,
   type ProblemWithCounts,
 } from "@/lib/db/queries";
+import { isDbConfigured } from "@/lib/db";
 import { NewProblemModal } from "@/components/NewProblemModal";
 import { VoteCell } from "@/components/VoteCell";
 import { Avatar } from "@/components/Avatar";
@@ -72,7 +73,9 @@ export default async function Home() {
     getLeaderboards(),
     getEngineStats(),
   ]);
-  const usingDemo = liveProblems.length === 0;
+  // Demo board only when there is no database at all. Once the DB is wired,
+  // the board is real: empty until the community files the first problem.
+  const usingDemo = !isDbConfigured;
   const problems = usingDemo ? demoProblems : liveProblems;
   const boards = usingDemo ? demoBoards : liveBoards;
   const stats = usingDemo ? demoStats : liveStats;
