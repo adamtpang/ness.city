@@ -24,20 +24,40 @@ export default function NslinkPage() {
 
   const readyCount = images.filter((i) => i.status === "done").length;
 
+  function addImage(src: string) {
+    setImages((prev) => [
+      ...prev,
+      { id: Math.random().toString(36).slice(2, 11), src, status: "idle" },
+    ]);
+  }
+
   function handleFiles(fileList: FileList | null) {
     if (!fileList) return;
-    const files = Array.from(fileList);
-    files.forEach((file) => {
+    Array.from(fileList).forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImages((prev) => [
-          ...prev,
-          {
-            id: Math.random().toString(36).slice(2, 11),
-            src: reader.result as string,
-            status: "idle",
-          },
-        ]);
+        const dataUrl = reader.result as string;
+        // Downscale so full-res phone photos scan fast and stay under the
+        // vision API size limit.
+        const img = new window.Image();
+        img.onload = () => {
+          const maxEdge = 1600;
+          const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            addImage(canvas.toDataURL("image/jpeg", 0.85));
+          } else {
+            addImage(dataUrl);
+          }
+        };
+        img.onerror = () => addImage(dataUrl);
+        img.src = dataUrl;
       };
       reader.readAsDataURL(file);
     });
@@ -59,9 +79,9 @@ export default function NslinkPage() {
       } catch (err) {
         if (attempt === maxAttempts) {
           const msg = err instanceof Error ? err.message : "scan failed";
-          if (/REPLICATE_API_TOKEN/i.test(msg)) {
+          if (/ANTHROPIC_API_KEY/i.test(msg)) {
             setScanError(
-              "The label scanner is not configured yet. An admin needs to set REPLICATE_API_TOKEN in Vercel.",
+              "The label scanner is not configured yet. An admin needs to set ANTHROPIC_API_KEY in Vercel.",
             );
           }
           console.error("scan failed", err);
@@ -159,7 +179,7 @@ export default function NslinkPage() {
           </h1>
           <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
             Point a phone camera at the label, get serial number, default SSID,
-            and default password extracted by Gemini. Build a queue, name each
+            and default password extracted by Claude. Build a queue, name each
             target, download a CSV. The desktop bot takes it from there and
             runs the CelcomDigi setup wizard for you.
           </p>
