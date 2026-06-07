@@ -13,6 +13,7 @@ Stop with Ctrl+C.
 
 import csv
 import time
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 import wifi_tools
@@ -25,21 +26,43 @@ DEFAULT_LOGIN_PASS = "celcomdigi123"
 FALLBACK_NEW_PASS = "darktalent2024!"
 
 
+def _find_queue_file():
+    """Find router_queue.csv: this folder first, then the most recent one in
+    Downloads, so the operator never has to move the file by hand."""
+    here = Path(__file__).resolve().parent / "router_queue.csv"
+    if here.exists():
+        return here
+    downloads = Path.home() / "Downloads"
+    if downloads.exists():
+        matches = sorted(
+            downloads.glob("router_queue*.csv"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        if matches:
+            return matches[0]
+    return None
+
+
 def load_queue():
     """Load the queue CSV. Tolerates both the new web-app schema
     (serial_number, default_ssid, ...) and the legacy schema (S/N, ...)."""
+    path = _find_queue_file()
+    if path is None:
+        print("⚠️  No router_queue.csv found here or in Downloads.")
+        print("    Download it from ness.city/routers, then run this again.")
+        return []
+    print(f"📄 Using queue: {path}")
     queue = []
     try:
-        with open(QUEUE_FILE, "r", encoding="utf-8-sig") as f:
+        with open(path, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for raw in reader:
                 row = _normalize_row(raw)
                 if row:
                     queue.append(row)
-    except FileNotFoundError:
-        print(f"⚠️  '{QUEUE_FILE}' not found. Drop one in this folder.")
     except Exception as e:
-        print(f"❌ Error loading queue: {e}")
+        print(f"❌ Error loading queue from {path}: {e}")
     return queue
 
 
