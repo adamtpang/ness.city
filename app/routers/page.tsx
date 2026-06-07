@@ -195,13 +195,34 @@ export default function NslinkPage() {
       )}
 
       <FadeIn delay={0.08}>
-        <ol className="mt-6 grid gap-2 rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-4 text-[12.5px] text-ink-700 sm:grid-cols-5 sm:gap-3">
-          <li><span className="mr-1.5 font-mono text-ink-400">1</span>Snap each label</li>
-          <li><span className="mr-1.5 font-mono text-ink-400">2</span>Tap Analyze all</li>
-          <li><span className="mr-1.5 font-mono text-ink-400">3</span>Name each target</li>
-          <li><span className="mr-1.5 font-mono text-ink-400">4</span>Download the CSV</li>
-          <li><span className="mr-1.5 font-mono text-ink-400">5</span>Run the bot</li>
-        </ol>
+        <div className="mt-6 rounded-2xl border border-ink-300 bg-paper-tint p-5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+            The checklist
+          </p>
+          <div className="mt-3 grid gap-5 sm:grid-cols-2">
+            <div>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-800">
+                On your phone
+              </p>
+              <ol className="mt-2 space-y-1.5 text-[13px] leading-snug text-ink-700">
+                <li><span className="mr-2 font-mono text-ink-400">1</span>Tap Take photo and shoot each router label (do a batch).</li>
+                <li><span className="mr-2 font-mono text-ink-400">2</span>Tap Analyze all. Claude reads each label.</li>
+                <li><span className="mr-2 font-mono text-ink-400">3</span>Name each Target SSID and a new password.</li>
+                <li><span className="mr-2 font-mono text-ink-400">4</span>Preview, then Download router_queue.csv.</li>
+              </ol>
+            </div>
+            <div>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-800">
+                On the laptop (the bot)
+              </p>
+              <ol className="mt-2 space-y-1.5 text-[13px] leading-snug text-ink-700">
+                <li><span className="mr-2 font-mono text-ink-400">5</span>Drop the CSV into the scripts/routermill folder.</li>
+                <li><span className="mr-2 font-mono text-ink-400">6</span>Power on the routers, 5 to 10 at a time.</li>
+                <li><span className="mr-2 font-mono text-ink-400">7</span>Run python main.py and leave it running.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
       </FadeIn>
 
       <FadeIn delay={0.1}>

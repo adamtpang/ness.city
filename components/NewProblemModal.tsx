@@ -90,10 +90,12 @@ export function NewProblemModal({ trigger }: { trigger: React.ReactNode }) {
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
       const filed = res.ok && data.ok;
-      // 503 = database not wired yet (demo mode). Anything else that fails is
-      // a real error worth showing.
-      if (!filed && res.status !== 503) {
-        throw new Error(data.error ?? `HTTP ${res.status}`);
+      if (!filed) {
+        throw new Error(
+          res.status === 503
+            ? "The board is not connected to a database yet, so this could not be saved."
+            : (data.error ?? `HTTP ${res.status}`),
+        );
       }
       if (mode !== "anonymous") {
         try {
