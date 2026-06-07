@@ -20,6 +20,7 @@ export default function NslinkPage() {
   const [images, setImages] = useState<ScannedImage[]>([]);
   const [batchRunning, setBatchRunning] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   const readyCount = images.filter((i) => i.status === "done").length;
 
@@ -57,6 +58,12 @@ export default function NslinkPage() {
         return { ...img, status: "done", data };
       } catch (err) {
         if (attempt === maxAttempts) {
+          const msg = err instanceof Error ? err.message : "scan failed";
+          if (/REPLICATE_API_TOKEN/i.test(msg)) {
+            setScanError(
+              "The label scanner is not configured yet. An admin needs to set REPLICATE_API_TOKEN in Vercel.",
+            );
+          }
           console.error("scan failed", err);
           return { ...img, status: "error" };
         }
@@ -159,8 +166,26 @@ export default function NslinkPage() {
         </div>
       </FadeIn>
 
+      {scanError && (
+        <FadeIn delay={0.07}>
+          <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-800">
+            {scanError}
+          </div>
+        </FadeIn>
+      )}
+
+      <FadeIn delay={0.08}>
+        <ol className="mt-6 grid gap-2 rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-4 text-[12.5px] text-ink-700 sm:grid-cols-5 sm:gap-3">
+          <li><span className="mr-1.5 font-mono text-ink-400">1</span>Snap each label</li>
+          <li><span className="mr-1.5 font-mono text-ink-400">2</span>Tap Analyze all</li>
+          <li><span className="mr-1.5 font-mono text-ink-400">3</span>Name each target</li>
+          <li><span className="mr-1.5 font-mono text-ink-400">4</span>Download the CSV</li>
+          <li><span className="mr-1.5 font-mono text-ink-400">5</span>Run the bot</li>
+        </ol>
+      </FadeIn>
+
       <FadeIn delay={0.1}>
-        <div className="mt-8 rounded-2xl border border-ink-200 bg-paper p-5">
+        <div className="mt-6 rounded-2xl border border-ink-200 bg-paper p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
