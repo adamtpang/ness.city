@@ -1,6 +1,6 @@
 # Routermill bot
 
-Desktop companion to the router tool at [routers.ness.city](https://routers.ness.city).
+Desktop companion to the router tool at [ness.city/routers](https://ness.city/routers).
 
 The web app reads router labels and produces a `router_queue.csv`. This bot
 takes the CSV, watches the airwaves, and runs the CelcomDigi setup wizard
@@ -48,7 +48,7 @@ playwright install chromium
 ## Usage
 
 ```bash
-# 1. Open https://routers.ness.city on your phone, scan labels,
+# 1. Open https://ness.city/routers on your phone, scan labels,
 #    fill in the target SSIDs, download the CSV.
 # 2. Drop router_queue.csv into this folder.
 # 3. Power on a batch of routers (5-10 at a time is fine).

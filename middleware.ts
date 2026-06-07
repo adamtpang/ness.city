@@ -19,8 +19,8 @@ export function middleware(req: NextRequest) {
   if (!host.startsWith("routers.")) return NextResponse.next();
 
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith("/api") || pathname === "/nslink") {
+  if (pathname.startsWith("/api") || pathname === "/routers") {
     return NextResponse.next();
   }
-  return NextResponse.rewrite(new URL("/nslink", req.url));
+  return NextResponse.rewrite(new URL("/routers", req.url));
 }

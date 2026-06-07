@@ -137,9 +137,14 @@ export function Nessie() {
     }
   }
 
-  // Hidden on the router tool: its own /nslink path, and the routers.* host
-  // (where the page is rewritten to /nslink so pathname reads as "/").
-  if (pathname.startsWith("/nslink") || onRoutersHost) return null;
+  // Hidden on the router tool: its /routers path (and legacy /nslink), and
+  // the routers.* host if that subdomain is ever wired up.
+  if (
+    pathname.startsWith("/routers") ||
+    pathname.startsWith("/nslink") ||
+    onRoutersHost
+  )
+    return null;
 
   return (
     <div className="fixed bottom-5 right-5 z-50 sm:bottom-6 sm:right-6">
