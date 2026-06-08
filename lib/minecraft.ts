@@ -18,6 +18,11 @@ export const minecraft = {
   version: "1.21",
   /** Free text describing the world / vibe. */
   vibe: "Vanilla survival on a flat-ish plains seed. Friendly. No PvP.",
+  /** Who runs the server. */
+  host: "Helen",
+  /** How you get in. Empty renders a "coming soon" placeholder; fill it in
+   *  once the entry criteria are finalized with the host. */
+  entryCriteria: "",
   /** Optional Discord channel or WhatsApp group for coordination. */
   community: {
     label: "Coordinate on the Minecraft WhatsApp group",
