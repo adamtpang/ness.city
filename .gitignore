@@ -68,3 +68,7 @@ nsall.md
 scripts/nspulse/
 
 scripts/seed-forum.mjs
+
+# Local-only: NS directory extraction (2,541 members' PII from ns.com).
+# Never commit to the public repo.
+scripts/directory/
