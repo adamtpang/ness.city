@@ -96,6 +96,11 @@ export default async function Home() {
   const q1 = items.filter((i) => i.importance >= IMPORTANT && i.urgency >= URGENT).sort(byPriority);
   const q2 = items.filter((i) => i.importance >= IMPORTANT && i.urgency < URGENT).sort(byPriority);
   const archived = items.filter((i) => i.importance < IMPORTANT).sort(byPriority);
+  // Live problems have no urgency votes yet (that ships with identity), so
+  // the Eisenhower split would dump everything into "Archived". Until a
+  // second axis exists, render one honest list ranked by importance.
+  const hasUrgency = items.some((i) => i.urgency > 0);
+  const ranked = [...items].sort(byPriority);
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-8 pt-4">
@@ -155,12 +160,19 @@ export default async function Home() {
                     File the first, it shows up here instantly.
                   </p>
                 </div>
-              ) : (
+              ) : hasUrgency ? (
                 <div>
                   <QuadrantSection label="Q1 — Important + urgent" sub="Do now" accent="bg-amber-500" items={q1} />
                   <QuadrantSection label="Q2 — Important, not urgent" sub="Schedule + fund" accent="bg-blue-500" items={q2} />
                   <QuadrantSection label="Archived — not a priority now" sub="Community can revisit" accent="bg-ink-300" items={archived} muted />
                 </div>
+              ) : (
+                <QuadrantSection
+                  label="Open problems — ranked by importance"
+                  sub="Vote to reorder"
+                  accent="bg-blue-500"
+                  items={ranked}
+                />
               )}
             </div>
           </div>
@@ -246,14 +258,19 @@ function Row({ item }: { item: Item }) {
           </span>
         </Link>
 
-        {/* Priority: importance + urgency votes */}
+        {/* Priority: importance + urgency votes. Importance persists via the
+            vote API on real problems; demo rows (no DB) stay local-only. */}
         <div className="flex items-start justify-center gap-3">
           <div className="flex flex-col items-center">
-            <VoteCell initial={importance} />
+            <VoteCell
+              slug={p.id.startsWith("demo-") ? undefined : p.slug}
+              initial={importance}
+              axis="importance"
+            />
             <span className="font-mono text-[8px] uppercase tracking-wide text-ink-400">imp</span>
           </div>
           <div className="flex flex-col items-center">
-            <VoteCell initial={urgency} />
+            <VoteCell initial={urgency} axis="urgency" />
             <span className="font-mono text-[8px] uppercase tracking-wide text-ink-400">urg</span>
           </div>
         </div>
