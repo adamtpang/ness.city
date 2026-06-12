@@ -20,41 +20,45 @@ const MDAC_URL = "https://imigresen-online.imi.gov.my/mdac/main?registerMain";
 type Field = { k: string; label: string; hint?: string };
 type Group = { title: string; note?: string; fields: Field[] };
 
+// Field set + labels mirror the live MDAC form exactly so values map 1:1.
+// "select on form" marks government dropdowns (you pick the option there; the
+// saved value is your reminder, and pastes into the searchable ones).
 const GROUPS: Group[] = [
   {
-    title: "Personal",
+    title: "Personal Information",
     note: "Set once. These rarely change.",
     fields: [
-      { k: "fullName", label: "Full name (as in passport)" },
-      { k: "passportNo", label: "Passport number" },
-      { k: "nationality", label: "Nationality" },
-      { k: "dob", label: "Date of birth", hint: "DD/MM/YYYY" },
-      { k: "sex", label: "Sex", hint: "Male / Female" },
-      { k: "countryOfBirth", label: "Country of birth" },
-      { k: "passportExpiry", label: "Passport expiry", hint: "DD/MM/YYYY" },
-      { k: "email", label: "Email" },
-      { k: "mobile", label: "Mobile number", hint: "+1 555 123 4567" },
+      { k: "fullName", label: "Name (as in passport)" },
+      { k: "passportNo", label: "Passport No." },
+      { k: "dob", label: "Date of Birth", hint: "DD/MM/YYYY" },
+      { k: "nationality", label: "Nationality / Citizenship", hint: "select on form" },
+      { k: "placeOfBirth", label: "Place of Birth", hint: "select on form" },
+      { k: "sex", label: "Sex", hint: "select on form" },
+      { k: "passportExpiry", label: "Date of Passport Expiry", hint: "DD/MM/YYYY" },
+      { k: "email", label: "Email Address", hint: "use for Email + Confirm Email" },
+      { k: "countryCode", label: "Country / Region Code", hint: "select on form, e.g. +1" },
+      { k: "mobile", label: "Mobile No." },
     ],
   },
   {
-    title: "This trip",
-    note: "Usually just the dates change each run.",
+    title: "Traveling Information",
+    note: "Trip must be within 3 days of submission. Usually only the dates change.",
     fields: [
-      { k: "arrivalDate", label: "Date of arrival", hint: "DD/MM/YYYY" },
-      { k: "departureDate", label: "Date of departure", hint: "DD/MM/YYYY" },
-      { k: "modeOfTravel", label: "Mode of travel", hint: "Land / Air / Sea" },
-      { k: "vehicleNo", label: "Flight or vehicle no." },
-      { k: "lastPort", label: "Last port before Malaysia", hint: "Singapore" },
-      { k: "nextPort", label: "Next port after Malaysia", hint: "Singapore" },
+      { k: "arrivalDate", label: "Date of Arrival", hint: "DD/MM/YYYY" },
+      { k: "departureDate", label: "Date of Departure", hint: "DD/MM/YYYY" },
+      { k: "transportNo", label: "Flight / Vessel / Transportation No." },
+      { k: "modeOfTravel", label: "Mode of Travel", hint: "select on form" },
+      { k: "lastPort", label: "Last Port of Embarkation before Malaysia", hint: "select on form" },
     ],
   },
   {
-    title: "Accommodation in Malaysia",
+    title: "Accommodation",
     fields: [
-      { k: "address", label: "Address" },
-      { k: "city", label: "City", hint: "Forest City" },
-      { k: "state", label: "State", hint: "Johor" },
+      { k: "accommodation", label: "Accommodation of Stay", hint: "select on form" },
+      { k: "address", label: "Address (in Malaysia)", hint: "alphanumeric only" },
+      { k: "state", label: "State", hint: "select on form" },
       { k: "postcode", label: "Postcode" },
+      { k: "city", label: "City", hint: "select on form" },
     ],
   },
 ];
@@ -143,7 +147,7 @@ export default function MdacPage() {
       <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] leading-[1.55] text-emerald-800">
         <b>Private by design.</b> Everything here is saved only in this browser,
         on this device. It never leaves your phone and never touches our servers.
-        We never auto-submit, you solve the CAPTCHA and submit yourself.
+        We never auto-submit, you solve the slider puzzle and submit yourself.
       </div>
 
       {GROUPS.map((g) => (
