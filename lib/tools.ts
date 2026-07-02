@@ -29,6 +29,15 @@ export const tools: Tool[] = [
     href: "/pagerank",
   },
   {
+    id: "humans",
+    name: "Humans",
+    tagline: "The people of the city.",
+    description:
+      "A curated directory of the humans of Network School. Who is here, what they are building, who vouches for them. Quality over quantity.",
+    status: "live",
+    href: "/humans",
+  },
+  {
     id: "match",
     name: "Match",
     tagline: "Resume to opportunities.",

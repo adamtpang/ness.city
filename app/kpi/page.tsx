@@ -101,8 +101,7 @@ function kpiPlaceholder(): Pillar[] {
       key: "market",
       label: "Market listings",
       value: "-",
-      hint: "Active listings on ness.city/market (30-day TTL).",
-      href: "/market",
+      hint: "Market returns in a future release (30-day TTL listings).",
       stub: true,
     },
     {

@@ -80,6 +80,8 @@ export default function PageRankPage() {
   } | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const [prMode, setPrMode] = useState<"mentions" | "pagerank">("mentions");
+  const [namerCount, setNamerCount] = useState(0);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -108,9 +110,13 @@ export default function PageRankPage() {
       const data = (await res.json()) as {
         ok?: boolean;
         leaderboard?: LeaderboardRow[];
+        mode?: "mentions" | "pagerank";
+        namers?: number;
       };
       if (data.ok && Array.isArray(data.leaderboard)) {
         setLeaderboard(data.leaderboard);
+        if (data.mode) setPrMode(data.mode);
+        if (typeof data.namers === "number") setNamerCount(data.namers);
       }
     } catch {
       /* offline ok */
@@ -496,10 +502,29 @@ export default function PageRankPage() {
           <h2 className="serif mt-2 text-[28px] leading-tight text-ink-950">
             Who the city named.
           </h2>
-          <p className="mt-2 max-w-xl text-[14px] leading-[1.6] text-ink-600">
-            Live ranking from citizens who have submitted their rings.
-            Names weighted by ring depth: R1 counts 6, R2 counts 5, down
-            to R6 counts 1. Recomputed on every submit.
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11px] ${
+                prMode === "pagerank"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                  : "border-ink-200 bg-paper text-ink-600"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  prMode === "pagerank" ? "bg-emerald-500" : "bg-ink-400"
+                }`}
+              />
+              {prMode === "pagerank" ? "True PageRank" : "Weighted mentions"}
+            </span>
+            <span className="font-mono text-[11px] text-ink-500">
+              {namerCount} {namerCount === 1 ? "citizen has" : "citizens have"} submitted rings
+            </span>
+          </div>
+          <p className="mt-3 max-w-xl text-[14px] leading-[1.6] text-ink-600">
+            {prMode === "pagerank"
+              ? "The graph crossed the threshold, so this is true PageRank: importance flows through who-named-whom, weighted by ring depth. Someone named by important people outranks someone named by more people."
+              : "Under five ring-submitters the graph is too thin for PageRank, so this ranks by weighted mentions (R1 counts 6, down to R6 counts 1). It switches to true PageRank automatically as more rings come in."}
           </p>
         </div>
       </FadeInOnView>
@@ -524,7 +549,9 @@ export default function PageRankPage() {
               <div className="col-span-1">#</div>
               <div className="col-span-5">Citizen</div>
               <div className="col-span-2 text-right">Namers</div>
-              <div className="col-span-4 text-right">Weight</div>
+              <div className="col-span-4 text-right">
+                {prMode === "pagerank" ? "PageRank" : "Weight"}
+              </div>
             </div>
             {leaderboard.map((c, idx) => {
               const max = leaderboard[0]?.score ?? 1;
