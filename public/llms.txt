@@ -1,0 +1,19 @@
+# Ness (ness.city)
+
+> The civic layer for builders: open-source tooling that turns a community's problems into bounties into shipped fixes.
+
+Ness is a portfolio of small, opinionated tools for community-driven cities. The core loop lives in Townhall: anyone files a problem with a real diagnosis, the community refines the root cause, a citizen proposes a concrete fix, patrons crowdfund it in USDC on Base, and a solver ships it, earning karma, the bounty, and permanent attribution for the patrons. Alongside Townhall it runs Jobs (hand-curated public openings), PageRank (a social ranking that surfaces who a city named most), and Pulse (community stats), with Match and Market on the roadmap.
+
+It is for ambitious builders inside network communities who want latent problems made legible and routed to whoever can actually fix them. The repo is public and open-source (MIT). This is an independent project, not affiliated with Network School.
+
+## Key links
+- [Home](https://ness.city/): overview of Ness and its tools for community-driven cities.
+- [Townhall](https://ness.city/townhall): the five-step engine where problems become bounties become shipped fixes.
+- [PageRank](https://ness.city/pagerank): map your ring in doubling rounds; social ranking surfaces who the city named most.
+- [Guide](https://ness.city/guide): how the system works and how to take part.
+- [Roadmap](https://ness.city/roadmap): what is live, in design, and planned.
+- [Pulse](https://ness.city/pulse): community stats and activity.
+
+## About
+- Part of adam.inc, the internet portfolio of Adam Pangelinan (Anchor Marianas LLC).
+- Builder: https://adampang.com
