@@ -36,6 +36,13 @@
       "when": 1779944332519,
       "tag": "0004_swift_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784461445174,
+      "tag": "0005_member_rating_index",
+      "breakpoints": true
     }
   ]
 }
