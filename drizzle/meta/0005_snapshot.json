@@ -1,5 +1,5 @@
 {
-  "id": "1e010fdc-c605-4fa5-a2ba-a5555bb946a8",
+  "id": "94c1fe74-9f68-41a1-a5f9-88a892804343",
   "prevId": "ae03831a-fae4-42cb-90e9-425e2ade1031",
   "version": "7",
   "dialect": "postgresql",
@@ -730,50 +730,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "integrity": {
-          "name": "integrity",
-          "type": "integer",
+        "rating": {
+          "name": "rating",
+          "type": "smallint",
           "primaryKey": false,
-          "notNull": false
-        },
-        "curiosity": {
-          "name": "curiosity",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "creativity": {
-          "name": "creativity",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vouch": {
-          "name": "vouch",
-          "type": "vouch_choice",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "note": {
-          "name": "note",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "answered_count": {
-          "name": "answered_count",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "counted": {
-          "name": "counted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -832,21 +793,6 @@
           "columns": [
             {
               "expression": "rater_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "member_ratings_counted_idx": {
-          "name": "member_ratings_counted_idx",
-          "columns": [
-            {
-              "expression": "counted",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1684,15 +1630,6 @@
         "investigating",
         "in-progress",
         "solved"
-      ]
-    },
-    "public.vouch_choice": {
-      "name": "vouch_choice",
-      "schema": "public",
-      "values": [
-        "yes",
-        "no",
-        "not_sure"
       ]
     }
   },

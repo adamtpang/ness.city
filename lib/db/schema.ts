@@ -7,7 +7,7 @@ import {
   uuid,
   index,
   uniqueIndex,
-  boolean,
+  smallint,
   jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -377,32 +377,23 @@ export const documentationRelations = relations(documentation, ({ one }) => ({
 /* ============================================================
    Member Rating Index (ness.city/members)
    ------------------------------------------------------------
-   Members rate each other on four dimensions; the aggregate
-   becomes a ranked index that informs longterm-membership
-   promotion. Self-contained so the whole subsystem can be
-   frozen (kill switch) or dropped without touching the rest
-   of Ness.
+   Members rate each other on a single −2…+2 spectrum (one tap /
+   swipe per person). The aggregate is a ranked social index of
+   members, revealed progressively as you rate. Self-contained so
+   the whole subsystem can be frozen (kill switch) or dropped
+   without touching the rest of Ness.
 
    Population model:
      - Ratees (subjects) are `directory_profiles` rows — the
        scraped NS member roster. No new roster to seed.
      - Raters are signed-in Privy users, keyed by their stable
        Privy DID. A rater is best-effort linked back to their
-       own directory profile so we can exclude self and, later,
-       read tenure.
+       own directory profile so we can exclude self.
 
    Hard privacy rule enforced at the query layer, not here:
-   nobody ever sees their own score or who rated them, and the
-   free-text `note` is core-team-only.
+   nobody sees their own score/rank, and nobody sees who rated
+   whom — only the aggregate ranking of everyone else.
    ============================================================ */
-
-/**
- * Vouch answer. Null (column left unset) is the fourth state,
- * "haven't interacted enough" — the default, not a skip. "not_sure"
- * means the rater knows them but is genuinely undecided; it is
- * excluded from the vouch ratio, whereas null carries no signal.
- */
-export const vouchChoiceEnum = pgEnum("vouch_choice", ["yes", "no", "not_sure"]);
 
 /**
  * Raters — the evaluators. One row per signed-in Privy user. Kept
@@ -441,15 +432,9 @@ export const raters = pgTable(
  * Member ratings — the core table. One row per (rater, subject) pair,
  * upserted, so re-rating updates in place.
  *
- * Each dimension is nullable: a null means "haven't interacted enough"
- * (the default). `answeredCount` is how many of the four dimensions carry
- * a real answer; `counted` (answeredCount >= config.minAnsweredToCount)
- * is denormalized so aggregate queries can filter cheaply. A rating only
- * feeds aggregates when `counted` is true.
- *
- * `note` is required by the API whenever any 1–5 score is <= the
- * configured low-score threshold. It is core-team-only and must never
- * appear in any aggregate or public view.
+ * `rating` is the whole signal: a single bucket on the −2…+2 spectrum
+ * (−2 strong no … 0 neutral … +2 strong yes). Every row is a real rating;
+ * a "skip" simply leaves no row, so the person resurfaces later.
  */
 export const memberRatings = pgTable(
   "member_ratings",
@@ -461,15 +446,8 @@ export const memberRatings = pgTable(
     subjectProfileId: uuid("subject_profile_id")
       .notNull()
       .references(() => directoryProfiles.id, { onDelete: "cascade" }),
-    /** 1–5, or null for "haven't interacted enough". */
-    integrity: integer("integrity"),
-    curiosity: integer("curiosity"),
-    creativity: integer("creativity"),
-    vouch: vouchChoiceEnum("vouch"),
-    /** Core-only free text. Required when any score <= low-score threshold. */
-    note: text("note"),
-    answeredCount: integer("answered_count").notNull().default(0),
-    counted: boolean("counted").notNull().default(false),
+    /** −2…+2 bucket. Always set. */
+    rating: smallint("rating").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -480,7 +458,6 @@ export const memberRatings = pgTable(
     ),
     subjectIdx: index("member_ratings_subject_idx").on(t.subjectProfileId),
     raterIdx: index("member_ratings_rater_idx").on(t.raterId),
-    countedIdx: index("member_ratings_counted_idx").on(t.counted),
     createdIdx: index("member_ratings_created_idx").on(t.createdAt),
   }),
 );
