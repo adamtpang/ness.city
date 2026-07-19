@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
-import { ensureRater, parseRaterIdentity } from "@/lib/members/rater";
+import { getRaterStatus, parseRaterIdentity } from "@/lib/members/rater";
 import { getRateDeck } from "@/lib/members/queries";
 import { getMemberSettings } from "@/lib/members/settings";
 
@@ -36,12 +36,17 @@ export async function POST(req: Request) {
   }
 
   const settings = await getMemberSettings();
-  const rater = await ensureRater(identity);
+  const { rater, profile, needsOnboarding } = await getRaterStatus(identity);
   const deck = await getRateDeck(rater);
 
   return NextResponse.json({
     ok: true,
     frozen: settings.ratingsFrozen,
+    me: {
+      needsOnboarding,
+      displayName: profile?.displayName ?? identity.displayName ?? "",
+      building: profile?.role ?? "",
+    },
     ...deck,
   });
 }

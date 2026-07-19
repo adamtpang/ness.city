@@ -68,6 +68,12 @@ export const MEMBER_CONFIG = {
    * their own score/rank. Flip to false to let people see themselves.
    */
   hideOwnRow: true,
+
+  /** Share / invite loop. The celebratory prompt fires after `minRatings`. */
+  share: {
+    minRatings: 10,
+    url: "https://ness.city/members",
+  },
 } as const;
 
 export const SCALE_MIN = -2;

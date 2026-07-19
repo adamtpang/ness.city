@@ -13,7 +13,9 @@ import { MEMBER_CONFIG, type Bucket } from "@/lib/members/config";
 const PRIVY_ENABLED = Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
 const QUEUE_KEY = "ness.members.queue.v2";
 const CONSENT_KEY = "ness.members.consent.v2";
+const MILESTONE_KEY = "ness.members.shareMilestone.v1";
 const SCALE = MEMBER_CONFIG.scale;
+const SHARE_URL = MEMBER_CONFIG.share.url;
 
 type DeckMember = { id: string; handle: string; displayName: string; avatarUrl: string | null; building: string | null };
 type RankedMember = { id: string; rank: number; handle: string; displayName: string; avatarUrl: string | null; building: string | null; ratings: number; fill: number };
@@ -66,6 +68,9 @@ function AppShell({ initialCounters, initialTeaser, auth }: { initialCounters: C
   const [ratedByMe, setRatedByMe] = useState(0);
   const [deckLoading, setDeckLoading] = useState(false);
   const [frozen, setFrozen] = useState(false);
+  const [me, setMe] = useState<{ needsOnboarding: boolean; displayName: string; building: string } | null>(null);
+  const [onboarding, setOnboarding] = useState(false);
+  const [milestoneDone, setMilestoneDone] = useState(true);
 
   // Leaderboard
   const [board, setBoard] = useState<LeaderboardData>({
@@ -85,6 +90,7 @@ function AppShell({ initialCounters, initialTeaser, auth }: { initialCounters: C
   useEffect(() => {
     try {
       setConsented(localStorage.getItem(CONSENT_KEY) === "1");
+      setMilestoneDone(localStorage.getItem(MILESTONE_KEY) === "1");
     } catch {
       setConsented(false);
     }
@@ -153,12 +159,33 @@ function AppShell({ initialCounters, initialTeaser, auth }: { initialCounters: C
         });
         setTotal(data.total ?? 0);
         setRatedByMe((prev) => Math.max(prev, data.ratedByMe ?? 0));
+        if (data.me) setMe(data.me);
       }
     } catch { /* offline ok */ } finally {
       loadingDeckRef.current = false;
       setDeckLoading(false);
     }
   }, [identity]);
+
+  const onboard = useCallback(async (displayName: string, building: string) => {
+    if (!identity) return;
+    setOnboarding(true);
+    try {
+      const res = await fetch("/api/members/onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identity, displayName, building }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setMe({ needsOnboarding: false, displayName, building });
+        await Promise.all([loadDeck(), loadBoard()]);
+      }
+    } catch { /* keep the form up so they can retry */ } finally {
+      setOnboarding(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [identity, loadDeck]);
 
   const loadBoard = useCallback(async () => {
     try {
@@ -210,9 +237,21 @@ function AppShell({ initialCounters, initialTeaser, auth }: { initialCounters: C
     if (index >= deck.length - 3) loadDeck();
   }, [current, identity, index, deck.length, persistQueue, drainQueue, loadDeck]);
 
+  const showMilestone =
+    signedIn && !milestoneDone && ratedByMe >= MEMBER_CONFIG.share.minRatings;
+  const dismissMilestone = () => {
+    try { localStorage.setItem(MILESTONE_KEY, "1"); } catch {}
+    setMilestoneDone(true);
+  };
+
   return (
     <div>
-      <CounterBar counters={counters} />
+      <div className="flex items-start justify-between gap-3">
+        <CounterBar counters={counters} />
+        <ShareButton ratedByMe={ratedByMe} variant="chip" />
+      </div>
+
+      {showMilestone && <ShareMilestone ratedByMe={ratedByMe} onDismiss={dismissMilestone} />}
 
       {/* Tabs */}
       <div className="mt-5 flex rounded-full border border-ink-200 bg-paper p-1">
@@ -227,6 +266,10 @@ function AppShell({ initialCounters, initialTeaser, auth }: { initialCounters: C
             signedIn={signedIn}
             consented={consented}
             onConsent={() => { try { localStorage.setItem(CONSENT_KEY, "1"); } catch {} setConsented(true); }}
+            me={me}
+            defaultName={identity?.displayName ?? ""}
+            onOnboard={onboard}
+            onboarding={onboarding}
             frozen={frozen}
             current={current}
             deckLoading={deckLoading && deck.length === 0}
@@ -248,9 +291,13 @@ function AppShell({ initialCounters, initialTeaser, auth }: { initialCounters: C
 // Rate tab
 
 function RateView({
-  auth, signedIn, consented, onConsent, frozen, current, deckLoading, ratedByMe, total, sync, onRate, onGoRankings,
+  auth, signedIn, consented, onConsent, me, defaultName, onOnboard, onboarding,
+  frozen, current, deckLoading, ratedByMe, total, sync, onRate, onGoRankings,
 }: {
-  auth: Auth; signedIn: boolean; consented: boolean; onConsent: () => void; frozen: boolean;
+  auth: Auth; signedIn: boolean; consented: boolean; onConsent: () => void;
+  me: { needsOnboarding: boolean; displayName: string; building: string } | null;
+  defaultName: string; onOnboard: (name: string, building: string) => void; onboarding: boolean;
+  frozen: boolean;
   current: DeckMember | null; deckLoading: boolean; ratedByMe: number; total: number;
   sync: "idle" | "saving" | "offline"; onRate: (b: Bucket) => void; onGoRankings: () => void;
 }) {
@@ -282,14 +329,21 @@ function RateView({
     );
   }
   if (frozen) return <Notice title="Rating is paused.">The core team froze ratings for a moment. Anything you submitted is safe.</Notice>;
+  if (me === null) return <CardSkeleton />;
+  if (me.needsOnboarding) {
+    return <OnboardForm defaultName={defaultName || me.displayName} defaultBuilding={me.building} busy={onboarding} onSubmit={onOnboard} />;
+  }
   if (deckLoading) return <CardSkeleton />;
   if (!current) {
     return (
       <Notice title="You've rated everyone available.">
-        <p className="mb-4">{sync === "offline" ? "Some ratings are still syncing — keep this tab open a moment." : "All caught up. New members show up here as they join."}</p>
-        <button onClick={onGoRankings} className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800">
-          See the rankings <span aria-hidden>→</span>
-        </button>
+        <p className="mb-4">{sync === "offline" ? "Some ratings are still syncing — keep this tab open a moment." : "All caught up. Invite more people and the room fills in — new members show up here as they join."}</p>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={onGoRankings} className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800">
+            See the rankings <span aria-hidden>→</span>
+          </button>
+          <ShareButton ratedByMe={ratedByMe} variant="cta" />
+        </div>
       </Notice>
     );
   }
@@ -310,6 +364,48 @@ function RateView({
       </div>
       <SwipeCard key={current.id} member={current} onRate={onRate} />
       <p className="mt-3 text-center text-[12px] text-ink-400">Swipe the card, or tap. Right = yes, left = no.</p>
+    </div>
+  );
+}
+
+function OnboardForm({ defaultName, defaultBuilding, busy, onSubmit }: { defaultName: string; defaultBuilding: string; busy: boolean; onSubmit: (name: string, building: string) => void }) {
+  const [name, setName] = useState(defaultName);
+  const [building, setBuilding] = useState(defaultBuilding);
+  const canSubmit = name.trim().length > 0 && !busy;
+  return (
+    <div className="rounded-2xl border border-ink-200 bg-paper p-6">
+      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">Add yourself</p>
+      <h2 className="serif mt-2 text-[24px] leading-tight text-ink-950">Put yourself in the room.</h2>
+      <p className="mt-2 text-[14px] leading-[1.6] text-ink-600">
+        So other members can rate you back. One line on what you&apos;re building makes your card land.
+      </p>
+      <div className="mt-5 space-y-3">
+        <div>
+          <label className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-500">Your name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            className="mt-1.5 w-full rounded-xl border border-ink-200 bg-paper px-3 py-2.5 text-[15px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-500">What you&apos;re building</label>
+          <input
+            value={building}
+            onChange={(e) => setBuilding(e.target.value)}
+            placeholder="e.g. an app that pays you to touch grass"
+            className="mt-1.5 w-full rounded-xl border border-ink-200 bg-paper px-3 py-2.5 text-[15px] text-ink-950 placeholder:text-ink-400 focus:border-ink-950 focus:outline-none"
+          />
+        </div>
+      </div>
+      <button
+        onClick={() => canSubmit && onSubmit(name.trim(), building.trim())}
+        disabled={!canSubmit}
+        className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800 disabled:opacity-40"
+      >
+        {busy ? "Adding…" : "Add me and start rating"} {!busy && <span aria-hidden>→</span>}
+      </button>
     </div>
   );
 }
@@ -435,6 +531,57 @@ function RankingsView({ board, signedIn, ratedByMe, onGoRate }: { board: Leaderb
 
 // ---------------------------------------------------------------------------
 // Bits
+
+function ShareButton({ ratedByMe, variant = "chip" }: { ratedByMe: number; variant?: "chip" | "cta" }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    const text =
+      ratedByMe > 0
+        ? `I've rated ${ratedByMe} members on ness.city. Come rate the room:`
+        : "Rate the room on ness.city:";
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "ness.city/members", text, url: SHARE_URL });
+        return;
+      }
+    } catch {
+      return; // user cancelled the native sheet
+    }
+    try {
+      await navigator.clipboard.writeText(SHARE_URL);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch { /* ignore */ }
+  };
+  if (variant === "cta") {
+    return (
+      <button onClick={share} className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-ink-800">
+        {copied ? "Link copied ✓" : "Share the invite"} {!copied && <span aria-hidden>→</span>}
+      </button>
+    );
+  }
+  return (
+    <button onClick={share} className="flex-none rounded-full border border-ink-200 bg-paper px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-600 transition-colors hover:border-ink-950 hover:text-ink-950">
+      {copied ? "copied ✓" : "invite ↗"}
+    </button>
+  );
+}
+
+function ShareMilestone({ ratedByMe, onDismiss }: { ratedByMe: number; onDismiss: () => void }) {
+  return (
+    <div className="mt-4 rounded-2xl border border-nessie-200 bg-nessie-50/60 p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-nessie-700">Nice — {ratedByMe} rated</p>
+          <h3 className="serif mt-1 text-[20px] leading-tight text-ink-950">Pull the next person in.</h3>
+          <p className="mt-1 text-[13.5px] leading-[1.55] text-ink-600">The index gets sharper with every member who joins. Send the invite.</p>
+        </div>
+        <button onClick={onDismiss} aria-label="Dismiss" className="flex-none text-ink-400 transition-colors hover:text-ink-950">×</button>
+      </div>
+      <div className="mt-3"><ShareButton ratedByMe={ratedByMe} variant="cta" /></div>
+    </div>
+  );
+}
 
 function CounterBar({ counters }: { counters: Counters }) {
   return (
