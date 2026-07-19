@@ -10,7 +10,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * /api routes and static assets pass through untouched so the scanner still
  * works. Every other host is unaffected.
  *
- * The ness.city front door now points at optimism.fun: a request to the apex
+ * The ness.city front door now points straight at the main feature — the
+ * member rating index (social pagerank) at /members: a request to the apex
  * (or www) home page redirects there. Everything else — the nslink/routers
  * tool, nessie, /api/*, and every preview deployment — keeps serving, so this
  * is a soft, fully reversible handoff (307, not a hard-cached 308).
@@ -22,12 +23,12 @@ export const config = {
 export function middleware(req: NextRequest) {
   const host = (req.headers.get("host") ?? "").toLowerCase();
 
-  // Home-page-only handoff to optimism.fun. Apex + www only, root path only.
+  // Home-page-only handoff to the member rating index. Apex + www, root only.
   if (
     (host === "ness.city" || host === "www.ness.city") &&
     req.nextUrl.pathname === "/"
   ) {
-    return NextResponse.redirect("https://optimism.fun", 307);
+    return NextResponse.redirect(new URL("/members", req.url), 307);
   }
 
   if (!host.startsWith("routers.")) return NextResponse.next();

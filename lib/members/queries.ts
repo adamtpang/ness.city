@@ -135,6 +135,63 @@ export async function getLeaderboardRanked(selfProfileId: string | null): Promis
   }));
 }
 
+export type DashboardRow = {
+  id: string;
+  handle: string;
+  displayName: string;
+  building: string | null;
+  ratings: number;
+  raters: number;
+  mean: number;
+  median: number;
+  shrunk: number;
+  /** Below the min-ratings threshold: rank is not trustworthy yet. */
+  insufficient: boolean;
+};
+
+/**
+ * Full aggregate table for the core-team dashboard. Every rated member, all
+ * columns, no self-hiding and no reveal gate — this is the operator view,
+ * role-gated at the route. Ordered by shrunk score.
+ */
+export async function getDashboardRows(): Promise<DashboardRow[]> {
+  if (!isDbConfigured) return [];
+  const db = getDb();
+  const { priorMean, priorWeight, minRatingsToRank } = MEMBER_CONFIG.score;
+  const rows = (await db.execute(sql`
+    select
+      dp.id, dp.handle, dp.display_name,
+      coalesce(nullif(dp.role, ''), dp.bio) as building,
+      count(*)::int as n,
+      count(distinct mr.rater_id)::int as raters,
+      avg(mr.rating)::float8 as mean,
+      percentile_cont(0.5) within group (order by mr.rating)::float8 as median,
+      (sum(mr.rating)::float8 + ${priorMean}::float8 * ${priorWeight}::float8)
+        / (count(*)::float8 + ${priorWeight}::float8) as shrunk
+    from member_ratings mr
+    join directory_profiles dp on dp.id = mr.subject_profile_id
+    group by dp.id, dp.handle, dp.display_name, building
+    order by shrunk desc, n desc, dp.display_name asc
+  `)) as unknown as Array<{
+    id: string; handle: string; display_name: string; building: string | null;
+    n: number; raters: number; mean: number; median: number; shrunk: number;
+  }>;
+  return rows.map((r) => ({
+    id: r.id, handle: r.handle, displayName: r.display_name, building: r.building,
+    ratings: r.n, raters: r.raters, mean: r.mean, median: r.median, shrunk: r.shrunk,
+    insufficient: r.n < minRatingsToRank,
+  }));
+}
+
+/** Log a core-dashboard load (viewer + timestamp), per the hard rules. */
+export async function logDashboardView(viewer: string, path: string): Promise<void> {
+  if (!isDbConfigured) return;
+  try {
+    const db = getDb();
+    await db.insert(schema.memberDashboardViews).values({ viewer: viewer.slice(0, 120), path: path.slice(0, 200) });
+  } catch { /* logging must never break the dashboard */ }
+}
+
 export type Counters = {
   totalRatings: number;
   ratersCount: number;

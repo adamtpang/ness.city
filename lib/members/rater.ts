@@ -1,5 +1,8 @@
 import { and, eq, or, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
+import { slugify } from "@/lib/api-helpers";
+
+export type DirectoryProfile = typeof schema.directoryProfiles.$inferSelect;
 
 /**
  * Rater identity. Sent by the authenticated client from the Privy user
@@ -111,4 +114,99 @@ async function matchDirectoryProfile(
     .where(conds.length === 1 ? conds[0] : or(...conds))
     .limit(1);
   return rows[0]?.id ?? null;
+}
+
+export type RaterStatus = {
+  rater: Rater;
+  profile: DirectoryProfile | null;
+  /** True when the rater has no roster profile yet — show onboarding. */
+  needsOnboarding: boolean;
+};
+
+/** Ensure the rater and load their linked roster profile (if any). */
+export async function getRaterStatus(identity: RaterIdentity): Promise<RaterStatus> {
+  const db = getDb();
+  const rater = await ensureRater(identity);
+  let profile: DirectoryProfile | null = null;
+  if (rater.subjectProfileId) {
+    const rows = await db
+      .select()
+      .from(schema.directoryProfiles)
+      .where(eq(schema.directoryProfiles.id, rater.subjectProfileId))
+      .limit(1);
+    profile = rows[0] ?? null;
+  }
+  return { rater, profile, needsOnboarding: !profile };
+}
+
+/**
+ * Onboard the rater as a rateable member — the self-seeding path that makes
+ * "test with my friends first" work with zero manual DB seeding. Reuses an
+ * existing directory profile if the rater is already linked or matches one
+ * (no duplicate rows), otherwise creates a fresh self-sourced profile with a
+ * unique handle. `building` is the one line others see on the rating card.
+ */
+export async function onboardRater(
+  identity: RaterIdentity,
+  input: { displayName: string; building?: string | null },
+): Promise<DirectoryProfile> {
+  const db = getDb();
+  const rater = await ensureRater(identity);
+  const displayName = input.displayName.trim().slice(0, 120) || rater.displayName;
+  const building = input.building?.trim().slice(0, 200) || null;
+
+  // Target an existing profile first (linked, or a best-effort match), else create.
+  let profileId = rater.subjectProfileId ?? (await matchDirectoryProfile(identity));
+
+  if (profileId) {
+    await db
+      .update(schema.directoryProfiles)
+      .set({ displayName, role: building })
+      .where(eq(schema.directoryProfiles.id, profileId));
+  } else {
+    const handle = await uniqueSelfHandle(displayName, identity);
+    const inserted = await db
+      .insert(schema.directoryProfiles)
+      .values({
+        handle,
+        displayName,
+        role: building,
+        source: "self",
+        externalId: identity.did,
+      })
+      .returning();
+    profileId = inserted[0].id;
+  }
+
+  await db
+    .update(schema.raters)
+    .set({ subjectProfileId: profileId, displayName })
+    .where(eq(schema.raters.id, rater.id));
+
+  const rows = await db
+    .select()
+    .from(schema.directoryProfiles)
+    .where(eq(schema.directoryProfiles.id, profileId))
+    .limit(1);
+  return rows[0];
+}
+
+/** A directory handle that doesn't collide, derived from the display name. */
+async function uniqueSelfHandle(displayName: string, identity: RaterIdentity): Promise<string> {
+  const db = getDb();
+  const base =
+    slugify(displayName) ||
+    (identity.email ? slugify(identity.email.split("@")[0]) : "") ||
+    "member";
+  for (let i = 0; i < 30; i++) {
+    const candidate = i === 0 ? base : `${base}-${i + 1}`;
+    const hit = await db
+      .select({ id: schema.directoryProfiles.id })
+      .from(schema.directoryProfiles)
+      .where(eq(schema.directoryProfiles.handle, candidate))
+      .limit(1);
+    if (hit.length === 0) return candidate;
+  }
+  // Fallback: suffix with a slice of the DID so it's deterministic and unique.
+  return `${base}-${identity.did.slice(-6).replace(/[^a-z0-9]/gi, "").toLowerCase()}`;
 }
