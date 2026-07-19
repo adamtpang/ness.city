@@ -6,6 +6,8 @@ import {
   pgEnum,
   uuid,
   index,
+  uniqueIndex,
+  smallint,
   jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -369,5 +371,144 @@ export const documentationRelations = relations(documentation, ({ one }) => ({
   problem: one(problems, {
     fields: [documentation.problemId],
     references: [problems.id],
+  }),
+}));
+
+/* ============================================================
+   Member Rating Index (ness.city/members)
+   ------------------------------------------------------------
+   Members rate each other on a single −2…+2 spectrum (one tap /
+   swipe per person). The aggregate is a ranked social index of
+   members, revealed progressively as you rate. Self-contained so
+   the whole subsystem can be frozen (kill switch) or dropped
+   without touching the rest of Ness.
+
+   Population model:
+     - Ratees (subjects) are `directory_profiles` rows — the
+       scraped NS member roster. No new roster to seed.
+     - Raters are signed-in Privy users, keyed by their stable
+       Privy DID. A rater is best-effort linked back to their
+       own directory profile so we can exclude self.
+
+   Hard privacy rule enforced at the query layer, not here:
+   nobody sees their own score/rank, and nobody sees who rated
+   whom — only the aggregate ranking of everyone else.
+   ============================================================ */
+
+/**
+ * Raters — the evaluators. One row per signed-in Privy user. Kept
+ * distinct from `citizens` (which carries karma / patronage semantics)
+ * so the rating subsystem stays self-contained. `tenureMonths` drives
+ * rater weight (see lib/members/config.ts) and is backfillable; null
+ * falls back to the configured floor weight.
+ */
+export const raters = pgTable(
+  "raters",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Stable Privy user id, e.g. did:privy:... — the rater's identity anchor. */
+    privyDid: text("privy_did").notNull().unique(),
+    email: text("email"),
+    displayName: text("display_name").notNull(),
+    /** Best-effort handle, used to self-link to a directory profile. */
+    handle: text("handle"),
+    /** The rater's own directory profile, when we can match one. Lets us
+        exclude self from their rate list and (later) read tenure. */
+    subjectProfileId: uuid("subject_profile_id").references(
+      () => directoryProfiles.id,
+      { onDelete: "set null" },
+    ),
+    /** Months at Network School. Null → floor weight until backfilled. */
+    tenureMonths: integer("tenure_months"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastRatedAt: timestamp("last_rated_at", { withTimezone: true }),
+  },
+  (t) => ({
+    handleIdx: index("raters_handle_idx").on(t.handle),
+  }),
+);
+
+/**
+ * Member ratings — the core table. One row per (rater, subject) pair,
+ * upserted, so re-rating updates in place.
+ *
+ * `rating` is the whole signal: a single bucket on the −2…+2 spectrum
+ * (−2 strong no … 0 neutral … +2 strong yes). Every row is a real rating;
+ * a "skip" simply leaves no row, so the person resurfaces later.
+ */
+export const memberRatings = pgTable(
+  "member_ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    raterId: uuid("rater_id")
+      .notNull()
+      .references(() => raters.id, { onDelete: "cascade" }),
+    subjectProfileId: uuid("subject_profile_id")
+      .notNull()
+      .references(() => directoryProfiles.id, { onDelete: "cascade" }),
+    /** −2…+2 bucket. Always set. */
+    rating: smallint("rating").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pairUnique: uniqueIndex("member_ratings_pair_uidx").on(
+      t.raterId,
+      t.subjectProfileId,
+    ),
+    subjectIdx: index("member_ratings_subject_idx").on(t.subjectProfileId),
+    raterIdx: index("member_ratings_rater_idx").on(t.raterId),
+    createdIdx: index("member_ratings_created_idx").on(t.createdAt),
+  }),
+);
+
+/**
+ * Runtime settings for the rating subsystem — a tiny key/value store so
+ * the admin kill switch and public-page mode can flip without a redeploy.
+ * Known keys:
+ *   ratings_frozen : "true" | "false"  (kill switch: freeze writes + hide public page)
+ *   public_mode    : "highlights" | "full"  (overrides the config default)
+ * Absent key → fall back to the compile-time default in lib/members/config.ts.
+ */
+export const memberSettings = pgTable("member_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Dashboard access audit — every core-dashboard load logged with viewer +
+ * timestamp, per the hard rules. Written by the (role-gated) dashboard;
+ * never exposed publicly.
+ */
+export const memberDashboardViews = pgTable(
+  "member_dashboard_views",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    viewer: text("viewer").notNull(),
+    path: text("path"),
+    viewedAt: timestamp("viewed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    viewedIdx: index("member_dashboard_views_viewed_idx").on(t.viewedAt),
+  }),
+);
+
+export const ratersRelations = relations(raters, ({ one, many }) => ({
+  profile: one(directoryProfiles, {
+    fields: [raters.subjectProfileId],
+    references: [directoryProfiles.id],
+  }),
+  ratings: many(memberRatings),
+}));
+
+export const memberRatingsRelations = relations(memberRatings, ({ one }) => ({
+  rater: one(raters, {
+    fields: [memberRatings.raterId],
+    references: [raters.id],
+  }),
+  subject: one(directoryProfiles, {
+    fields: [memberRatings.subjectProfileId],
+    references: [directoryProfiles.id],
   }),
 }));
