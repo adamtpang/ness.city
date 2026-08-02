@@ -3,7 +3,8 @@ import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured, schema } from "@/lib/db";
 import { MEMBER_CONFIG, SCALE_MIN, SCALE_MAX } from "@/lib/members/config";
 import { getMemberSettings } from "@/lib/members/settings";
-import { ensureRater, parseRaterIdentity } from "@/lib/members/rater";
+import { ensureRater } from "@/lib/members/rater";
+import { resolveIdentity } from "@/lib/members/anon";
 import { ratingsInLastHour } from "@/lib/members/queries";
 
 export const runtime = "nodejs";
@@ -34,10 +35,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
 
-  const identity = parseRaterIdentity(body);
-  if (!identity) {
-    return NextResponse.json({ ok: false, error: "Sign in to rate (missing identity)." }, { status: 401 });
-  }
+  const identity = await resolveIdentity(body);
 
   const subjectProfileId = typeof body.subjectProfileId === "string" ? body.subjectProfileId : null;
   if (!subjectProfileId) {
@@ -55,7 +53,9 @@ export async function POST(req: Request) {
   }
 
   const db = getDb();
-  const rater = await ensureRater(identity);
+  const rater = await ensureRater(identity, {
+    ref: typeof body.ref === "string" ? body.ref : null,
+  });
 
   if (rater.subjectProfileId && rater.subjectProfileId === subjectProfileId) {
     return NextResponse.json({ ok: false, error: "You can't rate yourself." }, { status: 400 });

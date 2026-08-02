@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
-import { getRaterStatus, parseRaterIdentity } from "@/lib/members/rater";
+import { getRaterStatus } from "@/lib/members/rater";
+import { resolveIdentity } from "@/lib/members/anon";
 import { getRateDeck } from "@/lib/members/queries";
 import { getMemberSettings } from "@/lib/members/settings";
 
@@ -27,16 +28,13 @@ export async function POST(req: Request) {
     body = {};
   }
 
-  const identity = parseRaterIdentity(body);
-  if (!identity) {
-    return NextResponse.json(
-      { ok: false, error: "Sign in to load your deck (missing identity)." },
-      { status: 401 },
-    );
-  }
+  const b = (body ?? {}) as Record<string, unknown>;
+  const ref = typeof b.ref === "string" ? b.ref : null;
+
+  const identity = await resolveIdentity(body);
 
   const settings = await getMemberSettings();
-  const { rater, profile, needsOnboarding } = await getRaterStatus(identity);
+  const { rater, profile, needsOnboarding } = await getRaterStatus(identity, { ref });
   const deck = await getRateDeck(rater);
 
   return NextResponse.json({

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
 import { getMemberSettings } from "@/lib/members/settings";
-import { ensureRater, parseRaterIdentity } from "@/lib/members/rater";
-import { getCounters, getLeaderboardRanked, getRaterRatedCount } from "@/lib/members/queries";
+import { ensureRater } from "@/lib/members/rater";
+import { resolveIdentity } from "@/lib/members/anon";
+import { getCounters, getLeaderboardRanked, getRaterDistribution, getInvitesLanded } from "@/lib/members/queries";
 import { unlockedRows } from "@/lib/members/scoring";
 import { MEMBER_CONFIG } from "@/lib/members/config";
 
@@ -35,19 +36,22 @@ export async function POST(req: Request) {
     body = {};
   }
 
-  const identity = parseRaterIdentity(body);
-  let selfProfileId: string | null = null;
-  let ratedByMe = 0;
-  const signedIn = Boolean(identity);
+  const b = (body ?? {}) as Record<string, unknown>;
+  const ref = typeof b.ref === "string" ? b.ref : null;
 
-  if (identity) {
-    const rater = await ensureRater(identity);
-    selfProfileId = rater.subjectProfileId ?? null;
-    ratedByMe = await getRaterRatedCount(rater.id);
-  }
+  const identity = await resolveIdentity(body);
+  const signedIn = true;
+
+  const rater = await ensureRater(identity, { ref });
+  const selfProfileId: string | null = rater.subjectProfileId ?? null;
+  const [distribution, invitesLanded] = await Promise.all([
+    getRaterDistribution(rater.id),
+    getInvitesLanded(rater.inviteCode),
+  ]);
+  const ratedByMe = (Object.values(distribution) as number[]).reduce((a, b) => a + b, 0);
 
   const ranked = await getLeaderboardRanked(selfProfileId);
-  const unlocked = unlockedRows(ratedByMe, ranked.length, signedIn);
+  const unlocked = unlockedRows(ratedByMe, invitesLanded, ranked.length, signedIn);
   const members = ranked.slice(0, unlocked).map((m, i) => ({ ...m, rank: i + 1 }));
 
   return NextResponse.json({
@@ -59,7 +63,11 @@ export async function POST(req: Request) {
     totalRanked: ranked.length,
     locked: Math.max(0, ranked.length - unlocked),
     revealPerRating: MEMBER_CONFIG.leaderboard.revealPerRating,
+    revealPerInvite: MEMBER_CONFIG.leaderboard.revealPerInvite,
     ratedByMe,
+    invitesLanded,
+    distribution,
+    inviteCode: rater.inviteCode,
     signedIn,
   });
 }

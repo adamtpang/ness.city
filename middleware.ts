@@ -23,12 +23,16 @@ export const config = {
 export function middleware(req: NextRequest) {
   const host = (req.headers.get("host") ?? "").toLowerCase();
 
-  // Home-page-only handoff to the member rating index. Apex + www, root only.
+  // The apex IS the member rating app now: ness.city (not ness.city/members).
+  // Rewrite (not redirect) so the URL stays ness.city; clone() preserves the
+  // ?ref= invite param so referral attribution survives the apex link.
   if (
     (host === "ness.city" || host === "www.ness.city") &&
     req.nextUrl.pathname === "/"
   ) {
-    return NextResponse.redirect(new URL("/members", req.url), 307);
+    const url = req.nextUrl.clone();
+    url.pathname = "/members";
+    return NextResponse.rewrite(url);
   }
 
   if (!host.startsWith("routers.")) return NextResponse.next();

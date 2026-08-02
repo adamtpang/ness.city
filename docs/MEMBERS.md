@@ -95,6 +95,27 @@ DATABASE_URL=... npm run dev
 4. `directory_profiles` already holds the scraped roster; no seeding needed. New testers self-onboard.
 5. Visit `ness.city` → should land on `/members`. Dashboard at `/members/dashboard?token=YOUR_AGENT_API_TOKEN`.
 
+## Current prod status (2026-07-19) — built + verified, NOT yet live
+
+The app code is done, typechecks clean, and the backend was verified end-to-end
+against a real (throwaway local) Postgres: all migrations apply, and the two
+surfaces never run live before (dashboard aggregate + export CSV) plus
+leaderboard holdout/self-hide, deck exclusion + priority, progressive reveal,
+rate upsert, rate limit, kill switch, and self-onboard all produce correct
+results. The blockers are all infra/config, none in the code:
+
+1. **Supabase is PAUSED / unreachable** (project ref `nainihapgoaelcebpmby`). REST
+   + direct host are dead and the pooler returns "tenant not found" — the whole
+   ness.city DB is down, so `npm run db:apply` fails and nothing DB-backed serves.
+   Fix: Supabase dashboard → the project → Restore (free-tier auto-pause).
+2. **`NEXT_PUBLIC_PRIVY_APP_ID` + `AGENT_API_TOKEN` are in Vercel, not `.env.local`.**
+   Without Privy, rankings still render but rating is disabled.
+3. **Apex `ness.city` still edge-redirects → www → optimism.fun, and the ness.city
+   Vercel project has no production deployment.** So even with the DB up, the apex
+   won't serve `/members` until the redirect is removed (personal Vercel account)
+   and a production deploy is promoted. The middleware redirect above only takes
+   effect once the app is actually served on that host.
+
 ---
 
 ## Status & roadmap
@@ -104,7 +125,7 @@ index, shrunk-mean scoring, progressive reveal, counters, kill switch, rate
 limit, mobile-first.
 
 **Done (this branch):**
-- M1 — apex `ness.city` → `/members` (dropped the optimism.fun redirect).
+- M1 — apex `ness.city` → `/members` in the app middleware (supersedes the old code-level optimism.fun redirect). ⚠ A separate **Vercel-edge** redirect still sends the live apex to optimism.fun until it's removed on the personal Vercel account — see "Current prod status" below.
 - M2 — self-onboarding: signed-in users become rateable members (name + "what you're building"), no manual seeding.
 - M3 — viral share/invite (Web Share + copy fallback) + milestone prompt after N ratings.
 - M4 — core-team dashboard (full ranked table, mean/median/count/raters) + CSV export + view logging.

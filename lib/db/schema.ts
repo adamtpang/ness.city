@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   smallint,
   jsonb,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -251,10 +252,19 @@ export const directoryProfiles = pgTable(
     externalId: text("external_id"),
     source: text("source").notNull().default("ns_directory"),
     scrapedAt: timestamp("scraped_at", { withTimezone: true }).notNull().defaultNow(),
+    // Enrichment from the scrape — powers the open roster's metric sorts.
+    onCampus: boolean("on_campus"),
+    github: text("github"),
+    twitter: text("twitter"),
+    industry: text("industry"),
+    memberType: text("member_type"),
+    joinedAt: text("joined_at"),
+    skills: text("skills"),
   },
   (t) => ({
     handleIdx: index("directory_profiles_handle_idx").on(t.handle),
     displayNameIdx: index("directory_profiles_display_name_idx").on(t.displayName),
+    onCampusIdx: index("directory_profiles_on_campus_idx").on(t.onCampus),
   }),
 );
 
@@ -420,11 +430,17 @@ export const raters = pgTable(
     ),
     /** Months at Network School. Null → floor weight until backfilled. */
     tenureMonths: integer("tenure_months"),
+    /** This rater's own share code — the ?ref= on their invite link. */
+    inviteCode: text("invite_code"),
+    /** The invite_code of whoever referred this rater (first-touch, set once). */
+    referredBy: text("referred_by"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     lastRatedAt: timestamp("last_rated_at", { withTimezone: true }),
   },
   (t) => ({
     handleIdx: index("raters_handle_idx").on(t.handle),
+    inviteCodeIdx: uniqueIndex("raters_invite_code_uidx").on(t.inviteCode),
+    referredByIdx: index("raters_referred_by_idx").on(t.referredBy),
   }),
 );
 
@@ -493,6 +509,42 @@ export const memberDashboardViews = pgTable(
     viewedIdx: index("member_dashboard_views_viewed_idx").on(t.viewedAt),
   }),
 );
+
+/**
+ * Where next. When a campus closes the community scatters, and nobody holds
+ * the map. One row per member says where they are heading, so people can find
+ * each other in the next city instead of losing the network with the venue.
+ *
+ * Deliberately keyed to a directory profile (not a rater) so it survives any
+ * change of login, and unique per profile so it is a current plan, not a log.
+ */
+export const memberPlans = pgTable(
+  "member_plans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    subjectProfileId: uuid("subject_profile_id")
+      .notNull()
+      .references(() => directoryProfiles.id, { onDelete: "cascade" }),
+    /** Free text city or node, normalized for grouping at query time. */
+    destination: text("destination").notNull(),
+    /** Loose date, kept as text so "August", "next week" all work. */
+    departOn: text("depart_on"),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    profileUnique: uniqueIndex("member_plans_profile_uidx").on(t.subjectProfileId),
+    destinationIdx: index("member_plans_destination_idx").on(t.destination),
+  }),
+);
+
+export const memberPlansRelations = relations(memberPlans, ({ one }) => ({
+  subject: one(directoryProfiles, {
+    fields: [memberPlans.subjectProfileId],
+    references: [directoryProfiles.id],
+  }),
+}));
 
 export const ratersRelations = relations(raters, ({ one, many }) => ({
   profile: one(directoryProfiles, {

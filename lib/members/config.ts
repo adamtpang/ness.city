@@ -16,11 +16,17 @@ export const MEMBER_CONFIG = {
    * drives the color (neg = red-ish, pos = green-ish, 0 = neutral).
    */
   scale: [
-    { value: -2 as Bucket, label: "No", sub: "not a fit", emoji: "👎", tone: "neg" },
-    { value: -1 as Bucket, label: "Meh", sub: "leaning no", emoji: "🤏", tone: "neg" },
-    { value: 0 as Bucket, label: "Neutral", sub: "no strong read", emoji: "😐", tone: "zero" },
-    { value: 1 as Bucket, label: "Like", sub: "leaning yes", emoji: "🙂", tone: "pos" },
-    { value: 2 as Bucket, label: "Love", sub: "must stay", emoji: "🔥", tone: "pos" },
+    // Values are the honest −2…+2 signal (kept for the operator dashboard).
+    // Labels are framed as enthusiasm, not judgment — tapping the low end
+    // reads as "not for me," never "you're not good enough." Nobody ever
+    // sees their own score, and only the positive end is ever surfaced back.
+    // tone is a neutral→green ramp (t0…t4). No red — the low end reads as
+    // neutral, never negative. The −2…+2 value underneath is unchanged.
+    { value: -2 as Bucket, label: "Pass", sub: "not for me", emoji: "🤷", tone: "t0" },
+    { value: -1 as Bucket, label: "Meh", sub: "it's okay", emoji: "😐", tone: "t1" },
+    { value: 0 as Bucket, label: "Curious", sub: "want to know more", emoji: "🤔", tone: "t2" },
+    { value: 1 as Bucket, label: "Fan", sub: "really into this", emoji: "🙌", tone: "t3" },
+    { value: 2 as Bucket, label: "Legend", sub: "must-know", emoji: "🔥", tone: "t4" },
   ],
 
   /**
@@ -42,9 +48,10 @@ export const MEMBER_CONFIG = {
    * `signedOutVisible` as a teaser.
    */
   leaderboard: {
-    baseVisible: 5,
-    revealPerRating: 2,
-    signedOutVisible: 3,
+    baseVisible: 1,
+    revealPerRating: 1,
+    revealPerInvite: 3,
+    signedOutVisible: 1,
   },
 
   /**
@@ -60,6 +67,17 @@ export const MEMBER_CONFIG = {
     limit: 40,
   },
 
+  /**
+   * The roster is a real directory of real people, so it is NOT public. You
+   * have to take part before you can browse the room: rate this many members
+   * and the roster unlocks. Enforced server-side in /api/members/roster, not
+   * just hidden in the UI, so the list is never fetchable by a crawler or a
+   * casual visitor.
+   */
+  roster: {
+    minRatingsToBrowse: 3,
+  },
+
   /** Max new ratings one rater can create per rolling hour (anti-bulk-dump). */
   rateLimitPerHour: 120,
 
@@ -72,7 +90,7 @@ export const MEMBER_CONFIG = {
   /** Share / invite loop. The celebratory prompt fires after `minRatings`. */
   share: {
     minRatings: 10,
-    url: "https://ness.city/members",
+    url: "https://ness.city",
   },
 } as const;
 

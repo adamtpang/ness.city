@@ -15,11 +15,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Members",
   description: "Rate the room. A ranked social index of Network School members.",
-  alternates: { canonical: "/members" },
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "ness.city/members",
+    title: "ness.city",
     description: "Rate the room. A ranked social index of Network School members.",
-    url: "https://ness.city/members",
+    url: "https://ness.city",
     type: "website",
   },
 };
@@ -43,11 +43,8 @@ export default async function MembersPage() {
   return (
     <main className="mx-auto max-w-lg px-4 pb-24 pt-8 sm:pt-12">
       <header className="mb-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">Network School · rate the room</p>
-        <h1 className="serif mt-2 text-[34px] leading-[1.05] text-ink-950 sm:text-[40px]">Members.</h1>
-        <p className="mt-2 text-[14.5px] leading-[1.6] text-ink-600">
-          One tap per person, −2 to +2. The more you rate, the more of the ranking you unlock. Nobody ever sees their own score.
-        </p>
+        <h1 className="serif text-[34px] leading-[1.05] text-ink-950 sm:text-[40px]">Rate the room.</h1>
+        <p className="mt-1.5 text-[13.5px] text-ink-500">Rate more, see more. Nobody sees their own score.</p>
       </header>
       <MembersApp initialCounters={counters} initialTeaser={teaser} />
     </main>

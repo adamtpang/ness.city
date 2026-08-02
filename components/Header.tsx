@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import { SignIn } from "@/components/SignIn";
 import { Avatar } from "@/components/Avatar";
 
-const PRIVY_ENABLED = Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
+// AUTH OFF for the anonymous beta (see components/Providers.tsx AUTH_ENABLED).
+const PRIVY_ENABLED = false;
 
 /**
  * Minimal header: brand mark on the left, sign-in on the right (only

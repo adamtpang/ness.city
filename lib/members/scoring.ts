@@ -36,9 +36,18 @@ export function toFill(score: number): number {
   return Math.max(0, Math.min(1, t));
 }
 
-/** How many leaderboard rows a rater has unlocked. */
-export function unlockedRows(ratedCount: number, total: number, signedIn: boolean): number {
-  const { baseVisible, revealPerRating, signedOutVisible } = MEMBER_CONFIG.leaderboard;
+/**
+ * How many leaderboard rows a rater has unlocked:
+ *   base + revealPerRating × (people you rated) + revealPerInvite × (people you brought in)
+ * Inviting is worth more than rating, to push the viral loop.
+ */
+export function unlockedRows(
+  ratedCount: number,
+  invitesCount: number,
+  total: number,
+  signedIn: boolean,
+): number {
+  const { baseVisible, revealPerRating, revealPerInvite, signedOutVisible } = MEMBER_CONFIG.leaderboard;
   if (!signedIn) return Math.min(signedOutVisible, total);
-  return Math.min(total, baseVisible + revealPerRating * ratedCount);
+  return Math.min(total, baseVisible + revealPerRating * ratedCount + revealPerInvite * invitesCount);
 }

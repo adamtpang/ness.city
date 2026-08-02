@@ -1,6 +1,14 @@
+import { randomUUID } from "node:crypto";
 import { and, eq, or, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { slugify } from "@/lib/api-helpers";
+
+/** Normalize a referral code from the client (the ?ref= on an invite link). */
+export function normalizeRef(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const t = v.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  return t.length >= 6 && t.length <= 16 ? t : null;
+}
 
 export type DirectoryProfile = typeof schema.directoryProfiles.$inferSelect;
 
@@ -58,7 +66,10 @@ export function parseRaterIdentity(body: unknown): RaterIdentity | null {
  * and best-effort links the rater to their own directory profile so we can
  * exclude self from their rate list.
  */
-export async function ensureRater(identity: RaterIdentity): Promise<Rater> {
+export async function ensureRater(
+  identity: RaterIdentity,
+  opts: { ref?: string | null } = {},
+): Promise<Rater> {
   const db = getDb();
   const displayName =
     identity.displayName ||
@@ -66,6 +77,10 @@ export async function ensureRater(identity: RaterIdentity): Promise<Rater> {
     "Member";
 
   const linkedProfileId = await matchDirectoryProfile(identity);
+  // Generated once, on first insert. invite_code = this rater's share code;
+  // referred_by = whoever's link first brought them in (first-touch).
+  const inviteCode = randomUUID().replace(/-/g, "").slice(0, 8);
+  const referredBy = normalizeRef(opts.ref);
 
   const inserted = await db
     .insert(schema.raters)
@@ -75,11 +90,14 @@ export async function ensureRater(identity: RaterIdentity): Promise<Rater> {
       displayName,
       handle: identity.handle ?? null,
       subjectProfileId: linkedProfileId,
+      inviteCode,
+      referredBy,
     })
     .onConflictDoUpdate({
       target: schema.raters.privyDid,
       set: {
         // Only overwrite with non-null incoming values (coalesce keeps prior).
+        // invite_code + referred_by are intentionally NOT here — set once.
         email: sql`coalesce(${identity.email ?? null}, ${schema.raters.email})`,
         displayName: sql`coalesce(${identity.displayName ?? null}, ${schema.raters.displayName})`,
         handle: sql`coalesce(${identity.handle ?? null}, ${schema.raters.handle})`,
@@ -124,9 +142,12 @@ export type RaterStatus = {
 };
 
 /** Ensure the rater and load their linked roster profile (if any). */
-export async function getRaterStatus(identity: RaterIdentity): Promise<RaterStatus> {
+export async function getRaterStatus(
+  identity: RaterIdentity,
+  opts: { ref?: string | null } = {},
+): Promise<RaterStatus> {
   const db = getDb();
-  const rater = await ensureRater(identity);
+  const rater = await ensureRater(identity, opts);
   let profile: DirectoryProfile | null = null;
   if (rater.subjectProfileId) {
     const rows = await db

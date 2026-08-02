@@ -12,12 +12,6 @@ import type { Rater } from "./rater";
  * own row (config.hideOwnRow) and returns only aggregate scores.
  */
 
-// Priority keywords as one delimited string; string_to_array rebuilds the
-// text[] inside SQL (passing a JS array to `any()` expands to a tuple, not an
-// array). Keywords are simple words, so "|" is a safe delimiter.
-const priorityPatternString = () =>
-  MEMBER_CONFIG.deck.priorityKeywords.map((k) => `%${k}%`).join("|");
-
 export type DeckMember = {
   id: string;
   handle: string;
@@ -42,27 +36,31 @@ export async function getRateDeck(rater: Rater, limit = MEMBER_CONFIG.deck.limit
   if (!isDbConfigured) return { members: [], total: 0, ratedByMe: 0 };
   const db = getDb();
   const selfId = rater.subjectProfileId ?? null;
-  const patterns = priorityPatternString();
 
+  // Order: people physically here first (you'll actually meet them), then by
+  // bucket (core team → long-termers → short-termers), then shuffled within a
+  // bucket. Shuffle stands in for a real friend graph until the rating graph
+  // exists — friends could be anywhere, so a fresh mix beats a fixed list.
   const rows = (await db.execute(sql`
     select
       dp.id, dp.handle, dp.display_name, dp.avatar_url,
-      coalesce(nullif(dp.role, ''), dp.bio) as building,
-      case when (coalesce(dp.role,'') || ' ' || coalesce(dp.location,'')) ilike any(string_to_array(${patterns}, '|'))
-           then 0 else 1 end as prio,
-      coalesce(rc.cnt, 0)::int as rating_count
+      coalesce(nullif(dp.role, ''), dp.bio) as building
     from directory_profiles dp
-    left join (
-      select subject_profile_id, count(*)::int as cnt
-      from member_ratings group by subject_profile_id
-    ) rc on rc.subject_profile_id = dp.id
     where
       not exists (
         select 1 from member_ratings mr
         where mr.subject_profile_id = dp.id and mr.rater_id = ${rater.id}
       )
       and (${selfId}::uuid is null or dp.id <> ${selfId}::uuid)
-    order by prio asc, rating_count asc, dp.scraped_at desc, dp.id asc
+    order by
+      (dp.on_campus is true) desc,
+      case lower(coalesce(dp.member_type, ''))
+        when 'core' then 0
+        when 'long-term' then 1
+        when 'longterm' then 1
+        else 2
+      end asc,
+      random()
     limit ${limit}
   `)) as unknown as Array<{
     id: string; handle: string; display_name: string;
@@ -224,6 +222,37 @@ export async function getRaterRatedCount(raterId: string): Promise<number> {
   return row?.cnt ?? 0;
 }
 
+/** How many raters this person has referred in — their invite link's landings.
+ * Also feeds the reveal: inviting unlocks more of the index than rating does. */
+export async function getInvitesLanded(inviteCode: string | null): Promise<number> {
+  if (!isDbConfigured || !inviteCode) return 0;
+  const db = getDb();
+  const [row] = (await db.execute(sql`
+    select count(*)::int as cnt from raters where referred_by = ${inviteCode}
+  `)) as unknown as Array<{ cnt: number }>;
+  return row?.cnt ?? 0;
+}
+
+export type RatingDistribution = { "-2": number; "-1": number; "0": number; "1": number; "2": number };
+
+/** This rater's own spread across the −2…+2 buckets — lets them see whether
+ * they're picky or generous. Their own data only; never anyone else's. */
+export async function getRaterDistribution(raterId: string): Promise<RatingDistribution> {
+  const empty: RatingDistribution = { "-2": 0, "-1": 0, "0": 0, "1": 0, "2": 0 };
+  if (!isDbConfigured) return empty;
+  const db = getDb();
+  const rows = (await db.execute(sql`
+    select rating, count(*)::int as cnt from member_ratings
+    where rater_id = ${raterId} group by rating
+  `)) as unknown as Array<{ rating: number; cnt: number }>;
+  const out = { ...empty };
+  for (const r of rows) {
+    const k = String(r.rating) as keyof RatingDistribution;
+    if (k in out) out[k] = r.cnt;
+  }
+  return out;
+}
+
 /** New ratings this rater has created in the last hour (rate-limit check). */
 export async function ratingsInLastHour(raterId: string): Promise<number> {
   if (!isDbConfigured) return 0;
@@ -233,4 +262,172 @@ export async function ratingsInLastHour(raterId: string): Promise<number> {
     where rater_id = ${raterId} and created_at > now() - interval '1 hour'
   `)) as unknown as Array<{ cnt: number }>;
   return row?.cnt ?? 0;
+}
+
+export type PlanPerson = {
+  id: string;
+  handle: string;
+  displayName: string;
+  avatarUrl: string | null;
+  departOn: string | null;
+  note: string | null;
+};
+
+export type Destination = {
+  key: string;
+  label: string;
+  count: number;
+  people: PlanPerson[];
+};
+
+/**
+ * Where everyone is heading, grouped by destination. This is the continuity
+ * map: when the campus closes, this is what stops the network dissolving with
+ * the venue. Returns only what people volunteered about themselves.
+ */
+export async function getDestinations(): Promise<{ destinations: Destination[]; total: number }> {
+  if (!isDbConfigured) return { destinations: [], total: 0 };
+  const db = getDb();
+  const rows = (await db.execute(sql`
+    select
+      lower(btrim(p.destination)) as key,
+      min(btrim(p.destination)) as label,
+      dp.id, dp.handle, dp.display_name, dp.avatar_url,
+      p.depart_on, p.note
+    from member_plans p
+    join directory_profiles dp on dp.id = p.subject_profile_id
+    group by lower(btrim(p.destination)), dp.id, dp.handle, dp.display_name, dp.avatar_url, p.depart_on, p.note
+    order by lower(btrim(p.destination)) asc, dp.display_name asc
+  `)) as unknown as Array<{
+    key: string; label: string; id: string; handle: string;
+    display_name: string; avatar_url: string | null;
+    depart_on: string | null; note: string | null;
+  }>;
+
+  const byKey = new Map<string, Destination>();
+  for (const r of rows) {
+    let d = byKey.get(r.key);
+    if (!d) {
+      d = { key: r.key, label: r.label, count: 0, people: [] };
+      byKey.set(r.key, d);
+    }
+    d.count += 1;
+    d.people.push({
+      id: r.id, handle: r.handle, displayName: r.display_name,
+      avatarUrl: r.avatar_url, departOn: r.depart_on, note: r.note,
+    });
+  }
+  const destinations = [...byKey.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  return { destinations, total: rows.length };
+}
+
+/** Set (or update) where one member is heading next. One current plan each. */
+export async function setMemberPlan(input: {
+  profileId: string;
+  destination: string;
+  departOn?: string | null;
+  note?: string | null;
+}): Promise<void> {
+  if (!isDbConfigured) throw new Error("Database not configured");
+  const db = getDb();
+  await db
+    .insert(schema.memberPlans)
+    .values({
+      subjectProfileId: input.profileId,
+      destination: input.destination,
+      departOn: input.departOn ?? null,
+      note: input.note ?? null,
+    })
+    .onConflictDoUpdate({
+      target: schema.memberPlans.subjectProfileId,
+      set: {
+        destination: input.destination,
+        departOn: input.departOn ?? null,
+        note: input.note ?? null,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+export type RosterMember = {
+  id: string;
+  handle: string;
+  displayName: string;
+  avatarUrl: string | null;
+  building: string | null;
+  location: string | null;
+  onCampus: boolean | null;
+  github: string | null;
+  industry: string | null;
+  memberType: string | null;
+};
+
+export type RosterResult = { members: RosterMember[]; total: number; shown: number };
+
+export type RosterSort = "name" | "newest" | "oncampus" | "github";
+
+/**
+ * The open directory — who is in the room. Public facts only (name, what
+ * they're building, location, on-campus, github). NEVER exposes any rating
+ * score, so browsing the roster can't spoil the gated index. Searchable and
+ * sortable by real metrics; capped so we never ship 2.7k rows to the client.
+ */
+export async function getRoster(opts: {
+  sort?: RosterSort;
+  q?: string;
+  onCampus?: boolean;
+  hasGithub?: boolean;
+  limit?: number;
+} = {}): Promise<RosterResult> {
+  if (!isDbConfigured) return { members: [], total: 0, shown: 0 };
+  const db = getDb();
+  const limit = Math.min(Math.max(opts.limit ?? 150, 1), 500);
+  const q = (opts.q ?? "").trim().toLowerCase();
+  const like = q ? `%${q}%` : null;
+
+  const where = sql`
+    (${like}::text is null or lower(
+      coalesce(dp.display_name,'') || ' ' || coalesce(dp.handle,'') || ' ' ||
+      coalesce(dp.role,'') || ' ' || coalesce(dp.skills,'') || ' ' ||
+      coalesce(dp.industry,'') || ' ' || coalesce(dp.location,'')
+    ) like ${like})
+    and (${opts.onCampus ? sql`dp.on_campus is true` : sql`true`})
+    and (${opts.hasGithub ? sql`(dp.github is not null and dp.github <> '')` : sql`true`})`;
+
+  const order =
+    opts.sort === "newest"
+      ? sql`dp.joined_at desc nulls last, dp.display_name asc`
+      : opts.sort === "oncampus"
+        ? sql`dp.on_campus desc nulls last, dp.display_name asc`
+        : opts.sort === "github"
+          ? sql`(dp.github is not null and dp.github <> '') desc, dp.display_name asc`
+          : sql`dp.display_name asc`;
+
+  const rows = (await db.execute(sql`
+    select dp.id, dp.handle, dp.display_name, dp.avatar_url,
+      nullif(dp.role, '') as building, dp.location,
+      dp.on_campus, nullif(dp.github, '') as github, nullif(dp.industry, '') as industry, dp.member_type
+    from directory_profiles dp
+    where ${where}
+    order by ${order}
+    limit ${limit}
+  `)) as unknown as Array<{
+    id: string; handle: string; display_name: string; avatar_url: string | null;
+    building: string | null; location: string | null; on_campus: boolean | null;
+    github: string | null; industry: string | null; member_type: string | null;
+  }>;
+
+  const [{ total }] = (await db.execute(sql`
+    select count(*)::int as total from directory_profiles dp where ${where}
+  `)) as unknown as Array<{ total: number }>;
+
+  return {
+    members: rows.map((r) => ({
+      id: r.id, handle: r.handle, displayName: r.display_name, avatarUrl: r.avatar_url,
+      building: r.building, location: r.location, onCampus: r.on_campus,
+      github: r.github, industry: r.industry, memberType: r.member_type,
+    })),
+    total: total ?? 0,
+    shown: rows.length,
+  };
 }
