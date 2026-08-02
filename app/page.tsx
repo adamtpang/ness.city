@@ -22,6 +22,15 @@ const STATUS: Record<string, { dot: string; label: string }> = {
   solved: { dot: "bg-emerald-500", label: "Solved" },
 };
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  operations: "⚙️",
+  social: "🤝",
+  infra: "📡",
+  policy: "📜",
+  wellbeing: "🌿",
+  other: "🧩",
+};
+
 const IMPORTANT = 25;
 const URGENT = 25;
 // Problem -> Priority -> Solution -> Bounty.
@@ -36,6 +45,7 @@ type Item = {
   solver: DemoSolver | null;
   surfaced: string;
   bountyUsd: number;
+  bountyGoalUsd: number;
 };
 
 function initials(name: string): string {
@@ -82,15 +92,34 @@ export default async function Home() {
 
   const items: Item[] = problems.map((p) => {
     const d = p as Partial<DemoProblem> & ProblemWithCounts;
+    // Live board prefers query pipeline fields; demo seed can override.
+    const solution =
+      d.solution ??
+      p.latestProposalSummary ??
+      (p.proposalCount > 0 ? `${p.proposalCount} proposal${p.proposalCount === 1 ? "" : "s"}` : null);
+    const solver: DemoSolver | null =
+      d.solver ??
+      (p.latestProposalAuthor
+        ? {
+            name: p.latestProposalAuthor,
+            handle: p.latestProposalAuthor
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "")
+              .slice(0, 16) || "solver",
+            progress: p.status === "solved" ? 100 : p.proposalCount > 0 ? 10 : 0,
+          }
+        : null);
     return {
       p,
       importance: p.upvotes,
       urgency: d.urgency ?? 0,
-      emoji: d.emoji ?? "🧩",
-      solution: d.solution ?? null,
-      solver: d.solver ?? null,
+      emoji: d.emoji ?? CATEGORY_EMOJI[p.category] ?? "🧩",
+      solution,
+      solver,
       surfaced: d.surfaced ?? timeAgo(p.createdAt),
-      bountyUsd: d.bountyUsd ?? 0,
+      // Prefer pledged total when live; fall back to demo seed bountyUsd.
+      bountyUsd: p.bountyUsd > 0 ? p.bountyUsd : (d.bountyUsd ?? 0),
+      bountyGoalUsd: p.bountyGoalUsd ?? d.bountyUsd ?? 0,
     };
   });
   const q1 = items.filter((i) => i.importance >= IMPORTANT && i.urgency >= URGENT).sort(byPriority);
@@ -242,8 +271,19 @@ function QuadrantSection({
 }
 
 function Row({ item }: { item: Item }) {
-  const { p, importance, urgency, emoji, solution, solver, surfaced, bountyUsd } = item;
+  const {
+    p,
+    importance,
+    urgency,
+    emoji,
+    solution,
+    solver,
+    surfaced,
+    bountyUsd,
+    bountyGoalUsd,
+  } = item;
   const done = p.status === "solved" || (solver?.progress ?? 0) >= 100;
+  const hasBounty = bountyUsd > 0 || bountyGoalUsd > 0;
   return (
     <li className="border-b border-ink-200 last:border-0">
       <div className={`grid ${COLS} items-center gap-3 px-3 py-3 transition-colors hover:bg-paper-tint sm:px-4`}>
@@ -253,7 +293,8 @@ function Row({ item }: { item: Item }) {
           <span className="min-w-0">
             <span className="block truncate text-[13.5px] font-medium text-ink-950">{p.title}</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-400">
-              {p.category} · {p.affected} hit · {surfaced}
+              {p.category} · {p.affected > 0 ? `${p.affected} hit · ` : ""}
+              {surfaced}
             </span>
           </span>
         </Link>
@@ -278,40 +319,56 @@ function Row({ item }: { item: Item }) {
         {/* Solution + who is on it */}
         <div className="min-w-0">
           {solution ? (
-            <>
+            <Link href={`/townhall/${p.slug}#propose`} className="block min-w-0">
               <span className="block truncate text-[12.5px] leading-snug text-ink-700">{solution}</span>
               {solver && (
                 <span className="mt-1 flex items-center gap-1.5">
                   <Avatar initials={initials(solver.name)} seed={solver.handle} size={14} />
                   <span className="font-mono text-[9.5px] text-ink-500">
-                    @{solver.handle} · {solver.progress}%
+                    {solver.name}
+                    {solver.progress > 0 ? ` · ${solver.progress}%` : ""}
                   </span>
-                  <span className="h-1 w-12 overflow-hidden rounded-full bg-ink-200">
-                    <span
-                      className={`block h-full rounded-full ${done ? "bg-emerald-500" : "bg-blue-500"}`}
-                      style={{ width: `${Math.max(6, solver.progress)}%` }}
-                    />
-                  </span>
+                  {solver.progress > 0 && (
+                    <span className="h-1 w-12 overflow-hidden rounded-full bg-ink-200">
+                      <span
+                        className={`block h-full rounded-full ${done ? "bg-emerald-500" : "bg-blue-500"}`}
+                        style={{ width: `${Math.max(6, solver.progress)}%` }}
+                      />
+                    </span>
+                  )}
                 </span>
               )}
-            </>
+            </Link>
           ) : (
-            <span className="text-[11.5px] text-ink-400">Open for solutions</span>
+            <Link
+              href={`/townhall/${p.slug}#propose`}
+              className="text-[11.5px] font-medium text-[#2563eb] hover:underline"
+            >
+              Propose a fix →
+            </Link>
           )}
         </div>
 
-        {/* Bounty */}
+        {/* Bounty: pledged USDC when funded; goal when open; else fund CTA */}
         <div className="flex items-center justify-end">
-          {bountyUsd > 0 ? (
-            <span className="inline-flex items-center gap-1.5">
+          {hasBounty ? (
+            <Link
+              href={`/townhall/${p.slug}#pledge`}
+              className="inline-flex items-center gap-1.5"
+              title={
+                bountyGoalUsd > 0
+                  ? `$${bountyUsd.toLocaleString()} pledged of $${bountyGoalUsd.toLocaleString()} goal`
+                  : `$${bountyUsd.toLocaleString()} pledged`
+              }
+            >
               <UsdcMark size={15} />
               <span className="font-mono text-[13px] font-semibold tabular-nums text-ink-900">
-                ${bountyUsd.toLocaleString()}
+                ${(bountyUsd > 0 ? bountyUsd : bountyGoalUsd).toLocaleString()}
               </span>
-            </span>
+            </Link>
           ) : (
             <Link
-              href={`/townhall/${p.slug}`}
+              href={`/townhall/${p.slug}#pledge`}
               className="font-mono text-[11px] font-medium text-[#2563eb] hover:underline"
             >
               Fund →

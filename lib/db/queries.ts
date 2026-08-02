@@ -141,6 +141,7 @@ export function dbProblemToTownhall(
     proposals: (p.proposals ?? []).map((pr) => ({
       id: pr.id,
       authorId: pr.authorId ?? pr.id,
+      authorDisplayName: pr.authorDisplayName,
       summary: pr.summary,
       body: pr.body,
       createdAt: pr.createdAt.toISOString(),
@@ -157,6 +158,7 @@ export function dbProblemToTownhall(
             : undefined,
           pledges: (p.bounty.pledges ?? []).map((pl) => ({
             patronId: pl.patronId ?? pl.id,
+            patronDisplayName: pl.patronDisplayName,
             amount: pl.amountCents / 100,
             pledgedAt: pl.pledgedAt.toISOString(),
             note: pl.note ?? undefined,
@@ -194,11 +196,16 @@ export async function getCitizensByIds(ids: string[]) {
     .where(eq(schema.citizens.id, unique[0])); // simple case for now
 }
 
-/** Problems + per-problem explanation (comment) and solution (proposal)
- *  counts, for the dashboard table. Sorted by votes desc. */
+/** Problems + per-problem pipeline signals for the home engine board.
+ *  Counts + the latest proposal headline + pledged bounty USD so the
+ *  live board shows Solution / Bounty columns for real, not demo-only. */
 export type ProblemWithCounts = DbProblem & {
   commentCount: number;
   proposalCount: number;
+  latestProposalSummary: string | null;
+  latestProposalAuthor: string | null;
+  bountyUsd: number;
+  bountyGoalUsd: number;
 };
 
 export async function listProblemsWithCounts(): Promise<ProblemWithCounts[]> {
@@ -210,29 +217,81 @@ export async function listProblemsWithCounts(): Promise<ProblemWithCounts[]> {
     .orderBy(desc(schema.problems.upvotes), desc(schema.problems.createdAt))
     .limit(100);
   if (problems.length === 0) return [];
-  const [comments, proposals] = await Promise.all([
-    db
-      .select({
-        pid: schema.problemComments.problemId,
-        n: sql<number>`count(*)::int`,
-      })
-      .from(schema.problemComments)
-      .groupBy(schema.problemComments.problemId),
-    db
-      .select({
-        pid: schema.proposals.problemId,
-        n: sql<number>`count(*)::int`,
-      })
-      .from(schema.proposals)
-      .groupBy(schema.proposals.problemId),
-  ]);
+  const [comments, proposalCounts, proposalRows, bountyRows, pledgeRows] =
+    await Promise.all([
+      db
+        .select({
+          pid: schema.problemComments.problemId,
+          n: sql<number>`count(*)::int`,
+        })
+        .from(schema.problemComments)
+        .groupBy(schema.problemComments.problemId),
+      db
+        .select({
+          pid: schema.proposals.problemId,
+          n: sql<number>`count(*)::int`,
+        })
+        .from(schema.proposals)
+        .groupBy(schema.proposals.problemId),
+      db
+        .select({
+          pid: schema.proposals.problemId,
+          summary: schema.proposals.summary,
+          author: schema.proposals.authorDisplayName,
+          createdAt: schema.proposals.createdAt,
+        })
+        .from(schema.proposals)
+        .orderBy(desc(schema.proposals.createdAt)),
+      db
+        .select({
+          id: schema.bounties.id,
+          pid: schema.bounties.problemId,
+          goalCents: schema.bounties.goalCents,
+        })
+        .from(schema.bounties),
+      db
+        .select({
+          bountyId: schema.pledges.bountyId,
+          cents: sql<number>`coalesce(sum(${schema.pledges.amountCents}), 0)::int`,
+        })
+        .from(schema.pledges)
+        .groupBy(schema.pledges.bountyId),
+    ]);
   const cmap = new Map(comments.map((r) => [r.pid, r.n]));
-  const pmap = new Map(proposals.map((r) => [r.pid, r.n]));
-  return problems.map((p) => ({
-    ...p,
-    commentCount: cmap.get(p.id) ?? 0,
-    proposalCount: pmap.get(p.id) ?? 0,
-  }));
+  const pmap = new Map(proposalCounts.map((r) => [r.pid, r.n]));
+  // First row per problem is the latest proposal (ordered desc above).
+  const latestProposal = new Map<
+    string,
+    { summary: string; author: string }
+  >();
+  for (const r of proposalRows) {
+    if (!latestProposal.has(r.pid)) {
+      latestProposal.set(r.pid, { summary: r.summary, author: r.author });
+    }
+  }
+  const pledgeByBounty = new Map(pledgeRows.map((r) => [r.bountyId, r.cents]));
+  const bountyByProblem = new Map(
+    bountyRows.map((r) => [
+      r.pid,
+      {
+        goalUsd: Math.round(r.goalCents / 100),
+        pledgedUsd: Math.round((pledgeByBounty.get(r.id) ?? 0) / 100),
+      },
+    ]),
+  );
+  return problems.map((p) => {
+    const latest = latestProposal.get(p.id);
+    const bounty = bountyByProblem.get(p.id);
+    return {
+      ...p,
+      commentCount: cmap.get(p.id) ?? 0,
+      proposalCount: pmap.get(p.id) ?? 0,
+      latestProposalSummary: latest?.summary ?? null,
+      latestProposalAuthor: latest?.author ?? null,
+      bountyUsd: bounty?.pledgedUsd ?? 0,
+      bountyGoalUsd: bounty?.goalUsd ?? 0,
+    };
+  });
 }
 
 /**

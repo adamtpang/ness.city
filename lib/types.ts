@@ -16,6 +16,8 @@ export type Citizen = {
 export type SolutionProposal = {
   id: string;
   authorId: string;
+  /** Present on live DB rows; sample/demo rows may omit. */
+  authorDisplayName?: string;
   summary: string;
   body: string;
   createdAt: string;
@@ -24,6 +26,8 @@ export type SolutionProposal = {
 
 export type Pledge = {
   patronId: string;
+  /** Present on live DB rows when the patron posted with a display name. */
+  patronDisplayName?: string;
   amount: number;
   pledgedAt: string;
   note?: string;

@@ -187,10 +187,18 @@ export default async function ProblemPage({
                     const author = isSample
                       ? getSampleCitizen(p.authorId)
                       : null;
-                    const name = author?.name ?? "Anonymous";
+                    const name =
+                      author?.name ??
+                      p.authorDisplayName ??
+                      "Anonymous";
                     const initials =
                       author?.avatar ??
-                      name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+                      name
+                        .split(/\s+/)
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase();
                     return (
                       <div
                         key={p.id}
@@ -199,7 +207,7 @@ export default async function ProblemPage({
                         <div className="flex items-center gap-3">
                           <Avatar
                             initials={initials}
-                            seed={author?.id ?? p.id}
+                            seed={author?.id ?? p.authorId ?? p.id}
                             size={32}
                           />
                           <div>
@@ -230,7 +238,7 @@ export default async function ProblemPage({
           {/* Live action: propose */}
           {!isSample && problem.status !== "solved" && (
             <FadeInOnView>
-              <div className="mt-6">
+              <div id="propose" className="mt-6 scroll-mt-24">
                 <ProposeForm problemSlug={problem.slug} />
               </div>
             </FadeInOnView>
@@ -239,7 +247,7 @@ export default async function ProblemPage({
           {/* Live action: open bounty (if proposals exist but no bounty) */}
           {!isSample && !problem.bounty && problem.proposals.length > 0 && (
             <FadeInOnView>
-              <div className="mt-3">
+              <div id="bounty" className="mt-3 scroll-mt-24">
                 <StartBountyForm
                   problemSlug={problem.slug}
                   proposals={problem.proposals.map((p) => ({
@@ -278,7 +286,7 @@ export default async function ProblemPage({
               problem.bounty.state === "claimed") &&
             !problem.documentation && (
               <FadeInOnView>
-                <div className="mt-6">
+                <div id="ship" className="mt-6 scroll-mt-24">
                   <DocumentForm problemSlug={problem.slug} />
                 </div>
               </FadeInOnView>
@@ -290,7 +298,11 @@ export default async function ProblemPage({
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <FadeIn delay={0.2}>
-            <BountyPanel problem={problem} sampleMode={isSample} />
+            <BountyPanel
+              problem={problem}
+              sampleMode={isSample}
+              liveMode={!isSample}
+            />
           </FadeIn>
           {/* Live action: pledge */}
           {!isSample &&
@@ -298,11 +310,20 @@ export default async function ProblemPage({
             problem.bounty.state !== "paid" &&
             dbRow?.bounty?.id && (
               <FadeIn delay={0.26}>
-                <div className="mt-3 rounded-2xl border border-ink-200 bg-paper p-5">
+                <div
+                  id="pledge"
+                  className="mt-3 scroll-mt-24 rounded-2xl border border-ink-200 bg-paper p-5"
+                >
                   <PledgeForm bountyId={dbRow.bounty.id} />
                 </div>
               </FadeIn>
             )}
+          {/* When no bounty yet, anchor #pledge to propose/open-bounty path */}
+          {!isSample && !problem.bounty && (
+            <div id="pledge" className="sr-only" aria-hidden>
+              Pledge opens after a proposal anchors a bounty.
+            </div>
+          )}
         </aside>
       </div>
     </main>

@@ -13,45 +13,82 @@ const stateLabel: Record<NonNullable<Problem["bounty"]>["state"], string> = {
   paid: "Paid out",
 };
 
+function initialsFrom(name: string): string {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
+
+/**
+ * Bounty status card on the problem detail page.
+ * Live CTAs scroll to the real forms (#propose / #pledge / #ship / #bounty)
+ * so the panel never shows a dead button.
+ */
 export function BountyPanel({
   problem,
   sampleMode = false,
+  liveMode = false,
 }: {
   problem: Problem;
   sampleMode?: boolean;
+  /** When true, CTAs are real anchors into forms on the same page. */
+  liveMode?: boolean;
 }) {
   const lookupCitizen = sampleMode ? getSampleCitizen : getCitizen;
   const totalFn = sampleMode ? sampleBountyTotal : bountyTotal;
+  const interactive = liveMode || sampleMode;
 
   if (!problem.bounty) {
+    const nextStep =
+      problem.proposals.length === 0
+        ? { href: "#propose", label: "Propose a fix first" }
+        : { href: "#bounty", label: "Open a bounty" };
     return (
       <div className="rounded-2xl border border-dashed border-ink-300 bg-paper-tint p-7">
         <h3 className="serif text-[22px] leading-tight text-ink-950">
           No bounty yet.
         </h3>
         <p className="mt-2 text-[14px] leading-[1.6] text-ink-600">
-          Once a solution is proposed, anyone can pledge to fund it. Patrons
-          earn attribution. Fixers earn Ness karma.
+          Once a solution is proposed, anyone can open a USD bounty and pledge
+          to fund it. Patrons earn attribution. Fixers earn Ness karma.
         </p>
-        <button className="mt-5 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-colors hover:border-ink-950">
-          Pledge a starter
-          <span aria-hidden>→</span>
-        </button>
+        {interactive ? (
+          <a
+            href={nextStep.href}
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-paper px-4 py-2 text-[13px] font-medium text-ink-950 transition-colors hover:border-ink-950"
+          >
+            {nextStep.label}
+            <span aria-hidden>→</span>
+          </a>
+        ) : null}
       </div>
     );
   }
 
   const total = totalFn(problem);
-  const pct = Math.min(100, (total / problem.bounty.goal) * 100);
-  const sortedPledges = [...problem.bounty.pledges].sort((a, b) => b.amount - a.amount);
-  const solver = problem.bounty.claimedBy ? lookupCitizen(problem.bounty.claimedBy) : null;
+  const pct = Math.min(
+    100,
+    problem.bounty.goal > 0 ? (total / problem.bounty.goal) * 100 : 0,
+  );
+  const sortedPledges = [...problem.bounty.pledges].sort(
+    (a, b) => b.amount - a.amount,
+  );
+  const solver = problem.bounty.claimedBy
+    ? lookupCitizen(problem.bounty.claimedBy)
+    : null;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-200 bg-paper">
       <div className="border-b border-ink-200 bg-paper-tint px-6 py-4">
         <div className="flex items-center justify-between gap-3">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">
-            Bounty
+            Bounty · USDC
           </span>
           <span className="inline-flex items-center gap-1.5 text-[12px] text-ink-700">
             <span
@@ -98,19 +135,29 @@ export function BountyPanel({
           <span>{pct.toFixed(0)}% funded</span>
         </div>
 
-        {problem.bounty.state === "collecting" && (
-          <button className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink-950 px-4 py-2.5 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800">
+        {interactive && problem.bounty.state === "collecting" && (
+          <a
+            href="#pledge"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink-950 px-4 py-2.5 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
+          >
             Add to bounty
             <span aria-hidden>→</span>
-          </button>
+          </a>
         )}
 
-        {problem.bounty.state === "funded" && (
-          <button className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink-950 px-4 py-2.5 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800">
-            Claim this bounty
-            <span aria-hidden>→</span>
-          </button>
-        )}
+        {interactive &&
+          (problem.bounty.state === "funded" ||
+            problem.bounty.state === "claimed") && (
+            <a
+              href="#ship"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink-950 px-4 py-2.5 text-[13px] font-medium text-paper transition-colors hover:bg-ink-800"
+            >
+              {problem.bounty.state === "funded"
+                ? "Claim & ship"
+                : "Document the ship"}
+              <span aria-hidden>→</span>
+            </a>
+          )}
 
         {solver && (
           <div className="mt-5 flex items-center gap-3 rounded-xl border border-ink-200 bg-paper-tint p-3">
@@ -141,35 +188,44 @@ export function BountyPanel({
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
             Patrons
           </p>
-          <ul className="mt-3 space-y-2">
-            {sortedPledges.map((pledge) => {
-              const patron = lookupCitizen(pledge.patronId);
-              if (!patron) return null;
-              return (
-                <li
-                  key={pledge.patronId}
-                  className="flex items-start justify-between gap-3 border-b border-ink-100 pb-2 last:border-0"
-                >
-                  <div className="flex min-w-0 items-start gap-2.5">
-                    <Avatar initials={patron.avatar} seed={patron.id} size={24} />
-                    <div className="min-w-0">
-                      <div className="text-[13px] text-ink-950">
-                        {patron.name}
+          {sortedPledges.length === 0 ? (
+            <p className="mt-3 text-[13px] text-ink-500">
+              No pledges yet. Be the first patron.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {sortedPledges.map((pledge) => {
+                const citizen = lookupCitizen(pledge.patronId);
+                const name =
+                  citizen?.name ??
+                  pledge.patronDisplayName ??
+                  "Patron";
+                const avatar = citizen?.avatar ?? initialsFrom(name);
+                const seed = citizen?.id ?? pledge.patronId;
+                return (
+                  <li
+                    key={`${pledge.patronId}-${pledge.pledgedAt}`}
+                    className="flex items-start justify-between gap-3 border-b border-ink-100 pb-2 last:border-0"
+                  >
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <Avatar initials={avatar} seed={seed} size={24} />
+                      <div className="min-w-0">
+                        <div className="text-[13px] text-ink-950">{name}</div>
+                        {pledge.note && (
+                          <div className="mt-0.5 text-[12px] italic text-ink-500">
+                            &ldquo;{pledge.note}&rdquo;
+                          </div>
+                        )}
                       </div>
-                      {pledge.note && (
-                        <div className="mt-0.5 text-[12px] italic text-ink-500">
-                          &ldquo;{pledge.note}&rdquo;
-                        </div>
-                      )}
                     </div>
-                  </div>
-                  <span className="shrink-0 font-mono text-[13px] tabular-nums text-ink-700">
-                    ${pledge.amount}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+                    <span className="shrink-0 font-mono text-[13px] tabular-nums text-ink-700">
+                      ${pledge.amount}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </div>
     </div>

@@ -20,11 +20,12 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
-const NESS_DESCRIPTION = "A civic coordination platform.";
+const NESS_DESCRIPTION =
+  "The civic layer for builders. Problems become bounties become fixes — open tooling for ambitious communities.";
 
 export const metadata: Metadata = {
   title: {
-    default: "Ness",
+    default: "Ness · civic layer for builders",
     template: "%s · Ness",
   },
   description: NESS_DESCRIPTION,
@@ -33,15 +34,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Ness",
+    title: "Ness · civic layer for builders",
     description: NESS_DESCRIPTION,
     url: "https://ness.city",
     siteName: "Ness",
     type: "website",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ness",
+    title: "Ness · civic layer for builders",
     description: NESS_DESCRIPTION,
   },
 };
@@ -62,7 +64,7 @@ export default function RootLayout({
           <div className="mx-auto max-w-5xl px-5 text-[12px] text-ink-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3 font-mono">
-                <span>ness.city · v0.16</span>
+                <span>ness.city · v0.17</span>
                 <span className="text-ink-300">·</span>
                 <a
                   href="https://github.com/adamtpang/ness"
