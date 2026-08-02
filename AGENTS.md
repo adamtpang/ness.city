@@ -1,0 +1,133 @@
+<!-- BEGIN:summon-standard -->
+Summon standard: this company must pass the six readiness gates in `summon.company/SUMMON_COMPANY_STANDARD.md` (Outcome, Evidence, Workspace, Organization, Skills, Runtime). Read `NORTH_STAR.md`, `EVIDENCE.md`, `company/ORGANIZATION.md`.
+<!-- END:summon-standard -->
+
+<!-- BEGIN:grok-chat-continuation -->
+Grok chat continuation: read `GROK_CONTINUE_FROM_CLAUDE.md` and/or `GROK_CONTINUE_FROM_CODEX.md` when resuming in Grok. Refresh with `node .grok/sync-to-grok.js` from Aether root.
+<!-- END:grok-chat-continuation -->
+<!-- BEGIN:claude-chat-continuation -->
+Claude chat continuation: read `ANTIGRAVITY_CONTINUE_FROM_CLAUDE.md` to resume from the latest local Claude sessions for this project.
+<!-- END:claude-chat-continuation -->
+
+<!-- BEGIN:claude-codex-sync -->
+# Claude/Codex sync
+
+Before making changes, read `CLAUDE.md` in this project if it exists. It is the live handoff from Claude Code and the source of truth for current project progress, design decisions, constraints, and open tasks. Keep future progress updates there so Claude and Codex stay in sync.
+
+If this file contains older project context that conflicts with `CLAUDE.md`, prefer `CLAUDE.md` unless the user says otherwise.
+<!-- END:claude-codex-sync -->
+
+<!-- BEGIN:imported-claude-context -->
+# CLAUDE.md - ness.city
+
+Context for Claude Code, Codex, and humans working in this folder.
+
+## What this is
+
+This handoff was generated on 2026-07-07 so every top-level Codex project under
+`C:\Users\adamp\OneDrive\Aether` has both `CLAUDE.md` and `AGENTS.md`.
+
+No richer Claude handoff was found here during the workspace sync. Treat this file
+as a starting point, then inspect the actual code and docs before making changes.
+
+## Detected project facts
+
+- Workspace folder: `ness.city`
+- Git repository: yes
+- `package.json`: yes
+- Detected stack: Next.js, React, Tailwind, TypeScript, package "ness"
+- Existing context-like files: README.md, readme.md, CONTRIBUTING.md
+- Notable top-level files: .env.local, .gitignore, CONTRIBUTING.md, drizzle.config.ts, LICENSE, middleware.ts, next-env.d.ts, next.config.mjs, package-lock.json, package.json, postcss.config.mjs, README.md
+
+## How to keep this useful
+
+- If you learn the product purpose, stack, run commands, deployment target, or open
+  tasks, update this file.
+- Keep `AGENTS.md` synchronized with this file so Codex sessions have the same
+  context inline.
+- Prefer concrete project facts over generic instructions.
+
+## Imported existing context
+
+Source: `README.md`
+
+```markdown
+# Ness · `ness.city`
+
+The civic layer for builders. Open-source tooling for ambitious communities.
+
+> **Independent project.** Not affiliated with Network School (ns.com). Ness is its own brand and operates separately.
+
+## What it is
+
+Ness is a portfolio of small, opinionated tools for community-driven cities:
+
+- **Townhall** (live UI). Civic layer. Problems become bounties become fixes. Solvers earn karma. Patrons earn attribution.
+- **Jobs** (live, hand-curated). Public openings filtered by category. Direct apply links.
+- **PageRank** (live UI). Map your ring in doubling rounds. Social PageRank surfaces who the city named most.
+- **Match** (in design). Drop a resume, get the 80%+ matches across jobs and bounties.
+- **Market** (planned). Products / services / assets. Consolidates `nsmarket.app` and `redmart.xyz`.
+
+## The five-step engine (Townhall)
+
+1. **Surface**. Anyone files a problem with a real diagnosis. (+5 karma.)
+2. **Explain**. The community refines the root cause.
+3. **Propose**. A citizen drafts a concrete fix.
+4. **Bounty**. Patrons crowdfund the proposal in USDC on Base.
+5. **Ship**. A solver claims, ships, documents. (+25 karma + the bounty + permanent attribution for the patrons.)
+
+## Stack
+
+- Next.js 16 (App Router) · React 19 · TypeScript
+- TailwindCSS 3 · Framer Motion
+- Inter (body) + Instrument Serif (display) via `next/font/google`
+- Deployed on Vercel
+- Backend (in progress): Vercel Postgres, USDC on Base for bounty payouts
+
+## Local dev
+
+```bash
+npm install
+npm run dev
+```
+
+Open http://localhost:3000.
+
+### Env vars
+
+- `DATABASE_URL` (or `POSTGRES_URL`) — Postgres connection string. Auto-injected by Vercel when you provision Postgres in the project Storage tab. Required for any real writes.
+- `DISCORD_FEEDBACK_WEBHOOK` — optional. If set, the feedback widget also posts to this Discord webhook in addition to logging.
+
+## Backend
+
+Drizzle + Vercel Postgres. Schema lives in [`lib/db/schema.ts`](lib/db/schema.ts), with eight tables covering citizens, problems, proposals, bounties, pledges, documentation, pagerank_rings, and feedback.
+
+The first real API routes are live:
+
+- `GET /api/health` — DB reachability + row counts
+- `GET /api/problems` — list latest problems
+- `POST /api/problems` — create a problem (awards +5 karma to the reporter)
+- `POST /api/feedback` — log a feedback widget submission (writes to DB when configured)
+
+Setup steps in [`docs/backend.md`](docs/backend.md). 10 minutes once you provision Postgres.
+
+## Bigger picture
+
+ness.city is one node in **interneta.world**, Adam Pang's vision for the next evolution of the West, built on the [Network State](https://thenetworkstate.com) thesis.
+
+## Contributing
+
+The repo is public. The merge button isn't. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Third-party content
+
+- `/pulse` page + `lib/stats/*.json` + `docs/ns-api-discovery.md` ported from
+  [hiddentao/nspulse](https://github.com/hiddentao/nspulse) (MIT) by Ramesh Nair.
+  Original analysis lives at [nspulse.xyz](https://nspulse.xyz). All ported
+  content is attributed in-page and in this notice.
+
+## License
+
+[MIT](LICENSE).
+```
+<!-- END:imported-claude-context -->
