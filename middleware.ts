@@ -15,13 +15,26 @@ import { NextResponse, type NextRequest } from "next/server";
  * (or www) home page redirects there. Everything else — the nslink/routers
  * tool, nessie, /api/*, and every preview deployment — keeps serving, so this
  * is a soft, fully reversible handoff (307, not a hard-cached 308).
+ *
+ * nskpi.com is a second domain pointed at this same project. Its home page
+ * rewrites to /kpi (the Network State registry dashboard) so the domain
+ * resolves to a real page without a second codebase to maintain. See
+ * app/kpi/page.tsx for why this replaced a standalone nskpi.com rebuild.
  */
 export const config = {
   matcher: ["/((?!_next/|favicon.ico|.*\\..*).*)"],
 };
 
+const KPI_HOSTS = new Set(["nskpi.com", "www.nskpi.com"]);
+
 export function middleware(req: NextRequest) {
   const host = (req.headers.get("host") ?? "").toLowerCase();
+
+  if (KPI_HOSTS.has(host) && req.nextUrl.pathname === "/") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/kpi";
+    return NextResponse.rewrite(url);
+  }
 
   // The apex IS the member rating app now: ness.city (not ness.city/members).
   // Rewrite (not redirect) so the URL stays ness.city; clone() preserves the
