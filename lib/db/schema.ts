@@ -59,6 +59,8 @@ export const marketContactEnum = pgEnum("market_contact", [
   "telegram",
 ]);
 
+export const gatheringKindEnum = pgEnum("gathering_kind", ["event", "meal"]);
+
 export const marketStatusEnum = pgEnum("market_status", [
   "open",
   "claimed",
@@ -305,6 +307,37 @@ export const marketListings = pgTable(
     statusIdx: index("market_listings_status_idx").on(t.status),
     kindIdx: index("market_listings_kind_idx").on(t.kind),
     sellerIdx: index("market_listings_seller_idx").on(t.sellerHandle),
+  }),
+);
+
+/**
+ * Gatherings. One table, one kind enum (event | meal), the same idiom as
+ * market_listings' kind column. Native events + food boards: what NS's own
+ * infrastructure used to cover, now living on ness.city so it keeps working
+ * regardless of which campus or country the community is physically in.
+ *
+ * Same lightweight identity as problems/market: a typed host name, no login.
+ * Meals default to a short expiry (today's dinner shouldn't linger on the
+ * board tomorrow); events default longer. Both set explicitly at insert time.
+ */
+export const gatherings = pgTable(
+  "gatherings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kind: gatheringKindEnum("kind").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    place: text("place"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    hostId: uuid("host_id").references(() => citizens.id, { onDelete: "set null" }),
+    hostHandle: text("host_handle").notNull(),
+    hostDisplayName: text("host_display_name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => ({
+    kindIdx: index("gatherings_kind_idx").on(t.kind),
+    startsAtIdx: index("gatherings_starts_at_idx").on(t.startsAt),
   }),
 );
 

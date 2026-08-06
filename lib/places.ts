@@ -128,6 +128,24 @@ export const places: Place[] = [
 
   // --- Community ---
   {
+    id: "events",
+    name: "Events",
+    href: "/events",
+    desc: "What's happening, posted by the community.",
+    section: "community",
+    status: "live",
+    inHeader: true,
+  },
+  {
+    id: "food",
+    name: "Food",
+    href: "/food",
+    desc: "Who's cooking, what's ready, and when.",
+    section: "community",
+    status: "live",
+    inHeader: true,
+  },
+  {
     id: "whatsapp",
     name: "The Plaza",
     href: "/whatsapp",
