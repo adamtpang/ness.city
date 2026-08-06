@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { sql } from "drizzle-orm";
+import { getDb, isDbConfigured } from "@/lib/db";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
-import { CHANGELOG } from "@/lib/changelog";
+import { STORY } from "@/lib/story";
 
-const DESCRIPTION = "Every real, deployed change to ness.city, in order. Nothing written for the changelog, everything pulled from what actually shipped.";
+const DESCRIPTION = "The story so far, for the community, not the engineers. What changed, and why. Live numbers at nskpi.com.";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Changelog · Ness",
@@ -11,59 +16,80 @@ export const metadata: Metadata = {
   openGraph: { title: "Changelog · Ness", description: DESCRIPTION, url: "https://ness.city/changelog", type: "website" },
 };
 
-function groupByMonth(entries: typeof CHANGELOG) {
-  const groups = new Map<string, typeof CHANGELOG>();
-  for (const e of entries) {
-    const key = e.date.slice(0, 7); // YYYY-MM
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(e);
-  }
-  return [...groups.entries()];
+type Pulse = { roster: number; problems: number; market: number };
+
+async function getPulse(): Promise<Pulse> {
+  if (!isDbConfigured) return { roster: 0, problems: 0, market: 0 };
+  const db = getDb();
+  const [row] = (await db.execute(sql`
+    select
+      (select count(*)::int from directory_profiles) as roster,
+      (select count(*)::int from problems) as problems,
+      (select count(*)::int from market_listings) as market
+  `)) as unknown as Array<Pulse>;
+  return row ?? { roster: 0, problems: 0, market: 0 };
 }
 
-function monthLabel(key: string) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-}
-
-export default function ChangelogPage() {
-  const months = groupByMonth(CHANGELOG);
+export default async function ChangelogPage() {
+  const pulse = await getPulse();
 
   return (
     <main className="mx-auto max-w-2xl px-5 pb-20 pt-10">
       <FadeIn>
         <header className="border-b border-ink-200 pb-4">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-500">Changelog</p>
-          <h1 className="serif mt-2 text-[36px] leading-[1.05] text-ink-950">Every real change, in order.</h1>
+          <h1 className="serif mt-2 text-[36px] leading-[1.05] text-ink-950">The story so far.</h1>
           <p className="mt-3 text-[14px] leading-[1.6] text-ink-700">
-            {DESCRIPTION} {CHANGELOG.length} entries since v0.3, straight from
-            commit history. See <a href="/roadmap" className="underline-offset-2 hover:underline">the roadmap</a> for
-            what's next, and why.
+            Only the changes that actually mattered to the community, not
+            every commit. This tells the story; <a href="https://nskpi.com" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">nskpi.com</a> tells
+            the score, live.
           </p>
         </header>
       </FadeIn>
 
-      {months.map(([key, entries]) => (
-        <FadeInOnView key={key}>
-          <section className="mt-9">
-            <h2 className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-500">{monthLabel(key)}</h2>
-            <div className="mt-3 space-y-3">
-              {entries.map((e, i) => (
-                <div key={`${e.date}-${e.version}-${i}`} className="flex gap-3 border-b border-ink-100 pb-3 last:border-0">
-                  <div className="w-[62px] flex-none pt-0.5 font-mono text-[11px] tabular-nums text-ink-400">{e.date.slice(5)}</div>
-                  <div className="min-w-0 flex-1">
-                    <span className="font-mono text-[11.5px] font-medium text-ink-800">v{e.version}</span>
-                    {e.tag && (
-                      <span className="ml-1.5 rounded-full border border-ink-200 bg-paper-tint px-1.5 py-px font-mono text-[9px] uppercase tracking-[0.1em] text-ink-500">{e.tag}</span>
-                    )}
-                    <p className="mt-0.5 text-[13.5px] leading-[1.5] text-ink-700">{e.description}</p>
-                  </div>
-                </div>
-              ))}
+      <FadeInOnView>
+        <div className="mt-6 grid grid-cols-3 divide-x divide-ink-200 overflow-hidden rounded-2xl border border-ink-200 bg-paper">
+          <div className="px-4 py-4 text-center">
+            <p className="serif text-[26px] leading-none text-ink-950">{pulse.roster.toLocaleString()}</p>
+            <p className="mt-1.5 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500">People in the roster</p>
+          </div>
+          <div className="px-4 py-4 text-center">
+            <p className="serif text-[26px] leading-none text-ink-950">{pulse.problems.toLocaleString()}</p>
+            <p className="mt-1.5 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500">Problems surfaced</p>
+          </div>
+          <div className="px-4 py-4 text-center">
+            <p className="serif text-[26px] leading-none text-ink-950">{pulse.market.toLocaleString()}</p>
+            <p className="mt-1.5 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-500">Market listings</p>
+          </div>
+        </div>
+        <p className="mt-2 text-center text-[11.5px] text-ink-400">
+          Right now. The full live picture, always current, lives at{" "}
+          <a href="https://nskpi.com" target="_blank" rel="noopener noreferrer" className="text-ink-700 underline-offset-2 hover:underline">nskpi.com</a>.
+        </p>
+      </FadeInOnView>
+
+      <div className="mt-10 space-y-7">
+        {STORY.map((s, i) => (
+          <FadeInOnView key={i}>
+            <div className="flex gap-4">
+              <div className="w-[92px] flex-none pt-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-400">{s.when}</div>
+              <div className="min-w-0 flex-1 border-l border-ink-200 pl-4">
+                <p className="text-[15px] font-medium text-ink-950">{s.title}</p>
+                <p className="mt-1 text-[13.5px] leading-[1.6] text-ink-700">{s.body}</p>
+              </div>
             </div>
-          </section>
-        </FadeInOnView>
-      ))}
+          </FadeInOnView>
+        ))}
+      </div>
+
+      <FadeInOnView>
+        <p className="mt-10 border-t border-ink-200 pt-5 text-[12.5px] leading-[1.6] text-ink-500">
+          Curated, not exhaustive. Every real commit, including the small
+          fixes this page leaves out, is public on{" "}
+          <a href="https://github.com/adamtpang/ness.city/commits/main" target="_blank" rel="noopener noreferrer" className="text-ink-950 underline-offset-2 hover:underline">GitHub</a>.
+          See <a href="/roadmap" className="text-ink-950 underline-offset-2 hover:underline">the roadmap</a> for what's next, and why.
+        </p>
+      </FadeInOnView>
     </main>
   );
 }
