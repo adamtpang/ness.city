@@ -31,7 +31,7 @@ const KPI_DESCRIPTION =
   "Vital signs for the network state movement. Population, participation, open problems, real numbers, not just a list of who exists.";
 
 export const metadata: Metadata = {
-  title: "KPI · Ness",
+  title: "KPI",
   description: KPI_DESCRIPTION,
   alternates: { canonical: "/kpi" },
   openGraph: {
