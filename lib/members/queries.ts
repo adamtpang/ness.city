@@ -3,6 +3,7 @@ import { getDb, isDbConfigured, schema } from "@/lib/db";
 import { MEMBER_CONFIG } from "./config";
 import { toFill } from "./scoring";
 import type { Rater } from "./rater";
+import { resourceForDestination, type DestinationResource } from "./destination-resources";
 
 /**
  * Read queries for the rating subsystem. Raw SQL for the aggregations, in
@@ -278,6 +279,9 @@ export type Destination = {
   label: string;
   count: number;
   people: PlanPerson[];
+  /** "Where next" answers who's going; this answers how to get there.
+   *  Public shape only, never the internal match regex. */
+  resource: Pick<DestinationResource, "label" | "url" | "credit"> | null;
 };
 
 /**
@@ -308,7 +312,11 @@ export async function getDestinations(): Promise<{ destinations: Destination[]; 
   for (const r of rows) {
     let d = byKey.get(r.key);
     if (!d) {
-      d = { key: r.key, label: r.label, count: 0, people: [] };
+      const match = resourceForDestination(r.label);
+      d = {
+        key: r.key, label: r.label, count: 0, people: [],
+        resource: match ? { label: match.label, url: match.url, credit: match.credit } : null,
+      };
       byKey.set(r.key, d);
     }
     d.count += 1;

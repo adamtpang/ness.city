@@ -584,7 +584,8 @@ function RosterView({ onGoRate }: { onGoRate: () => void }) {
 }
 
 type PlanPerson = { id: string; handle: string; displayName: string; avatarUrl: string | null; departOn: string | null; note: string | null };
-type Destination = { key: string; label: string; count: number; people: PlanPerson[] };
+type DestinationResource = { label: string; url: string; credit: string };
+type Destination = { key: string; label: string; count: number; people: PlanPerson[]; resource: DestinationResource | null };
 type LookupMember = { id: string; handle: string; displayName: string; avatarUrl: string | null };
 
 /**
@@ -721,6 +722,18 @@ function NextView() {
                 <span className="font-mono text-[11px] text-ink-400">{d.count}</span>
                 <span aria-hidden className="ml-auto text-ink-300">{open === d.key ? "−" : "+"}</span>
               </button>
+              {d.resource && (
+                <a
+                  href={d.resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 border-t border-ink-100 bg-paper-tint px-4 py-2 text-[12.5px] text-nessie-700 transition-colors hover:text-nessie-800"
+                >
+                  <span aria-hidden>↗</span>
+                  <span className="font-medium">{d.resource.label}</span>
+                  <span className="text-ink-400">{d.resource.credit}</span>
+                </a>
+              )}
               {open === d.key && (
                 <div className="border-t border-ink-100">
                   {d.people.map((p) => (
