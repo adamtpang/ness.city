@@ -6,7 +6,7 @@ Summon standard: this company must pass the six readiness gates in `summon.compa
 Grok chat continuation: read `GROK_CONTINUE_FROM_CLAUDE.md` and/or `GROK_CONTINUE_FROM_CODEX.md` when resuming in Grok. Refresh with `node .grok/sync-to-grok.js` from Aether root.
 <!-- END:grok-chat-continuation -->
 <!-- BEGIN:claude-chat-continuation -->
-Claude chat continuation: read `ANTIGRAVITY_CONTINUE_FROM_CLAUDE.md` to resume from the latest local Claude sessions for this project.
+Claude chat continuation: read `CODEX_CONTINUE_FROM_CLAUDE.md` to resume from the latest local Claude Code sessions for this project.
 <!-- END:claude-chat-continuation -->
 
 <!-- BEGIN:claude-codex-sync -->
@@ -97,6 +97,7 @@ Open http://localhost:3000.
 
 - `DATABASE_URL` (or `POSTGRES_URL`) — Postgres connection string. Auto-injected by Vercel when you provision Postgres in the project Storage tab. Required for any real writes.
 - `DISCORD_FEEDBACK_WEBHOOK` — optional. If set, the feedback widget also posts to this Discord webhook in addition to logging.
+- `DISCORD_COMMUNITY_WEBHOOK` — optional. If set, new posts on `/events` and `/food` also announce in that Discord channel, real-time.
 
 ## Backend
 

@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
 import { createGathering, type GatheringKind } from "@/lib/gatherings";
+import { notifyDiscordCommunity } from "@/lib/discord";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function announce(kind: GatheringKind, title: string, place: string | null, startsAt: string): string {
+  const when = new Date(startsAt).toLocaleString("en-US", {
+    weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC",
+  });
+  const emoji = kind === "meal" ? "🍜" : "📅";
+  const where = place ? ` @ ${place}` : "";
+  const link = kind === "meal" ? "ness.city/food" : "ness.city/events";
+  return `${emoji} **${title}**${where}\n${when} UTC · posted on ${link}`;
+}
 
 /**
  * POST /api/gatherings
@@ -36,6 +47,8 @@ export async function POST(req: Request) {
       hostDisplayName: typeof payload.hostDisplayName === "string" ? payload.hostDisplayName : undefined,
       hostHandle: typeof payload.hostHandle === "string" ? payload.hostHandle : undefined,
     });
+    // Fire-and-forget: never let a Discord hiccup delay or fail the response.
+    void notifyDiscordCommunity(announce(gathering.kind, gathering.title, gathering.place, gathering.startsAt));
     return NextResponse.json({ ok: true, gathering });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not post that.";

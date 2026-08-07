@@ -43,6 +43,7 @@ Open http://localhost:3000.
 
 - `DATABASE_URL` (or `POSTGRES_URL`) — Postgres connection string. Auto-injected by Vercel when you provision Postgres in the project Storage tab. Required for any real writes.
 - `DISCORD_FEEDBACK_WEBHOOK` — optional. If set, the feedback widget also posts to this Discord webhook in addition to logging.
+- `DISCORD_COMMUNITY_WEBHOOK` — optional. If set, new posts on `/events` and `/food` also announce in that Discord channel, real-time. Create an Incoming Webhook on the channel (Channel Settings → Integrations → Webhooks) to get the URL.
 
 ## Backend
 
