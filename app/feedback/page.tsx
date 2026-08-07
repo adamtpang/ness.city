@@ -2,11 +2,12 @@ import Link from "next/link";
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 
 const REPO = "https://github.com/adamtpang/ness.city";
-const DISCORD = "https://discord.gg/fNmdFWcMU";
 
 /**
- * Feedback lives on GitHub Issues, Discord for chat. No internal inbox,
- * no rating widget, no shadow queue. Public by default.
+ * Feedback lives on GitHub Issues. No internal inbox, no shadow queue.
+ * Public by default. (There used to be a Discord card here too, pointing
+ * at a server that turned out not to be Ness's own and had gone dead;
+ * removed rather than leave a broken, unowned link standing.)
  */
 export default function FeedbackPage() {
   return (
@@ -19,14 +20,13 @@ export default function FeedbackPage() {
           Public by default.
         </h1>
         <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-600">
-          Feedback lives on GitHub Issues. Chat lives on Discord. No private
-          inbox, no triage shadow queue. If it&apos;s worth saying, it&apos;s
-          worth saying where everyone can see it.
+          No private inbox, no triage shadow queue. If it&apos;s worth
+          saying, it&apos;s worth saying where everyone can see it.
         </p>
       </FadeIn>
 
       <FadeIn delay={0.06}>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-8">
           <a
             href={`${REPO}/issues/new`}
             target="_blank"
@@ -34,7 +34,7 @@ export default function FeedbackPage() {
             className="group block rounded-2xl border border-ink-200 bg-paper p-6 transition-colors hover:border-ink-950"
           >
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-              Bugs · feature requests · proposals
+              Bugs · feature requests · proposals · questions
             </p>
             <h2 className="serif mt-2 text-[24px] leading-tight text-ink-950">
               File a GitHub issue
@@ -42,25 +42,6 @@ export default function FeedbackPage() {
             </h2>
             <p className="mt-2 text-[13.5px] leading-[1.6] text-ink-600">
               Anything actionable. Tracked, attributed, permanent.
-            </p>
-          </a>
-
-          <a
-            href={DISCORD}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block rounded-2xl border border-ink-200 bg-paper-tint p-6 transition-colors hover:border-ink-950"
-          >
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
-              Chat · questions · vibes
-            </p>
-            <h2 className="serif mt-2 text-[24px] leading-tight text-ink-950">
-              Join the Discord
-              <span aria-hidden className="ml-1.5 text-ink-400">↗</span>
-            </h2>
-            <p className="mt-2 text-[13.5px] leading-[1.6] text-ink-600">
-              #support for help, #bug-reports for what&apos;s broken,
-              #feature-requests for what should exist.
             </p>
           </a>
         </div>

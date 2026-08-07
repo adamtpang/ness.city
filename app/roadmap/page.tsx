@@ -158,9 +158,7 @@ export default function RoadmapPage() {
           </div>
           <p className="mt-3 text-[12.5px] leading-[1.55] text-ink-500">
             Open-source and bottom-up.{" "}
-            <a href="https://discord.gg/fNmdFWcMU" target="_blank" rel="noopener noreferrer" className="text-ink-950 underline-offset-2 hover:underline">Join the Discord</a>{" "}
-            or{" "}
-            <a href="https://github.com/adamtpang/ness.city" target="_blank" rel="noopener noreferrer" className="text-ink-950 underline-offset-2 hover:underline">contribute on GitHub</a>{" "}
+            <a href="https://github.com/adamtpang/ness.city" target="_blank" rel="noopener noreferrer" className="text-ink-950 underline-offset-2 hover:underline">Contribute on GitHub</a>{" "}
             to help build any of these, or read{" "}
             <Link href="/civic" className="text-ink-950 underline-offset-2 hover:underline">the protocol spec</Link>{" "}
             to add your own node.

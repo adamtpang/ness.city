@@ -77,16 +77,6 @@ export default function RootLayout({
                 </a>
                 <span className="text-ink-300">·</span>
                 <a
-                  href="https://discord.gg/fNmdFWcMU"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-ink-700 underline-offset-2 hover:underline"
-                >
-                  Discord
-                  <span aria-hidden className="text-ink-400">↗</span>
-                </a>
-                <span className="text-ink-300">·</span>
-                <a
                   href="https://interneta.world"
                   target="_blank"
                   rel="noopener noreferrer"
