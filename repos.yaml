@@ -16,3 +16,5 @@ kin:
     why: interneta.world is the umbrella index of network states and societies; ness.city is one node's civic layer sitting inside that index, and interneta.world is positioned to become the registry that crawls Civic Protocol nodes like this one
   - repo: technodemocracy.app
     why: technodemocracy.app provides wallet-based voting; ness.city's Townhall proposal-and-pledge loop is a lightweight funding-market analog in the same governance space, both live in the NS and network-state ecosystem
+  - repo: ns-fellowship-prep
+    why: ns-fellowship-prep is the standalone origin of the NS Fellowship readiness checklist; its content is ported into ness.city at /fellowship-prep so it is reachable on the main community-facing site

@@ -6,7 +6,7 @@ import { FellowshipChecklist } from "@/components/FellowshipChecklist";
 /**
  * /fellowship-prep
  *
- * A free readiness checklist for the NS Fellowship track specifically:
+ * A free exam course for the NS Fellowship track specifically:
  * online form, Zoom interview, in-person exam, decision. Distinct from
  * /guide (general Basic/Pro membership) — the Fellowship is a separate,
  * far more selective process (~4,000 applicants for 128 slots in v1).
@@ -18,14 +18,14 @@ import { FellowshipChecklist } from "@/components/FellowshipChecklist";
  */
 
 export const metadata: Metadata = {
-  title: "NS Fellowship prep checklist",
+  title: "NS Fellowship Exam Course",
   description:
-    "A free, honest readiness checklist for the Network School Fellowship: the form, the Zoom interview, the in-person exam, the decision. Built by an applicant, for applicants.",
+    "A free, honest exam course for the Network School Fellowship: the form, the Zoom interview, the in-person exam, the decision. Built by an applicant, for applicants.",
   alternates: { canonical: "https://ness.city/fellowship-prep" },
   openGraph: {
-    title: "NS Fellowship prep checklist",
+    title: "NS Fellowship Exam Course",
     description:
-      "Free readiness checklist for the Network School Fellowship's 4-stage process.",
+      "Free exam course for the Network School Fellowship's 4-stage process.",
     url: "https://ness.city/fellowship-prep",
     siteName: "Ness",
     type: "website",
@@ -52,7 +52,7 @@ export default function FellowshipPrepPage() {
           <h1 className="serif mt-3 text-[40px] leading-[1.05] text-ink-950 sm:text-[58px]">
             NS Fellowship
             <br />
-            <span className="italic">prep checklist</span>
+            <span className="italic">Exam Course</span>
           </h1>
           <p className="mt-5 max-w-xl text-[15px] leading-[1.65] text-ink-700 sm:text-[16px]">
             ~4,000 people apply per cohort for 128 spots. Most applicants
