@@ -1,0 +1,18 @@
+# repos.yaml v0 — see github.com/adamtpang/repo-protocol
+repo: ness.city
+is: The civic layer for the Network School community, independent of NS itself, a townhall problem-propose-pledge loop, an anonymous member rating index, native events and food boards, and the open Civic Protocol for portable community infrastructure.
+url: https://ness.city
+cluster: ns-space
+
+provides:
+  - id: civic-protocol
+    what: the open, MIT-licensed Civic Protocol spec (discovery manifest at /.well-known/civic.json, node/people/problems/events endpoints, consent-gated federation) so any community node can interoperate without a central server
+    at: docs/CIVIC-PROTOCOL.md
+
+stack: [nextjs, typescript, tailwind, drizzle, postgres, vercel]
+
+kin:
+  - repo: interneta.world
+    why: interneta.world is the umbrella index of network states and societies; ness.city is one node's civic layer sitting inside that index, and interneta.world is positioned to become the registry that crawls Civic Protocol nodes like this one
+  - repo: technodemocracy.app
+    why: technodemocracy.app provides wallet-based voting; ness.city's Townhall proposal-and-pledge loop is a lightweight funding-market analog in the same governance space, both live in the NS and network-state ecosystem
