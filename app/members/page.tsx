@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getCounters, getLeaderboardRanked } from "@/lib/members/queries";
 import { getMemberSettings } from "@/lib/members/settings";
 import { MEMBER_CONFIG } from "@/lib/members/config";
@@ -12,15 +13,42 @@ import { MembersApp } from "@/components/members/MembersApp";
  */
 export const dynamic = "force-dynamic";
 
+// title.absolute skips the root layout's "%s · Ness" template so this exact
+// string is both the <title> and (below) the og:title — a prior mismatch
+// between the two (title "Members · Ness" vs og:title "ness.city") was
+// flagged by the AI-visibility audit. The title was also 14 chars, under
+// the ~15 char minimum the audit checks for.
+const MEMBERS_TITLE = "Ness — Rate the Room, See Your Rank";
+const MEMBERS_DESCRIPTION =
+  "Rate Network School members anonymously from -2 to +2, then watch the live ranked social index update in real time. Nobody ever sees their own score.";
+
 export const metadata: Metadata = {
-  title: "Members",
-  description: "Rate the room. A ranked social index of Network School members.",
+  title: { absolute: MEMBERS_TITLE },
+  description: MEMBERS_DESCRIPTION,
   alternates: { canonical: "/" },
+  // Custom meta tags some AI crawlers read as a quick brief of the page.
+  other: {
+    "ai-summary":
+      "Ness Members is a live, anonymous social rating index for Network School: rate members from -2 to +2 and the community ranking updates instantly.",
+    "ai-facts":
+      "Ratings are anonymous and device-based, no account required. Rankings update live as the room rates. Nobody can see their own score.",
+  },
   openGraph: {
-    title: "ness.city",
-    description: "Rate the room. A ranked social index of Network School members.",
+    title: MEMBERS_TITLE,
+    description: MEMBERS_DESCRIPTION,
     url: "https://ness.city",
     type: "website",
+    // The page previously defined its own openGraph object without an
+    // "images" entry, which silently dropped the auto-generated
+    // app/opengraph-image.tsx card that every other route gets for free.
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Ness · the civic layer for builders",
+      },
+    ],
   },
 };
 
@@ -45,6 +73,27 @@ export default async function MembersPage() {
       <header className="mb-6">
         <h1 className="serif text-[34px] leading-[1.05] text-ink-950 sm:text-[40px]">Rate the room.</h1>
         <p className="mt-1.5 text-[13.5px] text-ink-500">Rate more, see more. Nobody sees their own score.</p>
+        <p className="mt-3 text-[12.5px] leading-[1.5] text-ink-600">
+          Ness Members is a live, community-run social index for Network School:
+          everyone in the room rates everyone else, anonymously, and the ranking
+          updates in real time as more people rate.
+        </p>
+        <ul className="mt-3 space-y-1 text-[12.5px] text-ink-600">
+          <li>Rate members anonymously, −2 to +2 — no account required.</li>
+          <li>The ranked social index updates live as the room rates.</li>
+          <li>Invite friends to unlock more of the leaderboard.</li>
+        </ul>
+        <p className="mt-3 text-[12px] text-ink-400">
+          See the full{" "}
+          <Link href="/citizens" className="underline underline-offset-2 hover:text-ink-700">
+            citizen roster
+          </Link>{" "}
+          or browse the community&apos;s open{" "}
+          <Link href="/townhall" className="underline underline-offset-2 hover:text-ink-700">
+            problem board
+          </Link>
+          .
+        </p>
       </header>
       <MembersApp initialCounters={counters} initialTeaser={teaser} />
     </main>

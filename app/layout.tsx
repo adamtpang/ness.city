@@ -23,6 +23,35 @@ const instrumentSerif = Instrument_Serif({
 const NESS_DESCRIPTION =
   "The civic layer for builders. Problems become bounties become fixes — open tooling for ambitious communities.";
 
+// Sitewide JSON-LD: one Organization node grounding the "Ness" entity (with
+// a sameAs link so crawlers can tie it to the public repo) and one WebSite
+// node publishers/authored by that Organization. Rendered on every page via
+// the root layout so AI crawlers get consistent structured data everywhere,
+// not just the homepage.
+const NESS_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://ness.city/#organization",
+      name: "Ness",
+      url: "https://ness.city",
+      logo: "https://ness.city/icon.svg",
+      description: NESS_DESCRIPTION,
+      sameAs: ["https://github.com/adamtpang/ness.city"],
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://ness.city/#website",
+      url: "https://ness.city",
+      name: "Ness",
+      description: NESS_DESCRIPTION,
+      publisher: { "@id": "https://ness.city/#organization" },
+      author: { "@id": "https://ness.city/#organization" },
+    },
+  ],
+};
+
 export const metadata: Metadata = {
   title: {
     default: "Ness · civic layer for builders",
@@ -56,6 +85,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-dvh bg-paper-warm font-sans text-ink-950 antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(NESS_JSON_LD) }}
+        />
         <Providers>
           <LiveBackground />
           <Header />
