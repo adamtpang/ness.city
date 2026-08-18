@@ -8,7 +8,7 @@ import { FellowshipChecklist } from "@/components/FellowshipChecklist";
  *
  * A free exam course for the NS Fellowship track specifically:
  * online form, Zoom interview, in-person exam, decision. Distinct from
- * /guide (general Basic/Pro membership) — the Fellowship is a separate,
+ * /guide (general Basic/Pro membership): the Fellowship is a separate,
  * far more selective process (~4,000 applicants for 128 slots in v1).
  *
  * Ported from github.com/adamtpang/ns-fellowship-prep, built by a
@@ -62,6 +62,27 @@ export default function FellowshipPrepPage() {
             losing ground on the parts you actually control.
           </p>
         </header>
+      </FadeIn>
+
+      <FadeIn delay={0.08}>
+        <Link
+          href="/fellowship-prep/exam"
+          className="mt-7 flex items-center justify-between gap-4 rounded-2xl border border-ink-200 bg-paper px-5 py-4 transition-colors hover:border-ink-950"
+        >
+          <div>
+            <p className="text-[14px] font-medium text-ink-950">
+              New: the NS Exam Study Deck
+            </p>
+            <p className="mt-0.5 text-[13px] leading-[1.6] text-ink-600">
+              The published exam structure from ns.com/exam plus a
+              spaced-repetition flashcard trainer for the seven published
+              topics.
+            </p>
+          </div>
+          <span aria-hidden className="text-ink-500">
+            →
+          </span>
+        </Link>
       </FadeIn>
 
       <FadeInOnView>
