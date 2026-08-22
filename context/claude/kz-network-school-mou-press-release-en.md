@@ -6,10 +6,6 @@ Kazakhstan. Source (Kazakh):
 https://www.gov.kz/memleket/entities/maidd/press/news/details/1261472
 Published 21 July 2026, 18:13. Translated 2026-08-15.
 
-This is the public announcement of the same MOU on Adam's outbox ("Check
-the Kazakhstan MOU, Balaji-signed") and directly feeds the go/stay
-decision for the Aug 20 flight.
-
 ---
 
 The Ministry of Artificial Intelligence and Digital Development of the

@@ -329,19 +329,49 @@ export async function getDestinations(): Promise<{ destinations: Destination[]; 
   return { destinations, total: rows.length };
 }
 
-/** Set (or update) where one member is heading next. One current plan each. */
+export class PlanClaimedError extends Error {
+  constructor() {
+    super("This person's plan was already set by someone else.");
+    this.name = "PlanClaimedError";
+  }
+}
+
+/**
+ * Set (or update) where one member is heading next. One current plan each.
+ *
+ * Claim-gated as of 2026-08-15: the first successful write for a profile
+ * claims it to `raterId` (the caller's anon device identity, same one
+ * ratings use). Any later write must come from that same identity, or it's
+ * rejected with PlanClaimedError, so a stranger can no longer overwrite
+ * someone else's stated destination. Existing rows from before this column
+ * existed have `claimedByRaterId = null` and are claimed by whoever writes
+ * to them next.
+ */
 export async function setMemberPlan(input: {
   profileId: string;
+  raterId: string;
   destination: string;
   departOn?: string | null;
   note?: string | null;
 }): Promise<void> {
   if (!isDbConfigured) throw new Error("Database not configured");
   const db = getDb();
+
+  const [existing] = await db
+    .select({ claimedByRaterId: schema.memberPlans.claimedByRaterId })
+    .from(schema.memberPlans)
+    .where(sql`${schema.memberPlans.subjectProfileId} = ${input.profileId}`)
+    .limit(1);
+
+  if (existing?.claimedByRaterId && existing.claimedByRaterId !== input.raterId) {
+    throw new PlanClaimedError();
+  }
+
   await db
     .insert(schema.memberPlans)
     .values({
       subjectProfileId: input.profileId,
+      claimedByRaterId: input.raterId,
       destination: input.destination,
       departOn: input.departOn ?? null,
       note: input.note ?? null,
@@ -349,6 +379,7 @@ export async function setMemberPlan(input: {
     .onConflictDoUpdate({
       target: schema.memberPlans.subjectProfileId,
       set: {
+        claimedByRaterId: input.raterId,
         destination: input.destination,
         departOn: input.departOn ?? null,
         note: input.note ?? null,

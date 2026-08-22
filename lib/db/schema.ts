@@ -558,6 +558,17 @@ export const memberPlans = pgTable(
     subjectProfileId: uuid("subject_profile_id")
       .notNull()
       .references(() => directoryProfiles.id, { onDelete: "cascade" }),
+    /**
+     * The anon device identity (raters.id) that claimed this profile.
+     * Added 2026-08-15: without this, POST /api/members/plan had no check
+     * that the caller was actually the person named by profileId, so
+     * anyone could set or overwrite a stranger's stated destination. Null
+     * means unclaimed (legacy rows from before this column existed); the
+     * next successful write claims it.
+     */
+    claimedByRaterId: uuid("claimed_by_rater_id").references(() => raters.id, {
+      onDelete: "set null",
+    }),
     /** Free text city or node, normalized for grouping at query time. */
     destination: text("destination").notNull(),
     /** Loose date, kept as text so "August", "next week" all work. */

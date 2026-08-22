@@ -72,3 +72,12 @@ scripts/seed-forum.mjs
 # Local-only: NS directory extraction (2,541 members' PII from ns.com).
 # Never commit to the public repo.
 scripts/directory/
+
+# Cowork research capture (context/claude/): assume public-by-default risk,
+# this repo is a public repo and there's already a live precedent (/kz-mou)
+# of a file here becoming a public page. Gitignored by default; explicitly
+# un-ignore a specific file only after it's been reviewed and cleaned of
+# personal/financial/travel detail, same bar app/kz-mou/page.tsx's source
+# was held to on 2026-08-15.
+context/claude/
+!context/claude/kz-network-school-mou-press-release-en.md

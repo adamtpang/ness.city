@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
-import { getDestinations, setMemberPlan } from "@/lib/members/queries";
+import { getDestinations, setMemberPlan, PlanClaimedError } from "@/lib/members/queries";
 import { getMemberSettings } from "@/lib/members/settings";
+import { anonIdentity } from "@/lib/members/anon";
+import { ensureRater } from "@/lib/members/rater";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +16,10 @@ export const dynamic = "force-dynamic";
  * contains what someone volunteered about their own next move, and it is
  * useless unless people can actually see who else is going their way. No
  * scraped data is exposed here.
+ *
+ * POST is claim-gated (2026-08-15): the caller's anon device identity, same
+ * one ratings use, claims whichever profileId it first writes to. A
+ * different identity can no longer overwrite someone else's stated plan.
  */
 export async function GET() {
   if (!isDbConfigured) {
@@ -51,9 +57,15 @@ export async function POST(req: Request) {
   const departOn = typeof body.departOn === "string" ? body.departOn.trim().slice(0, 40) || null : null;
   const note = typeof body.note === "string" ? body.note.trim().slice(0, 140) || null : null;
 
+  const identity = await anonIdentity();
+  const rater = await ensureRater(identity);
+
   try {
-    await setMemberPlan({ profileId, destination, departOn, note });
+    await setMemberPlan({ profileId, raterId: rater.id, destination, departOn, note });
   } catch (err) {
+    if (err instanceof PlanClaimedError) {
+      return NextResponse.json({ ok: false, error: err.message }, { status: 403 });
+    }
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes("foreign key") || msg.includes("violates")) {
       return NextResponse.json({ ok: false, error: "Unknown member." }, { status: 404 });
