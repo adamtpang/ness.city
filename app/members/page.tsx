@@ -11,7 +11,7 @@ import { MembersApp } from "@/components/members/MembersApp";
  * as you rate). Server-renders the counters + a small teaser for a fast,
  * shareable first paint; the client app personalizes from there.
  */
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 // title.absolute skips the root layout's "%s · Ness" template so this exact
 // string is both the <title> and (below) the og:title — a prior mismatch
@@ -95,6 +95,41 @@ export default async function MembersPage() {
           .
         </p>
       </header>
+      <section
+        aria-labelledby="members-explainer"
+        className="mb-7 space-y-4 rounded-2xl border border-ink-200 bg-paper-tint p-5"
+      >
+        <h2
+          id="members-explainer"
+          className="serif text-[24px] leading-tight text-ink-950"
+        >
+          A social index built by the room.
+        </h2>
+        <p className="text-[13.5px] leading-[1.65] text-ink-700">
+          Ness Members gives Network School participants one shared place to
+          rate the people around them from −2 to +2. Each device can submit one
+          current rating per person, and the public index uses aggregate
+          results rather than exposing who rated whom.
+        </p>
+        <p className="text-[13.5px] leading-[1.65] text-ink-700">
+          Ness Members is free to use during its anonymous beta, and the wider
+          Ness project is open source under the MIT license. There is no paid
+          plan or trial for this rating tool; paid multi-city operations remain
+          undecided and are not offered today.
+        </p>
+        <p className="text-[13.5px] leading-[1.65] text-ink-700">
+          Ness Members assigns a pseudonymous device identifier in a secure,
+          HttpOnly, SameSite cookie that lasts up to 1 year. Ratings are stored
+          in Postgres, public rankings show aggregates, and the interface hides
+          a participant&apos;s own row from that participant.
+        </p>
+        <p className="text-[13.5px] leading-[1.65] text-ink-700">
+          Ness is an independent project operated by Adam Pang and is not
+          affiliated with Network School or ns.com. The practical next step is
+          to inspect the live index or rate one member; no purchase, quote, or
+          guaranteed outcome is involved.
+        </p>
+      </section>
       <MembersApp initialCounters={counters} initialTeaser={teaser} />
     </main>
   );

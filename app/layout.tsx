@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -39,6 +40,11 @@ const NESS_JSON_LD = {
       logo: "https://ness.city/icon.svg",
       description: NESS_DESCRIPTION,
       sameAs: ["https://github.com/adamtpang/ness.city"],
+      founder: {
+        "@type": "Person",
+        name: "Adam Pang",
+        url: "https://adampang.com",
+      },
     },
     {
       "@type": "WebSite",
@@ -100,7 +106,7 @@ export default function RootLayout({
                 <span>ness.city · v0.17</span>
                 <span className="text-ink-300">·</span>
                 <a
-                  href="https://github.com/adamtpang/ness"
+                  href="https://github.com/adamtpang/ness.city"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-ink-700 underline-offset-2 hover:underline"
@@ -108,6 +114,27 @@ export default function RootLayout({
                   GitHub
                   <span aria-hidden className="text-ink-400">↗</span>
                 </a>
+                <span className="text-ink-300">·</span>
+                <Link
+                  href="/about"
+                  className="text-ink-700 underline-offset-2 hover:underline"
+                >
+                  About
+                </Link>
+                <span className="text-ink-300">·</span>
+                <Link
+                  href="/contact"
+                  className="text-ink-700 underline-offset-2 hover:underline"
+                >
+                  Contact
+                </Link>
+                <span className="text-ink-300">·</span>
+                <Link
+                  href="/privacy"
+                  className="text-ink-700 underline-offset-2 hover:underline"
+                >
+                  Privacy
+                </Link>
                 <span className="text-ink-300">·</span>
                 <a
                   href="https://interneta.world"
@@ -122,8 +149,8 @@ export default function RootLayout({
               <span>MIT licensed. Built bottom-up.</span>
             </div>
             <div className="mt-5 border-t border-ink-100 pt-4 text-[11px] text-ink-400">
-              Independent project. Not affiliated with any specific community.
-              Ness is its own brand and operates separately.
+              Ness is an independent project operated by Adam Pang. It is not
+              affiliated with Network School or ns.com.
             </div>
           </div>
           </footer>

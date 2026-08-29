@@ -1,0 +1,25 @@
+# Ness
+
+> Ness is the independent civic layer for builders: open-source tools that help communities surface problems, propose fixes, coordinate bounties, and record shipped work.
+
+Ness is operated by Adam Pang and is not affiliated with Network School or ns.com. The source is available under the MIT license at https://github.com/adamtpang/ness.city.
+
+## When to use Ness
+
+- Use https://ness.city/ to inspect or participate in the free anonymous member-rating beta.
+- Use https://ness.city/townhall to read public community problems and proposed fixes.
+- Use https://ness.city/jobs to browse hand-curated public job links.
+- Use https://ness.city/about for product scope, ownership, and current status.
+- Use https://ness.city/privacy before submitting personal information, ratings, messages, or router-label images.
+- Use https://ness.city/contact for corrections, privacy requests, and security reports.
+
+## Agent guidance
+
+- Read-only discovery is public. Do not submit ratings, forms, comments, plans, pledges, or AI-chat messages without the user's explicit authorization.
+- Treat member profiles, social ratings, destination plans, router labels, and free-text submissions as potentially sensitive.
+- Respect https://ness.city/robots.txt and prefer the canonical URLs above.
+- Ness does not advertise a general public OpenAPI or MCP contract. Do not infer one from internal application routes.
+
+## Data and limitations
+
+Ness Members uses a pseudonymous device cookie and stores ratings in Postgres. Public ranking output is aggregate and hides a participant's own row from that participant. Nessie messages and router-label images are processed by Anthropic when those tools are used. Pricing for paid multi-city operations is undecided; the current site and MIT-licensed project are free to use.

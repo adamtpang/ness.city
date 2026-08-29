@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   getSampleCitizen,
@@ -7,6 +8,13 @@ import {
 import { FadeIn, FadeInOnView } from "@/components/motion/FadeIn";
 import { Avatar } from "@/components/Avatar";
 import { NessieLogo } from "@/components/NessieLogo";
+
+export const metadata: Metadata = {
+  title: "About Ness",
+  description:
+    "How Ness turns community problems into public proposals, bounties, and shipped fixes, with clear ownership and project status.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   const wifi = getSampleProblem("wifi-drops-coworking-3pm")!;
@@ -42,6 +50,40 @@ export default function AboutPage() {
           </span>
         </div>
       </FadeIn>
+
+      <FadeInOnView>
+        <section className="mt-10 rounded-2xl border border-ink-200 bg-paper p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500">
+            Operator and ownership
+          </p>
+          <h2 className="serif mt-2 text-[28px] leading-tight text-ink-950">
+            An independent open-source project.
+          </h2>
+          <p className="mt-3 text-[15px] leading-[1.7] text-ink-700">
+            Ness is operated by Adam Pang as an independent civic-tooling
+            project. Ness is not affiliated with Network School or ns.com;
+            references to that community describe the current use case, not
+            sponsorship or endorsement. The source and MIT license are public
+            in the ness.city GitHub repository.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a
+              href="https://github.com/adamtpang/ness.city"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] font-medium text-ink-950 underline underline-offset-4"
+            >
+              View source
+            </a>
+            <Link
+              href="/contact"
+              className="text-[13px] font-medium text-ink-950 underline underline-offset-4"
+            >
+              Contact the operator
+            </Link>
+          </div>
+        </section>
+      </FadeInOnView>
 
       <FadeInOnView>
         <p className="mt-10 text-[18px] leading-[1.7] text-ink-800">
@@ -323,7 +365,7 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Now"
             title="Feedback widget"
-            body="Floating button on every page. One tap rates Ness 1 to 5. If under 5, it asks why. The submission files a labeled GitHub issue into adamtpang/ness."
+            body="The Nessie panel accepts a 1 to 5 experience rating and asks what would improve a score below 5. Submissions are stored in the project's Postgres database for operator review."
             status="shipped"
           />
         </FadeInOnView>
@@ -339,16 +381,16 @@ export default function AboutPage() {
           <RoadmapRow
             phase="Now"
             title="PageRank"
-            body="Map your ring in doubling rounds: 1, 2, 4, 8, 16, 32. Interactive seeding lives on your device until the backend ships. Stub leaderboard previews the format."
+            body="Map your ring in doubling rounds: 1, 2, 4, 8, 16, 32. Submitted rings persist to Postgres; the current leaderboard uses weighted inbound mentions until enough connected data exists for full PageRank."
             status="shipped"
           />
         </FadeInOnView>
         <FadeInOnView>
           <RoadmapRow
-            phase="Next"
-            title="Postgres + auth + real writes"
-            body="Vercel Postgres for the data. Clerk for auth in beta. Real submit, pledge, claim, upvote. Resume upload for the Match feature."
-            status="next"
+            phase="Now"
+            title="Postgres writes + anonymous beta"
+            body="Supabase Postgres stores public Townhall content, feedback, member ratings, and opt-in destination plans. Member rating uses a secure pseudonymous device cookie; optional Privy sign-in code is present but disabled."
+            status="shipped"
           />
         </FadeInOnView>
         <FadeInOnView>
