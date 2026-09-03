@@ -103,8 +103,8 @@ a roster size is not the same as publishing a roster.
 Only members who opted in. Never your directory.
 
 ```json
-{ "people": [ { "handle": "maanasa", "displayName": "Maanasa G.",
-  "avatarUrl": null, "nextDestination": "Batam", "nextOn": "Aug 5" } ],
+{ "people": [ { "handle": "member", "displayName": "Community member",
+  "avatarUrl": null, "nextDestination": "Next city", "nextOn": "Aug 5" } ],
   "total": 1 }
 ```
 
