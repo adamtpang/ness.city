@@ -81,3 +81,6 @@ scripts/directory/
 # was held to on 2026-08-15.
 context/claude/
 !context/claude/kz-network-school-mou-press-release-en.md
+
+# Generated agent handoffs may contain private conversation and account data.
+*_CONTINUE_FROM_*.md
