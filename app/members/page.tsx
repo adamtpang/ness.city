@@ -65,7 +65,19 @@ export default async function MembersPage() {
     );
   }
 
-  const [counters, ranked] = await Promise.all([getCounters(), getLeaderboardRanked(null)]);
+  // ISR prerender runs this query during `next build`. The shared pooler
+  // currently answers `(ENOTFOUND) tenant/user ... not found`, and Next.js
+  // 16 fails the whole deploy if that throw escapes static generation.
+  // Settings reads already fail open; keep the same empty shell here so the
+  // page can still be cached and revalidated every 60s once the database
+  // answers. API routes keep throwing so a down database stays visible there.
+  let counters = { totalRatings: 0, ratersCount: 0, totalMembers: 0 };
+  let ranked: Awaited<ReturnType<typeof getLeaderboardRanked>> = [];
+  try {
+    [counters, ranked] = await Promise.all([getCounters(), getLeaderboardRanked(null)]);
+  } catch {
+    // Empty shell. Do not console.error: Next records that as a prerender error.
+  }
   const teaser = ranked.slice(0, MEMBER_CONFIG.leaderboard.signedOutVisible).map((m, i) => ({ ...m, rank: i + 1 }));
 
   return (
